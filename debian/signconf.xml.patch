@@ -1,0 +1,16 @@
+--- a/conf/signconf.xml
++++ b/conf/signconf.xml
+@@ -3,6 +3,7 @@
+ <!-- $Id: signconf.xml.in 2789 2010-02-03 10:20:29Z jakob $ -->
+ 
+ <SignerConfiguration>
++<!-- example zone
+ 	<Zone name="opendnssec.org">
+ 
+ 		<Signatures>
+@@ -54,4 +55,5 @@
+ 		</SOA>
+ 
+ 	</Zone>
++-->
+ </SignerConfiguration>

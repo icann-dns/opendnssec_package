@@ -1,0 +1,4 @@
+etc/opendnssec/*.xml /usr/share/opendnssec/
+usr/share/opendnssec/*.rnc
+usr/share/opendnssec/*.rng
+usr/share/opendnssec/kasp2html.xsl

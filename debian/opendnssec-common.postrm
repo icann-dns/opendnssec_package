@@ -1,0 +1,53 @@
+#!/bin/sh
+# postrm script for opendnssec-conf
+
+set -e
+
+unset_perms() {
+    dpkg-statoverride --remove "$1" >/dev/null 2>/dev/null || true
+}
+
+case "$1" in
+    purge)
+
+	deluser --quiet opendnssec > /dev/null || true
+
+	unset_perms /etc/opendnssec
+
+	for dir in tmp signconf unsigned signed db; do
+	    unset_perms /var/lib/opendnssec/$dir
+	done
+
+	for conf in conf.xml kasp.xml zonefetch.xml zonelist.xml; do
+	    # unset dpkg-statoverride permissions
+	    unset_perms /etc/opendnssec/$conf
+
+	    for ext in '~' '%' .bak .ucf-new .ucf-old .ucf-dist;  do
+		rm -f /etc/opendnssec/$conf$ext
+	    done
+            # remove the configuration file itself
+	    rm -f /etc/opendnssec/$conf
+
+            # and finally clear it out from the ucf database
+	    if which ucf >/dev/null; then
+		ucf --purge /etc/opendnssec/$conf
+	    fi
+	    if which ucfr >/dev/null; then
+		ucfr --purge opendnssec /etc/opendnssec/$conf
+	    fi
+	done
+
+    ;;
+
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

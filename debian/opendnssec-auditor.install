@@ -1,0 +1,6 @@
+usr/bin/ods-auditor
+usr/bin/ods-kaspcheck
+usr/lib/opendnssec/*.rb
+usr/lib/opendnssec/kasp_auditor/
+usr/share/man/man1/ods-auditor.1
+usr/share/man/man1/ods-kaspcheck.1

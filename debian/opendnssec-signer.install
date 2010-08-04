@@ -1,0 +1,3 @@
+debian/tmp/usr/sbin/ods-signer*
+debian/tmp/usr/share/man/man8/ods-signer*
+debian/tmp/usr/lib/opendnssec/signer/*.py

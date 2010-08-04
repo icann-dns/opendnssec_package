@@ -1,0 +1,3 @@
+usr/bin/ods-ksmutil
+usr/sbin/ods-enforcerd
+usr/share/opendnssec/database_create.sqlite3

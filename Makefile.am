@@ -1,0 +1,24 @@
+# $Id: Makefile.am 2960 2010-03-05 09:15:20Z rb $
+
+ACLOCAL_AMFLAGS = -I m4
+
+MAINTAINERCLEANFILES = \
+	config.log config.status \
+	$(srcdir)/Makefile.in \
+	$(srcdir)/config.h.in $(srcdir)/config.h.in~ \
+	$(srcdir)/configure \
+	$(srcdir)/install-sh $(srcdir)/ltmain.sh $(srcdir)/missing \
+	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
+	$(srcdir)/config.guess $(srcdir)/config.sub
+
+SUBDIRS = libhsm enforcer signer conf tools contrib
+
+if ENABLE_AUDITOR
+SUBDIRS += auditor
+endif
+
+if ENABLE_EPPCLIENT
+SUBDIRS += plugins/eppclient
+endif
+
+EXTRA_DIST = $(srcdir)/KNOWN_ISSUES

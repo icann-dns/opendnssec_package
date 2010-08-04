@@ -1,0 +1,52 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+export DH_OPTIONS
+
+export DEB_BUILD_HARDENING=1
+
+TRANG_VERSION ?= $(shell dpkg-query -W trang | cut -f 2)
+
+%:
+	dh --with quilt --with python-support $@
+
+override_dh_auto_clean:
+	dh_auto_clean -Bbuild-sqlite3
+	dh_auto_clean -Denforcer -Bbuild-mysql/enforcer
+	rm -rf build-mysql build-sqlite3
+	if test -f enforcer/common/config.h.orig; then mv enforcer/common/config.h.orig enforcer/common/config.h; fi
+
+override_dh_auto_configure:
+	autoreconf
+	if test -f auditor/common/config.h; then mv auditor/common/config.h auditor/common/config.h.orig; fi
+	dh_auto_configure -Bbuild-sqlite3 -- --with-ruby=/usr/bin/ruby1.8 --with-ldns=/usr --with-database-backend=sqlite3 --with-sqlite3=/usr --libexecdir=/usr/lib/opendnssec/ --with-pkcs11-opensc=/usr/lib/opensc-pkcs11.so
+	mkdir build-mysql
+	ln -s ../build-sqlite3/libhsm build-mysql/libhsm
+	dh_auto_configure -Denforcer -Bbuild-mysql/enforcer -- --with-ldns=/usr --with-database-backend=mysql --with-mysql=/usr
+
+	# Only rebuild RNG files if we have recent trang
+	@if dpkg --compare-versions "$(TRANG_VERSION)" ge "20091111-1"; then \
+	  rm conf/*.rng; \
+	fi
+
+override_dh_auto_build:
+	dh_auto_build -Bbuild-sqlite3
+	dh_auto_build -Denforcer -Bbuild-mysql/enforcer
+
+override_dh_auto_install:
+	# Comment out example zone after regression testing
+	(cd build-sqlite3; patch -p1 -i $(CURDIR)/debian/signconf.xml.patch)
+	dh_auto_install -Bbuild-sqlite3 -- DESTDIR=$(CURDIR)/debian/tmp
+	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/opendnssec-enforcer-mysql
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/
+
+override_dh_link:
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-sqlite3/usr/share/doc/opendnssec-enforcer-sqlite3/
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/doc/opendnssec-enforcer-mysql/
+	dh_link
+
+override_dh_pysupport:
+	dh_pysupport /usr/lib/opendnssec/signer

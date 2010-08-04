@@ -1,0 +1,19 @@
+opendnssec-conf for Debian
+----------------------------
+
+This package uses quilt to manage all modifications to the upstream
+source.  Changes are stored in the source package as diffs in
+debian/patches and applied during the build.  Please see:
+
+    /usr/share/doc/quilt/README.source
+
+for more information on how to apply the patches, modify patches, or
+remove a patch.
+
+ -- Ondřej Surý <ondrej@debian.org>, Tue, 13 Apr 2010 11:40:10 +0200
+
+This package sources was DFSGed by removing included trang XML schema
+converter.  You can create DFSG sources by running debian/dfsg-repack.sh
+script.
+
+ -- Ondřej Surý <ondrej@debian.org>, Tue, 13 Apr 2010 11:40:01 +0200

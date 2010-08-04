@@ -1,0 +1,16 @@
+opendnssec-enforcer for Debian
+------------------------------
+
+This package is part of OpenDNSSEC suite, and is probably useless
+without the other parts (unless you really know, what you're doing),
+so you may want to install opendnssec meta package which pulls all
+necessary dependencies to run OpenDNSSEC system.
+
+If you are going to use softhsm, you need to allow opendnssec user
+to access /var/lib/softhsm (or another place where you keep your
+softHSM database).  On standard debian system, it should be sufficient
+to add opendnssec user to softhsm group by issuing:
+
+  # adduser opendnssec softhsm
+
+ -- Ondřej Surý <ondrej@debian.org>, Fri, 26 Mar 2010 05:10:25 +0100

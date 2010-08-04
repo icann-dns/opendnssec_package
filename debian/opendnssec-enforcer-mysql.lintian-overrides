@@ -1,0 +1,2 @@
+opendnssec-enforcer-mysql: binary-without-manpage usr/sbin/ods-enforcerd
+opendnssec-enforcer-mysql: binary-without-manpage usr/bin/ods-ksmutil

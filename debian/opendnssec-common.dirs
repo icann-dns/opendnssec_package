@@ -1,0 +1,8 @@
+/usr/share/opendnssec/
+/var/lib/opendnssec/
+/etc/opendnssec/
+/var/lib/opendnssec/tmp
+/var/lib/opendnssec/signconf
+/var/lib/opendnssec/unsigned
+/var/lib/opendnssec/signed
+/var/lib/opendnssec/db

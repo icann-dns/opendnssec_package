@@ -1,0 +1,8 @@
+--- a/signer/signer_engine/ods-signer.8.in
++++ b/signer/signer_engine/ods-signer.8.in
+@@ -1,4 +1,4 @@
+-.TH "ods-signer" "1" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-signer"
++.TH "ods-signer" "8" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-signer"
+ .\" $Id: ods-signer.8.in 3101 2010-03-29 11:01:49Z matthijs $
+ .SH "NAME"
+ .B ods\-signer 

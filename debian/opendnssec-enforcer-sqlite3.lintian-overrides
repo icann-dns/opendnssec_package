@@ -1,0 +1,2 @@
+opendnssec-enforcer-sqlite3: binary-without-manpage usr/sbin/ods-enforcerd
+opendnssec-enforcer-sqlite3: binary-without-manpage usr/bin/ods-ksmutil

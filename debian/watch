@@ -1,0 +1,3 @@
+version=3
+opts=uversionmangle=s/(rc\d|b\d)/~$1/ \
+http://www.opendnssec.org/files/source/opendnssec-(.*)\.tar\.gz
