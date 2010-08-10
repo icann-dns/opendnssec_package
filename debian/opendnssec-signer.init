@@ -19,7 +19,7 @@ DESC="OpenDNSSEC Signer"
 NAME=ods-signerd
 DAEMON=/usr/sbin/$NAME
 DAEMON_ARGS=""
-PIDFILE=/var/run/opendnssec/signer.pid
+PIDFILE=/var/run/opendnssec/signerd.pid
 SCRIPTNAME=/etc/init.d/opendnssec-signer
 
 # Exit if the package is not installed
