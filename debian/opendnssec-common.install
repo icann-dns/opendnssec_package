@@ -2,3 +2,8 @@ etc/opendnssec/*.xml /usr/share/opendnssec/
 usr/share/opendnssec/*.rnc
 usr/share/opendnssec/*.rng
 usr/share/opendnssec/kasp2html.xsl
+usr/bin/ods-kasp2html
+usr/sbin/ods-control
+usr/share/man/man5/ods-timing.5
+usr/share/man/man7/opendnssec.7
+usr/share/man/man8/ods-control.8

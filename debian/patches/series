@@ -6,3 +6,4 @@
 006-fail_build_on_failed_test.patch
 007-fix_ods-ksmutil_manpage.patch
 008-tools_install_path.patch
+009-fix_ods-timing_manpage.patch
