@@ -1,5 +1,5 @@
 /*
- * $Id: kaspaccess.h 757 2009-05-21 16:21:36Z jad $
+ * $Id: kaspaccess.h 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

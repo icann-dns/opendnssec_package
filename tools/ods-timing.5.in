@@ -1,5 +1,5 @@
 .TH "ods-timing" "5" "February 2010" OpenDNSSEC "OpenDNSSEC timinig"
-.\" $Id: ods-timing.5.in 2892 2010-02-24 23:06:49Z jakob $
+.\" $Id: ods-timing.5.in 3719 2010-08-11 06:38:16Z rb $
 .SH "NAME"
 .LP
 .B ods-timing
@@ -23,7 +23,7 @@ In these representations, the \fB[n]\fR is replaced by the value for each
 of the date and time elements that follow the \fB[n]\fR. Leading zeros are
 not required. The capital letters \fBP\fR, \fBY\fR, \fBM\fR, \fBW\fR,
 \fBD\fR, \fBT\fR, \fBH\fR, \fBM\fR and \fBS\fR are designators for each of
-the date and time elements and are not replaced.
+the date and time elements and are not replaced
 .TP
 .B P
 is the duration designator (historically called "period") placed at the start of the duration representation.

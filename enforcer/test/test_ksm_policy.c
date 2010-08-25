@@ -1,5 +1,5 @@
 /*
- * $Id: test_ksm_policy.c 1800 2009-09-09 18:09:42Z jakob $
+ * $Id: test_ksm_policy.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

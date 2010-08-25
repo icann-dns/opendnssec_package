@@ -1,5 +1,5 @@
 /*
- * $Id: daemon.h 3078 2010-03-22 21:52:57Z sion $
+ * $Id: daemon.h 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

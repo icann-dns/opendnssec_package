@@ -1,4 +1,4 @@
-# $Id: status_messages.pl 2260 2009-10-19 10:16:20Z jakob $
+# $Id: status_messages.pl 3150 2010-04-08 11:36:13Z jakob $
 #
 # Copyright (c) 2008-2009 Nominet UK. All rights reserved.
 #

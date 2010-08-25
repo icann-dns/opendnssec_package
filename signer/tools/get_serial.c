@@ -1,5 +1,5 @@
 /*
- * $Id: get_serial.c 1812 2009-09-15 14:02:31Z matthijs $
+ * $Id: get_serial.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

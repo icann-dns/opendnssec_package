@@ -1,4 +1,4 @@
-# $Id: configure.ac 3210 2010-04-16 08:39:23Z rb $
+# $Id: configure.ac 3765 2010-08-20 11:14:57Z rb $
 
 m4_sinclude([version.m4])
 
@@ -21,7 +21,7 @@ AC_PATH_PROG(JAVA, java)
 
 # libhsm
 ACX_LIBXML2
-ACX_LDNS(1,6,4)
+ACX_LDNS(1,6,6)
 ACX_DLOPEN
 
 # libksm

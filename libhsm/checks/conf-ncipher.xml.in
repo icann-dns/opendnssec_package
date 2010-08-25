@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: conf-ncipher.xml.in 1904 2009-09-29 13:32:23Z jakob $ -->
+<!-- $Id: conf-ncipher.xml.in 3150 2010-04-08 11:36:13Z jakob $ -->
 
 <Configuration>
 	<RepositoryList>

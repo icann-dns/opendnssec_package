@@ -1,5 +1,5 @@
 /*
- * $Id: util.h 2449 2009-11-13 11:05:11Z matthijs $
+ * $Id: util.h 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

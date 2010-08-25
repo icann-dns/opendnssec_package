@@ -1,5 +1,5 @@
 /*
- * $Id: database_connection_mysql.c 2680 2010-01-13 13:57:04Z sion $
+ * $Id: database_connection_mysql.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

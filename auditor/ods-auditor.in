@@ -1,6 +1,6 @@
 #!@RUBY@ -I@OPENDNSSEC_LIB_DIR@
 #
-# $Id: ods-auditor.in 3140 2010-04-06 14:52:57Z alex $
+# $Id: ods-auditor.in 3150 2010-04-08 11:36:13Z jakob $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
