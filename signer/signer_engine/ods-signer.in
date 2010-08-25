@@ -1,6 +1,6 @@
 #!@PYTHON@
 #
-# $Id: ods-signer.in 3101 2010-03-29 11:01:49Z matthijs $
+# $Id: ods-signer.in 3657 2010-08-06 10:04:25Z matthijs $
 #
 # Copyright (c) 2009 NLNet Labs. All rights reserved.
 #
@@ -143,5 +143,7 @@ if __name__ == "__main__":
     try:
         result = parse_args()
         sys.exit(result)
+    except SystemExit, e:
+        raise
     except Exception, e:
         sys.exit(2)

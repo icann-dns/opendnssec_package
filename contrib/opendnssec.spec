@@ -1,7 +1,7 @@
 # $Id: opendnssec.spec.sample -1   $
 Summary: opendnssec
 Name: opendnssec
-Version: 1.1.1
+Version: 1.1.2
 Release: 1
 License: BSD
 Group: System Environment/Daemons

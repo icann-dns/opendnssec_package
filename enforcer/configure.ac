@@ -1,4 +1,4 @@
-# $Id: configure.ac 3120 2010-03-31 09:39:32Z jakob $
+# $Id: configure.ac 3765 2010-08-20 11:14:57Z rb $
 
 m4_sinclude([version.m4])
 
@@ -85,7 +85,7 @@ ACX_CUNIT
 ACX_LIBXML2
 ACX_LIBHSM
 ACX_DBPARAMS
-ACX_LDNS(1,6,4)
+ACX_LDNS(1,6,6)
 ACX_DATABASE_BACKEND
 
 AH_BOTTOM([

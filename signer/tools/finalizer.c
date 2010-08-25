@@ -1,5 +1,5 @@
 /*
- * $Id: finalizer.c 2847 2010-02-16 10:45:41Z matthijs $
+ * $Id: finalizer.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

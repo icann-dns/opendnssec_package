@@ -1,5 +1,5 @@
 /*
- * $Id: new_reader.c 2993 2010-03-11 13:51:21Z jakob $
+ * $Id: new_reader.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

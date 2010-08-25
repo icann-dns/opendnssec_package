@@ -1,5 +1,5 @@
 /*
- * $Id: database_statement.h 982 2009-06-09 12:57:42Z sion $
+ * $Id: database_statement.h 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

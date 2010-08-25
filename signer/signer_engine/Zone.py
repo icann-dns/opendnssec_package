@@ -1,4 +1,4 @@
-# $Id: Zone.py 3480 2010-06-10 10:33:17Z matthijs $
+# $Id: Zone.py 3650 2010-08-05 12:34:15Z matthijs $
 #
 # Copyright (c) 2009 NLNet Labs. All rights reserved.
 #
@@ -530,9 +530,19 @@ class Zone:
            and 'keep'."""
         soa_serial = None
         serial_file = self.get_zone_tmp_filename(".serial")
+        # RvR: in the case where you are switching from serving
+        #      a zone directly to bump-in-the-wire mode, it is
+        #      a necessity to take the serial from the input zone
+        #      if that is larger than the last used serial. This
+        #      ensures that downstream public primaries/secondaries
+        #      will never miss an update; this behaviour has been
+        #      implemented below (old behaviour was to always take
+        #      the previously used serial as starting point which
+        #      was set to 0 in case of no previously available
+        #      serial)
         if self.zone_config.soa_serial == "unixtime":
             soa_serial = int(time.time())
-            prev_serial = self.get_output_serial()
+            prev_serial = max(self.get_output_serial(), self.get_input_serial())
             if self.compare_serial(prev_serial, soa_serial) <= 0:
                 soa_serial = prev_serial + 1
             update_serial = soa_serial - prev_serial
@@ -540,7 +550,7 @@ class Zone:
             soa_serial = self.get_input_serial()
             # it must be larger than the output serial!
             # otherwise updates won't be accepted
-            prev_serial = self.get_output_serial()
+            prev_serial = max(self.get_output_serial(), self.get_input_serial())
             if self.compare_serial(prev_serial, soa_serial) <= 0:
                 soa_serial = prev_serial + 1
             update_serial = soa_serial - prev_serial
@@ -548,7 +558,7 @@ class Zone:
             # if current output serial >= <date>00,
             # just increment by one
             soa_serial = int(time.strftime("%Y%m%d")) * 100
-            prev_serial = self.get_output_serial()
+            prev_serial = max(self.get_output_serial(), self.get_input_serial())
             if self.compare_serial(prev_serial, soa_serial) <= 0:
                 soa_serial = prev_serial + 1
             update_serial = soa_serial - prev_serial

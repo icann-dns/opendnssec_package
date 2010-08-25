@@ -1,4 +1,26 @@
-$Id: NEWS 3566 2010-07-08 14:25:01Z rb $
+$Id: NEWS 3774 2010-08-24 13:50:31Z rb $
+
+OpenDNSSEC 1.1.2 - 2010-08-24
+
+* Dnsruby 1.49 now required (for correct zone parsing)
+* ldns 1.6.6 is required to fix the zone fetcher bug
+
+Bugfixes:
+* ods-control stop did not stopped zone fetcher (bug was introduced in 1.1.0)
+* Auditor correctly handles chains of empty nonterminals
+* Zone fetcher can block zone transfers if AXFR once failed. This is a bug
+  in ldns versions 1.6.5 and lower. See KNOWN_ISSUES for more information.
+* Bugreport #165: Ensure Output SOA serial is always bigger than Input SOA
+  serial.
+* Bugreport #166: Correct exit value from signer.
+* Bugreport #167: Zone fetcher now also picks up changes when zonelist is
+  reloaded (thanks Rick van Rein)
+* Bugreport #168: ods-control with tightened control for the Enforcer
+* Bugreport #169: Do not include config.h in the distribution
+* Bugreport #170: Typo in a man page (ods-signer)
+* Bugreport #172: Correction of some macros in a man page (ods-timing)
+* Bugreport #173: A man page used a macro that does not exist (ods-ksmutil)
+
 
 OpenDNSSEC 1.1.1 - 2010-07-08
 

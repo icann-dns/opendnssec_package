@@ -1,5 +1,5 @@
 /*
- * $Id: hsmutil.c 2535 2009-12-01 09:03:54Z jakob $
+ * $Id: hsmutil.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
  * Copyright (c) 2009 NLNet Labs.

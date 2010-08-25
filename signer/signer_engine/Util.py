@@ -1,4 +1,4 @@
-# $Id: Util.py 2667 2010-01-07 13:29:52Z matthijs $
+# $Id: Util.py 3150 2010-04-08 11:36:13Z jakob $
 #
 # Copyright (c) 2009 NLNet Labs. All rights reserved.
 #

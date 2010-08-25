@@ -1,5 +1,5 @@
 /*
- * $Id: database.h 2676 2010-01-11 15:31:31Z sion $
+ * $Id: database.h 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

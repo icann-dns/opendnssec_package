@@ -1,4 +1,4 @@
-# $Id: configure.ac 3123 2010-03-31 09:46:35Z matthijs $
+# $Id: configure.ac 3765 2010-08-20 11:14:57Z rb $
 
 m4_sinclude([version.m4])
 
@@ -44,7 +44,7 @@ AC_CHECK_LIB(nsl, inet_pton)
 ACX_PEDANTIC
 ACX_STRICT
 
-ACX_LDNS(1,6,4)
+ACX_LDNS(1,6,6)
 ACX_LIBXML2
 ACX_LIBHSM
 
@@ -52,7 +52,7 @@ AM_PATH_PYTHON
 ACX_PYTHON_MODULE([getopt os sys socket time traceback threading syslog signal errno grp pwd re Ft.Xml.XPath xml.dom xml.parsers.expat subprocess optparse datetime getpass shutil commands])
 
 AC_DEFINE_UNQUOTED(SIGNER_PIDFILE, ["$OPENDNSSEC_SIGNER_PIDFILE"], [Path to the OpenDNSSEC signer engine pid file])
-AC_DEFINE_UNQUOTED(FETCH_PIDFILE, ["$OPENDNSSEC_ENFORCER_PIDFILE"], [Path to the OpenDNSSEC zone fetcher pid file])
+AC_DEFINE_UNQUOTED(FETCH_PIDFILE, ["$OPENDNSSEC_FETCH_PIDFILE"], [Path to the OpenDNSSEC zone fetcher pid file])
 AC_DEFINE_UNQUOTED(SIGNER_CLI_SIGN, ["$OPENDNSSEC_SIGNER_CLI sign"], [Path to the OpenDNSSEC signer engine cli])
 
 AM_INIT_AUTOMAKE

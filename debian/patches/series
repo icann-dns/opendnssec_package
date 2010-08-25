@@ -1,9 +1,6 @@
 001-fix_localstate_dir.patch
 002_use_system_trang.patch
-003-fix_manpage_section.patch
 004-runas_opendnssec.patch
 005-rename_regress_for_autotest.patch
 006-fail_build_on_failed_test.patch
-007-fix_ods-ksmutil_manpage.patch
 008-tools_install_path.patch
-009-fix_ods-timing_manpage.patch

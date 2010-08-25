@@ -9,7 +9,7 @@ Build-Depends: quilt (>= 0.46-7~),
 	       automake,
 	       autoconf,
 	       libtool,
-	       libdns-ruby (>= 1.42),
+	       libdns-ruby (>= 1.49~),
 	       rubygems,
 	       ruby-pkg-tools,
 	       ruby1.8,
@@ -22,7 +22,7 @@ Build-Depends: quilt (>= 0.46-7~),
 	       mysql-client,
 	       libsqlite3-dev,
 	       sqlite3,
-	       libldns-dev (>= 1.6.4~),
+	       libldns-dev (>= 1.6.6~),
 	       libcunit1-dev,
 	       python-support,
 	       python-4suite-xml,
@@ -34,7 +34,7 @@ Homepage: http://www.opendnssec.org/
 Package: opendnssec-auditor
 Section: admin
 Architecture: all
-Depends: ruby1.8, libdns-ruby (>= 1.42), libopenssl-ruby, ${misc:Depends}
+Depends: ruby1.8, libdns-ruby (>= 1.49~), libopenssl-ruby, ${misc:Depends}
 Recommends: opendnssec-signer, opendnssec-enforcer
 Suggests: opendnssec, softhsm
 Description: tool to audit DNS signed zones according to local policy

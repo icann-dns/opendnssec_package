@@ -1,5 +1,5 @@
 #
-# $Id: auditor.rb 3559 2010-07-05 11:46:35Z alex $
+# $Id: auditor.rb 3572 2010-07-15 13:17:32Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -856,7 +856,7 @@ module KASPAuditor
       while (last.labels.length > name_to_check_against.labels.length + 1)
         # Add the empty nonterminal to the list
         last.labels = last.labels[1,last.labels.length]
-        empty_nonterminals.push(last)
+        empty_nonterminals.push(last.clone)
       end
 
       # If so, should it be covered by an NSEC3 record?
