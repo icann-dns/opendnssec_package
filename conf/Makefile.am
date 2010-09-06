@@ -16,7 +16,7 @@ RNG =	conf.rng kasp.rng zonelist.rng signconf.rng zonefetch.rng
 XML =	conf.xml kasp.xml zonelist.xml signconf.xml zonefetch.xml
 XSL=	kasp2html.xsl
 
-TRANG=	$(srcdir)/trang/trang.jar
+TRANG=	/usr/bin/trang
 
 sysconfdir = @sysconfdir@/opendnssec
 datadir = @datadir@/opendnssec
@@ -24,9 +24,6 @@ datadir = @datadir@/opendnssec
 noinst_DATA = ${XML} ${XSL}
 
 dist_data_DATA = ${RNG} ${RNC} ${XSL}
-
-EXTRA_DIST =	${TRANG} \
-		$(srcdir)/trang/copying.txt
 
 CLEANFILES =+		*.xml
 DISTCLEANFILES =+	*.rng
@@ -37,7 +34,7 @@ SUFFIXES = .rng .rnc .xml
 .rnc.rng:
 	@test -x ${JAVA} || \
 		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)
-	${JAVA} -jar ${TRANG} $< $@
+	${TRANG} $< $@
 
 regress: $(RNG)
 	@test -x ${XMLLINT} || \
