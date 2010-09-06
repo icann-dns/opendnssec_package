@@ -4,3 +4,4 @@
 005-rename_regress_for_autotest.patch
 006-fail_build_on_failed_test.patch
 008-tools_install_path.patch
+009-ods-control.in_fixes.patch

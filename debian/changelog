@@ -1,3 +1,9 @@
+opendnssec (1.1.2-2) unstable; urgency=low
+
+  * Return an error if unknown argument is fed to ods-control
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 06 Sep 2010 11:05:33 +0200
+
 opendnssec (1.1.2-1) unstable; urgency=low
 
   * New upstream release
