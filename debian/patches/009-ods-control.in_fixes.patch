@@ -1,0 +1,46 @@
+--- a/tools/ods-control.in
++++ b/tools/ods-control.in
+@@ -38,16 +38,19 @@ case "$1" in
+ 'ksm')
+ 	shift
+ 	"$bindir/ods-ksmutil" $@
++	exit $?
+ 	;;
+ 
+ 'hsm')
+ 	shift
+ 	"$bindir/ods-hsmutil" $@
++	exit $?
+ 	;;
+ 	
+ 'signer')
+ 	shift
+ 	"$sbindir/ods-signer" $@
++	exit $?
+ 	;;
+ 
+ 'enforcer')
+@@ -98,7 +101,8 @@ case "$1" in
+ 		;;
+ 
+ 	*)
+-		echo "usage: $progname enforcer start|stop|notify"
++		echo "usage: $progname enforcer start|stop|notify" >&2
++		exit 3
+ 		;;
+ 
+ 	esac
+@@ -116,10 +120,12 @@ case "$1" in
+ 
+ 	echo "Stopping signer engine.."
+ 	"$sbindir/ods-signer" stop
++	exit $?
+ 	;;
+ 	
+ *)
+-	echo "usage: $progname ksm|hsm|signer|enforcer|start|stop ..."
++	echo "usage: $progname ksm|hsm|signer|enforcer|start|stop ..." >&2
++	exit 3
+ 	;;
+ 
+ esac
