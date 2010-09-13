@@ -909,6 +909,6 @@ def parse_args():
 if __name__ == '__main__':
     result = parse_args()
     if result == 1:
-        print "OpenDNSSEC signer engine version 1.1.2"
+        print "OpenDNSSEC signer engine version 1.1.3"
         main()
 

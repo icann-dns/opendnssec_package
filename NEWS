@@ -1,4 +1,11 @@
-$Id: NEWS 3774 2010-08-24 13:50:31Z rb $
+$Id: NEWS 3912 2010-09-10 12:35:26Z rb $
+
+OpenDNSSEC 1.1.3 - 2010-09-10
+
+Bugfixes:
+* Bugreport #183: Partial zone could get signed if zone transfer failed
+  when using zone_fetcher
+
 
 OpenDNSSEC 1.1.2 - 2010-08-24
 
