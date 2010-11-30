@@ -4,19 +4,18 @@
 set -e
 
 unset_perms() {
-    dpkg-statoverride --remove "$1" >/dev/null 2>/dev/null || true
+    dpkg-statoverride --quiet --remove "$1" || true
 }
 
 case "$1" in
     purge)
-
-	deluser --quiet opendnssec > /dev/null || true
 
 	unset_perms /etc/opendnssec
 
 	for dir in tmp signconf unsigned signed db; do
 	    unset_perms /var/lib/opendnssec/$dir
 	done
+	unset_perms /var/lib/opendnssec
 
 	for conf in conf.xml kasp.xml zonefetch.xml zonelist.xml; do
 	    # unset dpkg-statoverride permissions
@@ -36,6 +35,8 @@ case "$1" in
 		ucfr --purge opendnssec /etc/opendnssec/$conf
 	    fi
 	done
+
+	deluser --quiet opendnssec > /dev/null || true
 
     ;;
 

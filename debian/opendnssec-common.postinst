@@ -5,7 +5,7 @@ set -e
 
 set_perms() {
     if ! dpkg-statoverride --list "$4" >/dev/null; then
-        dpkg-statoverride --update --add "$@"
+        dpkg-statoverride --quiet --update --add "$@"
     fi
 }
 
