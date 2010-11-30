@@ -5,3 +5,4 @@
 006-fail_build_on_failed_test.patch
 008-tools_install_path.patch
 009-ods-control.in_fixes.patch
+010-fix_PYTHONPATH.patch

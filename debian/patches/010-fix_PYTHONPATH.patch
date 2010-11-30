@@ -1,0 +1,11 @@
+diff --git a/signer/signer_engine/ods-signerd.in b/signer/signer_engine/ods-signerd.in
+index bf3e643..ae4e8aa 100644
+--- a/signer/signer_engine/ods-signerd.in
++++ b/signer/signer_engine/ods-signerd.in
+@@ -27,5 +27,5 @@
+ #
+ 
+ ENGINE_LOC=@OPENDNSSEC_LIB_DIR@/signer
+-PYTHONPATH=${ENGINE_LOC}:$PYTHONPATH
++PYTHONPATH=${ENGINE_LOC}${PYTHONPATH:+:$PYTHONPATH}
+ @PYTHON@ ${ENGINE_LOC}/Engine.py $@
