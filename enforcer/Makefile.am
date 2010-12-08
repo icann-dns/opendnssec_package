@@ -14,5 +14,5 @@ MAINTAINERCLEANFILES = \
 SUBDIRS = ksm common enforcerd utils test
 
 install-data-hook:
-	mkdir -p ${DESTDIR}$(localstatedir)/run/opendnssec
-	mkdir -p ${DESTDIR}$(localstatedir)/opendnssec
+	mkdir -p ${DESTDIR}@OPENDNSSEC_LOCALSTATE_DIR@
+	mkdir -p ${DESTDIR}@OPENDNSSEC_PID_DIR@
