@@ -5,6 +5,8 @@
 
 export DH_OPTIONS
 
+DEB_HOST_ARCH   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+
 export DEB_BUILD_HARDENING=1
 
 CFLAGS = -Wl,-z,defs -Wl,--as-needed
@@ -39,10 +41,11 @@ override_dh_auto_configure:
 	ln -s ../build-sqlite3/libhsm build-mysql/libhsm
 	dh_auto_configure -Denforcer -Bbuild-mysql/enforcer -- --with-ldns=/usr --with-database-backend=mysql --with-mysql=/usr --libexecdir=/usr/lib/opendnssec/
 
+	# Trang ends with bus error on kfreebsd-amd64, so we skip rebuilding at all
 	# Only rebuild RNG files if we have recent trang
-	@if dpkg --compare-versions "$(TRANG_VERSION)" ge "20091111-1"; then \
-	  rm conf/*.rng; \
-	fi
+	#@if dpkg --compare-versions "$(TRANG_VERSION)" ge "20091111-1"; then \
+	#  rm conf/*.rng; \
+	#fi
 
 override_dh_auto_build:
 	dh_auto_build -Bbuild-sqlite3
