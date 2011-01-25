@@ -1,5 +1,5 @@
 /*
- * $Id: hsmspeed.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: hsmspeed.c 3620 2010-07-27 07:58:00Z rb $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.
@@ -146,6 +146,7 @@ main (int argc, char *argv[])
 
     int ch;
     unsigned int n;
+    double elapsed, speed;
 
     progname = argv[0];
 
@@ -255,8 +256,8 @@ main (int argc, char *argv[])
     /* Report results */
     end.tv_sec -= start.tv_sec;
     end.tv_usec-= start.tv_usec;
-    double elapsed =(double)(end.tv_sec)+(double)(end.tv_usec)*.000001;
-    double speed = iterations / elapsed * threads;
+    elapsed =(double)(end.tv_sec)+(double)(end.tv_usec)*.000001;
+    speed = iterations / elapsed * threads;
     printf("%d %s, %d signatures per thread, %.2f sig/s (RSA %d bits)\n",
         threads, (threads > 1 ? "threads" : "thread"), iterations,
         speed, keysize);

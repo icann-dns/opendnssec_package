@@ -1,5 +1,5 @@
 /*
- * $Id: message.h 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: message.h 875 2009-06-02 15:28:33Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

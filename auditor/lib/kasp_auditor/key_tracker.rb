@@ -60,24 +60,30 @@ module KASPAuditor
 
     # The Cache holds the data for each of the Status levels.
     # It is dynamically generated from the Status levels.
+    # The dynamic methods created here will not show up in RDoc,
+    # but consist of methods to add, remove and find keys in
+    # different states. Timestamps are also held here.
     class Cache
       # Set up add_inuse_key, etc.
       Status.strings.each {|s| eval "attr_reader :#{s.downcase}"}
       Status.strings.each {|s| eval "def add_#{s.downcase}_key(key)
                           if (!include_#{s.downcase}_key?key)
                                 new_key = key.clone
-                                @#{s.downcase}[new_key]=Time.now.to_i
+                                new_key.public_key
+                                @#{s.downcase}[new_key]=[Time.now.to_i, Time.now.to_i]
                           end
           end"}
       # Set up add_inuse_key_with_time, etc.
-      Status.strings.each {|s| eval "def add_#{s.downcase}_key_with_time(key, time)
+      Status.strings.each {|s| eval "def add_#{s.downcase}_key_with_time(key, time, first_time)
                           if (!include_#{s.downcase}_key?key)
                                 new_key = key.clone
-                                @#{s.downcase}[new_key]=time
+                                new_key.public_key
+                                @#{s.downcase}[new_key]=[time, first_time]
                           end
           end"}
       # Set up include_inuse_key?, etc.
       Status.strings.each {|s| eval "def include_#{s.downcase}_key?(key)
+                   key.public_key
                    @#{s.downcase}.each {|k,v|
                       if ((k == key) || (k.key_tag_pre_revoked ==
                               key.key_tag_pre_revoked))
@@ -88,6 +94,7 @@ module KASPAuditor
           end"}
       # Set up delete_inuse_key, etc.
       Status.strings.each {|s| eval "def delete_#{s.downcase}_key(key)
+                                     key.public_key
                                      @#{s.downcase}.delete_if {|k, temp|
              ((k==key) || (k.key_tag_pre_revoked == key.key_tag_pre_revoked))
                                      }
@@ -104,7 +111,7 @@ module KASPAuditor
     attr_reader :cache
     attr_accessor :last_soa_serial
 
-    # So, each run, the auditor needs to load the key caches for the zone, then
+    # Each run, the auditor needs to load the key caches for the zone, then
     # audit the zone, keeping track of which keys are used. The key caches are
     # then updated. The auditor needs to run the lifetime, numStandby checks
     # on the keys as well.
@@ -124,15 +131,21 @@ module KASPAuditor
     end
 
     # Load the cache for the zone from the workingdirectory. Create a new
-    # cache if one can't be found
-    def load_tracker_cache
+    # cache if one can't be found. Also defaults to reloading the SOA serial
+    # for the zone.
+    def load_tracker_cache(load_soa_serial = true)
       # Need to store the time that the state change was first noticed.
       # Need to load this from file, store in cache, add to new cache values,
       # and write back to file.
       cache = Cache.new
       filename = get_tracker_filename
       dir = File.dirname(filename)
-      Dir.mkdir(dir) unless File.directory?(dir)
+      begin
+        Dir.mkdir(dir) unless File.directory?(dir)
+      rescue Errno::ENOENT
+        @parent.log(LOG_ERR, "Can't create working folder : #{dir}")
+        KASPAuditor.exit("Can't create working folder : #{dir}", 1)
+      end
       File.open(filename, File::CREAT) { |f|
         # Now load the cache
         # Is there an initial timestamp and a current SOA serial to load?
@@ -143,12 +156,17 @@ module KASPAuditor
             @initial_timestamp = line.chomp.to_i
             next
           elsif (count == 2)
-            @last_soa_serial = line.chomp.to_i
+            if (load_soa_serial)
+              @last_soa_serial = line.chomp.to_i
+            end
             next
           end
-          key_string, status_string, time  = line.split(SEPARATOR)
+          key_string, status_string, time, first_time  = line.split(SEPARATOR)
+          if (!first_time)
+            first_time = time
+          end
           key = RR.create(key_string)
-          eval "cache.add_#{status_string.downcase}_key_with_time(key, #{time})".untaint
+          eval "cache.add_#{status_string.downcase}_key_with_time(key, time.to_i, first_time.to_i)".untaint
         end
       }
       return cache
@@ -156,8 +174,10 @@ module KASPAuditor
 
     # Store the data back to the file
     def save_tracker_cache
+      # These values should only be written if the audit has been successful!!
       # Best to write it back to a new file - then move the new file to the
       # original location (overwriting the original)
+      return if @parent.ret_val == 3
       tracker_file = get_tracker_filename
       File.open(tracker_file + ".temp", 'w') { |f|
         # First, save the initial timestamp and the current SOA serial
@@ -167,7 +187,7 @@ module KASPAuditor
         Status.strings.each {|s|
           status = s.downcase
           eval "@cache.#{status}.each {|key, time|
-              write_key_to_file(f, key.to_s, status, time)
+              write_key_to_file(f, key.to_s, status, time[0], time[1])
             }".untaint
         }
 
@@ -177,8 +197,8 @@ module KASPAuditor
       File.rename(tracker_file+".temp", tracker_file)
     end
 
-    def write_key_to_file(f, key, status, time)
-      f.puts("#{key}#{SEPARATOR}#{status}#{SEPARATOR}#{time}")
+    def write_key_to_file(f, key, status, time, first_time)
+      f.puts("#{key}#{SEPARATOR}#{status}#{SEPARATOR}#{time}#{SEPARATOR}#{first_time}")
     end
 
     def get_tracker_filename
@@ -192,21 +212,22 @@ module KASPAuditor
         return 0
       end
       if s1 < s2 and (s2 - s1) < (2**31)
-          return 1
+        return 1
       end
       if s1 > s2 and (s1 - s2) > (2**31)
-          return 1
+        return 1
       end
       if s1 < s2 and (s2 - s1) > (2**31)
-          return -1
+        return -1
       end
       if s1 > s2 and (s1 - s2) < (2**31)
-          return -1
+        return -1
       end
       return 0
     end
 
     # The auditor calls this method at the end of the auditing run.
+    # This is the only public method in this class.
     # It passes in all the keys it has seen, and the keys it has seen used.
     # keys is a list of DNSKeys, and keys_used is a list of the key_tags
     # used to sign RRSIGs in the zone.
@@ -227,64 +248,86 @@ module KASPAuditor
       save_tracker_cache
     end
 
-    # run the checks on the new zone data
+    # run the checks on the new zone data - called internally
     def run_checks(soa_ttl)
-      # @TODO@ If !@config.audit_tag_present then only run checks on keys in use too long.
       # We also need to perform the auditing checks against the config
       # Checks to be performed :
-      #   a) Warn if number of prepublished KSKs < KSK:Standby
-      # @TODO@ THIS IS WRONG - LOOK UP STANDBY PER KEY!!!
-      ksk_min_standby = 999999999999
-      ksk_min_lifetime = 999999999999
-      @config.keys.ksks().length.times {|i|
-        if (@config.keys.ksks()[i].standby < ksk_min_standby)
-          ksk_min_standby = @config.keys.ksks()[i].standby
-        end
-        if (@config.keys.ksks()[i].lifetime < ksk_min_lifetime)
-          ksk_min_lifetime = @config.keys.ksks()[i].lifetime
-        end
-      }
-
-      prepublished_ksk_count = @cache.prepublished.keys.select {|k|
-        k.zone_key? && k.sep_key?
-      }.length
-      # Enforcer no longer publishes standby KSKs
-#      if (prepublished_ksk_count < ksk_min_standby)
-#        msg = "Not enough prepublished KSKs! Should be #{ksk_min_standby} but have #{prepublished_ksk_count}"
-#        @parent.log(LOG_WARNING, msg)
-#      end
       #   b) Warn if number of prepublished ZSKs < ZSK:Standby
-      # @TODO@ THIS IS WRONG - LOOK UP STANDBY PER KEY!!!
-      zsk_min_standby = 999999999999
-      zsk_min_lifetime = 999999999999
-      @config.keys.zsks().length.times {|i|
-        if (@config.keys.zsks()[i].standby < zsk_min_standby)
-          zsk_min_standby = @config.keys.zsks()[i].standby
-        end
-        if (@config.keys.zsks()[i].lifetime < zsk_min_lifetime)
-          zsk_min_lifetime = @config.keys.zsks()[i].lifetime
+      # Do this by [alg, alg_length] - so only select those keys which match the config
+      @config.keys.zsks.each {|zsk|
+        prepublished_zsk_count = @cache.prepublished.keys.select {|k|
+          k.zone_key? && !k.sep_key? && (k.algorithm == zsk.algorithm) &&
+            (k.key_length == zsk.alg_length)
+        }.length
+        if (prepublished_zsk_count < zsk.standby)
+          msg = "Not enough prepublished ZSKs! Should be #{zsk.standby} but have #{prepublished_zsk_count}"
+          @parent.log(LOG_WARNING, msg)
         end
       }
-      prepublished_zsk_count = @cache.prepublished.keys.select {|k|
-        k.zone_key? && !k.sep_key?
-      }.length
-      if (prepublished_zsk_count < zsk_min_standby)
-        msg = "Not enough prepublished ZSKs! Should be #{zsk_min_standby} but have #{prepublished_zsk_count}"
-        @parent.log(LOG_WARNING, msg)
-      end
-      @cache.inuse.each {|key, timestamp|
+      @cache.inuse.each {|key, time|
+        timestamp = time[0]
+        first_timestamp = time[1]
+        # Ignore this check if the key was already in use at the time at which the lifetime policy was changed.
+        # How do we know to which AnyKey group this key belongs? Can only take a guess by [algorithm, alg_length] tuple
+        # Also going to have to put checks in place where key protocol/algorithm is checked against policy :-(
+        #   - no we don't! These are only checked when we are loading a new key - not one we've seen before.
+        #     and of course, a new key should be created with the correct values!
+        key_group_policy_changed = false
+        # First, find all the key groups which this key could belong to
+        keys = @config.changed_config.zsks
+        if (key.sep_key?)
+          keys = @config.changed_config.ksks
+        end
+        possible_groups = keys.select{|k|             (k.algorithm == key.algorithm) &&
+            (k.alg_length == key.key_length)}
+        # Then, find the latest timestamp (other than 0)
+        key_group_policy_changed_time = 0
+        if (possible_groups.length == 0)
+          # Can't find the group this key belongs to
+          if (@config.changed_config.kasp_timestamp < first_timestamp)
+            #    @TODO@ o if there has been no change in any of the configured keys then error (the key shouldn't exist)
+            # Shouldn't this be caught by something else?
+          end
+          #   o if there has been a change since the key was first seen,  then don't raise any errors for this key
+        else
+          possible_groups.each {|g|
+            if (g.timestamp > key_group_policy_changed_time)
+              key_group_policy_changed_time = g.timestamp
+              key_group_policy_changed = true
+            end
+          }
+          next if (key_group_policy_changed && (first_timestamp < key_group_policy_changed_time))
+        end
+
         if (key.zone_key? && !key.sep_key?)
           #   d) Warn if ZSK inuse longer than ZSK:Lifetime + Enforcer:Interval
-          # @TODO@ But which ZSK to use?
-          lifetime = zsk_min_lifetime + @enforcer_interval # @TODO@ @config.keys.ksks()[0].lifetime + Enforcer->Interval
+          # Get the ZSK lifetime for this type of key from the config
+          zsks = @config.keys.zsks.select{|zsk|
+            (zsk.algorithm == key.algorithm) &&
+              (zsk.alg_length == key.key_length)}
+          next if (zsks.length == 0)
+          # Take the "safest" value - i.e. the longest one in this case
+          zsk_lifetime = 0
+          zsks.each {|z|
+            zsk_lifetime = z.lifetime if (z.lifetime > zsk_lifetime)
+          }
+          lifetime = zsk_lifetime + @enforcer_interval 
           if timestamp < (Time.now.to_i - lifetime)
             msg = "ZSK #{key.key_tag} in use too long - should be max #{lifetime} seconds but has been #{Time.now.to_i-timestamp} seconds"
             @parent.log(LOG_WARNING, msg)
           end
         else
           #   c) Warn if KSK inuse longer than KSK:Lifetime + Enforcer:Interval
-          # @TODO@ But which ZSK to use?
-          lifetime = ksk_min_lifetime + @enforcer_interval # @TODO@ @config.keys.ksks()[0].lifetime + Enforcer->Interval
+          # Get the KSK lifetime for this type of key from the config
+          ksks = @config.keys.ksks.select{|ksk| (ksk.algorithm == key.algorithm) &&
+              (ksk.alg_length == key.key_length)}
+          next if (ksks.length == 0)
+          # Take the "safest" value - i.e. the longest one in this case
+          ksk_lifetime = 0
+          ksks.each {|k|
+            ksk_lifetime = k.lifetime if (k.lifetime > ksk_lifetime)
+          }
+          lifetime = ksk_lifetime + @enforcer_interval 
           if timestamp < (Time.now.to_i - lifetime)
             msg = "KSK #{key.key_tag} in use too long - should be max #{lifetime} seconds but has been #{Time.now.to_i-timestamp} seconds"
             @parent.log(LOG_WARNING, msg)
@@ -302,11 +345,11 @@ module KASPAuditor
       if (Time.now.to_i >= (@initial_timestamp + soa_ttl))
         # Has a key jumped to in-use without having gone through prepublished for at least soa_ttl?
         # Just load the cache from disk again - then we could compare the two
-        old_cache = load_tracker_cache
+        old_cache = load_tracker_cache(false)
         @cache.inuse.keys.each {|new_inuse_key|
-          next if old_cache.inuse.keys.include?new_inuse_key
+          next if old_cache.include_inuse_key?new_inuse_key
           next if (new_inuse_key.sep_key?) # KSKs aren't prepublished any more
-          old_key_timestamp = old_cache.include_prepublished_key?new_inuse_key
+          old_key_timestamp, old_key_first_timestamp = old_cache.include_prepublished_key?new_inuse_key
           if (!old_key_timestamp)
             @parent.log(LOG_ERR, "Key (#{new_inuse_key.key_tag}) has gone straight to active use without a prepublished phase")
             next
@@ -354,10 +397,10 @@ module KASPAuditor
         end
       }
       keys_used.each {|key|
-        #        print "Adding inuse key #{key}\n"
         # Now find the key with that tag
         keys.each {|k|
           if (key == k.key_tag)
+            # print "Taking inuse key #{key} and removing from prepublished\n"
             @cache.add_inuse_key(k)
             @cache.delete_prepublished_key(k)
           end

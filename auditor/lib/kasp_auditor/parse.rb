@@ -1,4 +1,4 @@
-# $Id: parse.rb 3150 2010-04-08 11:36:13Z jakob $
+# $Id: parse.rb 4182 2010-11-11 15:47:06Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -29,7 +29,8 @@ include REXML
 
 module KASPAuditor
   class Parse
-    def self.parse(path, zonelist_filename, kasp_filename, syslog)
+    def self.parse(path, zonelist_filename, kasp_filename, syslog, conf_file,
+        working_folder, zone)
       # We need to open [/etc/opendnssec/]conf.xml,
       #                 [/etc/opendnssec/]kasp.xml,
       #                 [/etc/opendnssec/]zonelist.xml
@@ -48,6 +49,9 @@ module KASPAuditor
         doc.elements.each("ZoneList/Zone") {|z|
           # First load the config files
           zone_name = z.attributes['name']
+          if (zone) # We're only asked to load a single zone
+            next if (zone_name.downcase != zone.downcase) # So don't bother loading any other zones
+          end
           policy = z.elements['Policy'].text
 
           config_file_loc = z.elements["SignerConfiguration"].text
@@ -65,6 +69,11 @@ module KASPAuditor
               output_file_loc = path + output_file_loc
             end
             zones.push([config, output_file_loc])
+
+            # Load the config elements storage file, and keep a note of which elements have changed, and when they last changed.
+            changed_config = ChangedConfig.new(zone_name, conf_file, kasp_filename, config, working_folder, syslog)
+            config.changed_config = changed_config
+
           rescue Config::ConfigLoadError => e
             msg = "Can't load #{zone_name} SignerConfiguration file (#{config_file_loc}) : #{e}"
             print msg+"\n"

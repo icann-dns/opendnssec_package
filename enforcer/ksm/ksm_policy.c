@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_policy.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: ksm_policy.c 4169 2010-11-04 14:24:23Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -648,6 +648,58 @@ int KsmPolicyUpdateSalt(KSM_POLICY* policy)
     return status;
 }
 
+/*+
+ * KsmPolicyNullSaltStamp
+ *
+ * Description:
+ *      Given a policy id set its saltstamp to NULL, this will force a resalt on
+ *      the next enforcer run, suitable for when salt length has changed for 
+ *      instance.
+ *
+ * Arguments:
+ *      int policy_id
+ *      	policy to work on
+ *
+ * Returns:
+ *      int
+ *          Status return:
+ *              0           success
+ *              non-zero    some error occurred and a message has been output.
+ *              -1          no policy found
+ *
+-*/
+
+int KsmPolicyNullSaltStamp(int policy_id)
+{
+    char    buffer[KSM_SQL_SIZE];   /* update statement for salt_stamp */
+    unsigned int    nchar;          /* Number of characters converted */
+    int status = 0;
+   
+    /* check the argument */
+    if (policy_id < 1) {
+        MsgLog(KSM_INVARG, "Negative or zero policy_id");
+        return -1;
+    }
+
+     nchar = snprintf(buffer, sizeof(buffer),
+             "UPDATE policies SET salt_stamp = NULL WHERE ID = %lu",
+             (unsigned long) policy_id);
+
+     if (nchar < sizeof(buffer)) {
+         /* All OK, execute the statement */
+
+         status = DbExecuteSqlNoResult(DbHandle(), buffer);
+     }
+     else {
+         /* Unable to create update statement */
+
+         status = MsgLog(KME_BUFFEROVF, "KsmPolicy");
+     }
+
+     return status;
+}
+
+
 /* Populate security module information for a structure that has the sm_id fields filled in */
 
 int KsmPolicyPopulateSMFromIds(KSM_POLICY* policy)
@@ -757,7 +809,7 @@ int KsmPolicySetIdFromName(KSM_POLICY *policy)
     DB_RESULT       result;     /* Handle converted to a result object */
     DB_ROW          row = NULL; /* Row data */
 
-    if (policy == NULL || policy->name == NULL) {
+    if (policy == NULL || policy->name[0] == '\0') {
         return MsgLog(KSM_INVARG, "NULL policy or name");
     }
 
@@ -852,7 +904,6 @@ KSM_POLICY *KsmPolicyAlloc()
         KSM_POLICY *policy;
     
         policy = (KSM_POLICY *)malloc(sizeof(KSM_POLICY));
-        policy->name = (char *)calloc(KSM_NAME_LENGTH, sizeof(char));
         policy->description = (char *)calloc(KSM_POLICY_DESC_LENGTH, sizeof(char));
         policy->signer = (KSM_SIGNER_POLICY *)malloc(sizeof(KSM_SIGNER_POLICY));
         policy->signature = (KSM_SIGNATURE_POLICY *)malloc(sizeof(KSM_SIGNATURE_POLICY));
@@ -887,7 +938,6 @@ KSM_POLICY *KsmPolicyAlloc()
 
 void KsmPolicyFree(KSM_POLICY *policy)
 {	
-    free(policy->name);
     free(policy->description);
     free(policy->signer);
     free(policy->signature);

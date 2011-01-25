@@ -1,6 +1,6 @@
 --- a/conf/Makefile.am
 +++ b/conf/Makefile.am
-@@ -36,7 +36,7 @@ SUFFIXES = .rng .rnc .xml
+@@ -27,7 +27,7 @@ SUFFIXES = .rng .rnc .xml
  		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)
  	${TRANG} $< $@
  

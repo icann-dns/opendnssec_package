@@ -14,7 +14,7 @@
  
  <!--
  		<Repository name="sca6000">
-@@ -45,7 +47,7 @@
+@@ -46,7 +48,7 @@
  		</Privileges>
  -->
  
@@ -23,7 +23,7 @@
  		<Interval>PT3600S</Interval>
  		<!-- <ManualKeyGeneration/> -->
  		
-@@ -56,12 +58,10 @@
+@@ -57,12 +59,10 @@
  	</Enforcer>
  
  	<Signer>
@@ -36,7 +36,7 @@
  
  		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
  		<WorkerThreads>8</WorkerThreads>
-@@ -80,12 +80,10 @@
+@@ -81,12 +81,10 @@
  	</Signer>
  
  	<Auditor>

@@ -25,7 +25,7 @@ CREATE TABLE "dbadmin" (
     "description" TEXT
 );
 
-insert into dbadmin values (1, "This needs to be in sync with the version defined in database.h");
+insert into dbadmin values (2, "This needs to be in sync with the version defined in database.h");
 
 -- security modules - store information about all the sms used
 create table securitymodules (
@@ -75,6 +75,9 @@ create table zones(
   id            integer primary key autoincrement,    -- id
   name          varchar(300) not null ,  -- name of the parameter
   policy_id     mediumint not null,
+  signconf      varchar(4096),  -- where is the signconf
+  input         varchar(4096),  -- where is the input
+  output        varchar(4096),  -- where is the output
   
   foreign key (policy_id) references policies (id)
 );
@@ -86,17 +89,12 @@ create table keypairs(
   algorithm     tinyint not null,             -- algorithm code
   size          smallint,
   securitymodule_id          tinyint,                      -- where the key is stored
-  state         tinyint,                      -- state of the key (defines valid fields)
   generate      varchar(64) null default null,  -- time key inserted into database
-  publish       varchar(64) null default null,  -- time when key published into the zone
-  ready         varchar(64) null default null,  -- time when the key is ready for use
-  active        varchar(64) null default null,  -- time when the key was made active
-  retire        varchar(64) null default null,  -- time when the key retires
-  dead          varchar(64) null default null,  -- time when key is slated for removal
   policy_id        mediumint,
   compromisedflag tinyint,
   publickey     varchar(1024),                -- public key data
-  backup        varchar(64) null default null,  -- time when backup was performed
+  pre_backup    varchar(64) null default null,  -- time when backup was started
+  backup        varchar(64) null default null,  -- time when backup was finished
   fixedDate     tinyint default 0,            -- Set to 1 to stop dates from being set according to the policy timings        
   
   foreign key (securitymodule_id) references securitymodules (id),
@@ -109,6 +107,13 @@ create table dnsseckeys (
   keypair_id    smallint,
   zone_id        mediumint,
   keytype       smallint not null,             -- zsk or ksk (use code in dnskey record)
+  state         tinyint,                      -- state of the key (defines valid fields)
+  publish       varchar(64) null default null,  -- time when key published into the zone
+  ready         varchar(64) null default null,  -- time when the key is ready for use
+  active        varchar(64) null default null,  -- time when the key was made active
+  retire        varchar(64) null default null,  -- time when the key retires
+  dead          varchar(64) null default null,  -- time when key is slated for removal
+
 
   foreign key (zone_id) references zones (id),
   foreign key (keypair_id) references keypairs (id)
@@ -142,8 +147,8 @@ where p.category_id = c.id;
 
 drop view if exists KEYDATA_VIEW;
 create view KEYDATA_VIEW as
-select k.id as id, k.state as state, k.generate as generate, k.publish as publish,
-    k.ready as ready, k.active as active, k.retire as retire, k.dead as dead, 
+select k.id as id, d.state as state, k.generate as generate, d.publish as publish,
+    d.ready as ready, d.active as active, d.retire as retire, d.dead as dead, 
     d.keytype as keytype, k.algorithm as algorithm, k.HSMkey_id as location,
     d.zone_id as zone_id, k.policy_id as policy_id, 
     k.securitymodule_id as securitymodule_id, k.size as size,
@@ -152,24 +157,33 @@ select k.id as id, k.state as state, k.generate as generate, k.publish as publis
 from  keypairs k left outer join dnsseckeys d
 on k.id = d.keypair_id;
 
+drop view if exists KEYALLOC_VIEW;
+create view KEYALLOC_VIEW as
+select v.id as id, location, algorithm, policy_id, securitymodule_id, size, compromisedflag, d.zone_id as zone_id from
+(select k.id as id, k.HSMkey_id as location, z.id as zone_id, k.algorithm as algorithm, k.policy_id as policy_id, k.securitymodule_id as securitymodule_id, k.size as size,
+    k.compromisedflag as compromisedflag
+from keypairs k left join zones z where k.policy_id = z.policy_id )  v 
+left outer join dnsseckeys d
+on d.zone_id = v.zone_id
+and d.keypair_id = v.id;
+
 -- insert default data
 
 -- default categories
-insert into categories (name) values ("signature");
-insert into categories (name) values ("denial");
-insert into categories (name) values ("ksk");
-insert into categories (name) values ("zsk");
-insert into categories (name) values ("keys");
-insert into categories (name) values ("enforcer");
-insert into categories (name) values ("zone");
-insert into categories (name) values ("parent");
---insert into categories (name) values ("audit");
+insert into categories (id, name) values (1, "signature");
+insert into categories (id, name) values (2, "denial");
+insert into categories (id, name) values (3, "ksk");
+insert into categories (id, name) values (4, "zsk");
+insert into categories (id, name) values (5, "keys");
+insert into categories (id, name) values (6, "enforcer");
+insert into categories (id, name) values (7, "zone");
+insert into categories (id, name) values (8, "parent");
 
 -- default serial number modes
-insert into serialmodes (name, description) values ("unixtime", "seconds since 1 Jan 1970");
-insert into serialmodes (name, description) values ("counter", "add one everytime updated");
-insert into serialmodes (name, description) values ("datecounter", "YYYYMMDDXX");
-insert into serialmodes (name, description) values ("keep", "Signer should not change the serial");
+insert into serialmodes (id, name, description) values (1, "unixtime", "seconds since 1 Jan 1970");
+insert into serialmodes (id, name, description) values (2, "counter", "add one everytime updated");
+insert into serialmodes (id, name, description) values (3, "datecounter", "YYYYMMDDXX");
+insert into serialmodes (id, name, description) values (4, "keep", "Signer should not change the serial");
 
 -- default parameters
 insert into parameters (name, description, category_id) select "resign", "re-signing interval", id from categories where name="signature";

@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_list.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: ksm_list.c 4169 2010-11-04 14:24:23Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -63,23 +63,27 @@
  *                          other on fail
  */
 
-int KsmListBackups(int repo_id)
+int KsmListBackups(int repo_id, int verbose_flag)
 {
     char*       sql = NULL;     /* SQL query */
     char*       sql2 = NULL;     /* SQL query */
+    char*       sql3 = NULL;     /* SQL query */
     int         status = 0;     /* Status return */
     char        stringval[KSM_INT_STR_SIZE];  /* For Integer to String conversion */
     DB_RESULT	result;         /* Result of the query */
     DB_ROW      row = NULL;     /* Row data */
     DB_RESULT	result2;         /* Result of the query */
     DB_ROW      row2 = NULL;     /* Row data */
+    DB_RESULT	result3;         /* Result of the query */
+    DB_ROW      row3 = NULL;     /* Row data */
 
     char*       temp_date = NULL; /* place to store date returned */
+    char*       temp_pre_date = NULL; /* place to store pre-backup date returned */
     char*       temp_repo = NULL; /* place to store repository returned */
     int         temp_backup_req = 0; /* place to store backuprequired returned */
 
     /* Select rows */
-    StrAppend(&sql, "select distinct k.backup, s.name from keypairs k, securitymodules s ");
+    StrAppend(&sql, "select distinct k.backup, s.name, k.pre_backup from keypairs k, securitymodules s ");
     StrAppend(&sql, "where s.id = k.securitymodule_id ");
     if (repo_id != -1) {
         StrAppend(&sql, "and s.id = ");
@@ -94,14 +98,25 @@ int KsmListBackups(int repo_id)
 
     if (status == 0) {
         status = DbFetchRow(result, &row);
-        printf("Date:                    Repository:\n");
+        if (verbose_flag == 1) {
+            printf("Pre Backup Date:         Backup Date:             Repository:\n");
+        } else {
+            printf("Date:                    Repository:\n");
+        }
         while (status == 0) {
             /* Got a row, print it */
             DbString(row, 0, &temp_date);
             DbString(row, 1, &temp_repo);
+            DbString(row, 2, &temp_pre_date);
 
-            if (temp_date != NULL) { /* Ignore non-backup */
-                printf("%-24s %s\n", temp_date, temp_repo);
+            if (verbose_flag == 1) {
+                if (temp_date != NULL || temp_pre_date != NULL) { /* Ignore non-backup */
+                    printf("%-24s %-24s %s\n", temp_pre_date, temp_date, temp_repo);
+                }
+            } else {
+                if (temp_date != NULL) { /* Ignore non-backup */
+                    printf("%-24s %s\n", temp_date, temp_repo);
+                }
             }
             
             status = DbFetchRow(result, &row);
@@ -119,6 +134,10 @@ int KsmListBackups(int repo_id)
     DusFree(sql);
     DbFreeRow(row);
     DbStringFree(temp_date);
+    DbStringFree(temp_pre_date);
+    sql = NULL;
+    row = NULL;
+    temp_date = NULL;
 
     /* List repos which need a backup */
     StrAppend(&sql2, "select s.name, s.requirebackup from keypairs k, securitymodules s ");
@@ -162,6 +181,47 @@ int KsmListBackups(int repo_id)
 
     DusFree(sql2);
     DbFreeRow(row2);
+    DbStringFree(temp_repo);
+
+    /* List repos which need a backup commit */
+    temp_repo = NULL;
+    StrAppend(&sql3, "select s.name from keypairs k, securitymodules s ");
+    StrAppend(&sql3, "where s.id = k.securitymodule_id ");
+    if (repo_id != -1) {
+        StrAppend(&sql3, "and s.id = ");
+        snprintf(stringval, KSM_INT_STR_SIZE, "%d", repo_id);
+        StrAppend(&sql3, stringval);
+    }
+    StrAppend(&sql3, " and k.backup is null");
+    StrAppend(&sql3, " and k.pre_backup is not null");
+    StrAppend(&sql3, " group by s.name order by s.name");
+
+    DusEnd(&sql3);
+
+    status = DbExecuteSql(DbHandle(), sql3, &result3);
+
+    if (status == 0) {
+        status = DbFetchRow(result3, &row3);
+        while (status == 0) {
+            /* Got a row, print it */
+            DbString(row3, 0, &temp_repo);
+
+            printf("Repository %s has keys prepared for back up which have not been committed\n", temp_repo);
+            
+            status = DbFetchRow(result3, &row3);
+        }
+
+        /* Convert EOF status to success */
+
+        if (status == -1) {
+            status = 0;
+        }
+
+        DbFreeResult(result3);
+    }
+
+    DusFree(sql3);
+    DbFreeRow(row3);
     DbStringFree(temp_repo);
 
     return status;

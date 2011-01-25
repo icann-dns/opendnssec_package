@@ -1,26 +1,13 @@
-# $Id: Makefile.am 3150 2010-04-08 11:36:13Z jakob $
+# $Id: Makefile.am 4098 2010-10-13 14:40:53Z matthijs $
 
-ACLOCAL_AMFLAGS = -I m4
+MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
-MAINTAINERCLEANFILES = \
-	config.log config.status \
-	$(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(srcdir)/config.h.in~ \
-	$(srcdir)/configure \
-	$(srcdir)/install-sh $(srcdir)/ltmain.sh $(srcdir)/missing \
-	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
-	$(srcdir)/config.guess $(srcdir)/config.sub \
-	$(srcdir)/py-compile
+SUBDIRS = src man
 
-SUBDIRS = tools signer_engine
-
-# TODO: move this to general opendnssec install
-install-data-hook:
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/tmp
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signconf
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/unsigned
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signed
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/run
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/run/opendnssec
+doxygen:
+	rm -fr $(top_builddir)/signer/doxygen-doc
+	env $(DX_ENV) \
+		PROJECT_NAME="OpenDNSSEC-signer" \
+		SRCDIR=$(top_srcdir)/signer \
+		OUTPUTDIR=$(top_builddir)/signer/doxygen-doc \
+		$(DX_DOXYGEN) $(top_builddir)/$(DX_CONFIG)

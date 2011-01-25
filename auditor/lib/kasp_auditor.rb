@@ -1,5 +1,5 @@
 #
-# $Id: kasp_auditor.rb 3575 2010-07-15 13:21:02Z alex $
+# $Id: kasp_auditor.rb 4178 2010-11-11 15:27:52Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -35,7 +35,9 @@ end
 require 'syslog'
 include Syslog::Constants
 include Dnsruby
+require 'kasp_auditor/commands.rb'
 require 'kasp_auditor/config.rb'
+require 'kasp_auditor/changed_config.rb'
 require 'kasp_auditor/key_tracker.rb'
 require 'kasp_auditor/auditor.rb'
 require 'kasp_auditor/partial_auditor.rb'
@@ -68,7 +70,7 @@ module KASPAuditor
   # sorted into canonical order. These files are then processed by the
   # Auditor. If processing an NSEC3-signed file, the Auditor will create
   # additional temporary files, which are processed after the main auditing
-  # run.
+  # run. This class controls the process.
   class Runner
 
     attr_accessor :kasp_file, :zone_name, :signed_temp, :unsigned_zone
@@ -110,13 +112,13 @@ module KASPAuditor
       Syslog.open("ods-auditor", Syslog::LOG_PID |
         Syslog::LOG_CONS, syslog_facility) { |syslog|
         run_with_syslog(zonelist, kasp_file, syslog, working, 
-          signer_working_folder, enforcer_interval)
+          signer_working_folder, enforcer_interval, conf_file)
       }
     end
 
     # This method is provided so that the test code can use its own syslog
     def run_with_syslog(zonelist_file, kasp_file, syslog, 
-        working, signer_working_folder, enforcer_interval) # :nodoc: all
+        working, signer_working_folder, enforcer_interval, conf_file) # :nodoc: all
       syslog.log(LOG_INFO, "Auditor started")
       print("Auditor started\n")
       if (@enable_timeshift)
@@ -125,9 +127,9 @@ module KASPAuditor
       zones = nil
       begin
         zones = Parse.parse(File.dirname(kasp_file)  + File::SEPARATOR,
-          zonelist_file, kasp_file, syslog)
+          zonelist_file, kasp_file, syslog, conf_file, working, @zone_name)
       rescue Exception => e
-        KASPAuditor.exit("Couldn't load configuration files - try running ods-kaspcheck", -LOG_ERR, syslog)
+        KASPAuditor.exit("Couldn't load configuration files (from #{kasp_file}) - try running ods-kaspcheck. #{e}", -LOG_ERR, syslog)
       end
       zones = check_zones_to_audit(zones, syslog)
       # Now check the input and output zones using the config
@@ -176,8 +178,8 @@ module KASPAuditor
       exit(ret)
     end
     
+    # Invoke the partial auditor
     def partial_audit(ret, input_file, output_file, working, config, syslog, enforcer_interval)
-      # Invoke the partial auditor
       auditor = PartialAuditor.new(syslog, working)
       ret_val = auditor.check_zone(config, input_file, output_file, enforcer_interval)
       ret = ret_val if (ret_val < ret)
@@ -187,6 +189,7 @@ module KASPAuditor
       return ret
     end
 
+    # Invoked the full auditor
     def full_audit(ret, input_file, output_file, pid, working, config, syslog, enforcer_interval)
       # Perform a full audit of every record. This requires sorting the zones canonically.
       # Preparse the input and output files
@@ -228,6 +231,7 @@ module KASPAuditor
       return ret
     end
 
+    # Prepare the input unsigned and signed files for auditing
     def normalise_and_sort(f, prefix, pid, working, config)
       pp = Preparser.new(config)
       parsed_file = working+get_name(f)+".#{prefix}.parsed.#{pid}"
@@ -283,7 +287,7 @@ module KASPAuditor
       if @zone_name
         to_keep = nil
         zones.each {|z|
-          if (z[0].name == @zone_name.to_s)
+          if (z[0].name.downcase == @zone_name.to_s.downcase)
             to_keep = z
           end
         }
@@ -297,7 +301,7 @@ module KASPAuditor
         # signed zonefile.
         conf = nil
         zones.each {|array|
-          if (array[0].name == @zone_name.to_s)
+          if (array[0].name.downcase == @zone_name.to_s.downcase)
             conf = array[0]
           end
         }
@@ -321,23 +325,23 @@ module KASPAuditor
       begin
         File.open((conf_file + "").untaint , 'r') {|file|
           doc = REXML::Document.new(file)
-          enforcer_interval = 3600
+          enforcer_interval = nil
           begin
             e_i_text = doc.elements['Configuration/Enforcer/Interval'].text
             enforcer_interval = Config.xsd_duration_to_seconds(e_i_text)
           rescue Exception
-            print "Can't read Enforcer->Interval from Configuration\n"
+            KASPAuditor.exit("Can't read Enforcer->Interval from Configuration", 1)
           end
-            begin
-              working = doc.elements['Configuration/Auditor/WorkingDirectory'].text
-            rescue Exception
-              working = @working_folder
-            end
-            begin
-              signer_working = doc.elements['Configuration/Signer/WorkingDirectory'].text
-            rescue Exception
-              signer_working = @working_folder
-            end
+          begin
+            working = doc.elements['Configuration/Auditor/WorkingDirectory'].text
+          rescue Exception
+            working = @working_folder
+          end
+          begin
+            signer_working = doc.elements['Configuration/Signer/WorkingDirectory'].text
+          rescue Exception
+            signer_working = @working_folder
+          end
           begin
             zonelist = doc.elements['Configuration/Common/ZoneListFile'].text
           rescue Exception

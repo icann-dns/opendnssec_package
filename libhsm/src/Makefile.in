@@ -15,8 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 3150 2010-04-08 11:36:13Z jakob $
-
+# $Id: Makefile.am 3732 2010-08-11 10:21:06Z jakob $
 
 
 VPATH = @srcdir@
@@ -38,17 +37,28 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = ods-hsmutil$(EXEEXT) ods-hsmspeed$(EXEEXT)
-subdir = src
-DIST_COMMON = $(nobase_include_HEADERS) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(srcdir)/ods-hsmspeed.1.in \
-	$(srcdir)/ods-hsmutil.1.in
+subdir = libhsm/src
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/ods-hsmspeed.1.in $(srcdir)/ods-hsmutil.1.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/acx_dlopen.m4 \
-	$(top_srcdir)/m4/acx_ldns.m4 $(top_srcdir)/m4/acx_libxml2.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
+	$(top_srcdir)/m4/acx_check_strptime.m4 \
+	$(top_srcdir)/m4/acx_cunit.m4 \
+	$(top_srcdir)/m4/acx_database_backend.m4 \
+	$(top_srcdir)/m4/acx_dbparams.m4 \
+	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
+	$(top_srcdir)/m4/acx_libcurl.m4 \
+	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
 	$(top_srcdir)/m4/acx_pedantic.m4 \
 	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
-	$(top_srcdir)/m4/acx_rpath.m4 $(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/acx_pthread.m4 $(top_srcdir)/m4/acx_rpath.m4 \
+	$(top_srcdir)/m4/acx_rt.m4 $(top_srcdir)/m4/acx_sqlite3.m4 \
+	$(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/am_prog_ruby.m4 \
+	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
+	$(top_srcdir)/m4/check_compiler_flag.m4 \
+	$(top_srcdir)/m4/check_compiler_flag_needed.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
 	$(top_srcdir)/m4/lt~obsolete.m4 \
@@ -57,33 +67,24 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acx_dlopen.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config.h
+CONFIG_HEADER = $(top_builddir)/common/config.h
 CONFIG_CLEAN_FILES = ods-hsmspeed.1 ods-hsmutil.1
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"
-libLTLIBRARIES_INSTALL = $(INSTALL)
-LTLIBRARIES = $(lib_LTLIBRARIES)
-libhsm_la_DEPENDENCIES =
-am_libhsm_la_OBJECTS = libhsm.lo strlcpy.lo strlcat.lo
-libhsm_la_OBJECTS = $(am_libhsm_la_OBJECTS)
-libhsm_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libhsm_la_LDFLAGS) $(LDFLAGS) -o $@
+LIBRARIES = $(noinst_LIBRARIES)
+ARFLAGS = cru
+libhsm_a_AR = $(AR) $(ARFLAGS)
+libhsm_a_LIBADD =
+am_libhsm_a_OBJECTS = libhsm.$(OBJEXT)
+libhsm_a_OBJECTS = $(am_libhsm_a_OBJECTS)
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_ods_hsmspeed_OBJECTS = hsmspeed.$(OBJEXT)
 ods_hsmspeed_OBJECTS = $(am_ods_hsmspeed_OBJECTS)
-ods_hsmspeed_DEPENDENCIES = libhsm.la
+ods_hsmspeed_DEPENDENCIES = libhsm.a
 am_ods_hsmutil_OBJECTS = hsmutil.$(OBJEXT) hsmtest.$(OBJEXT)
 ods_hsmutil_OBJECTS = $(am_ods_hsmutil_OBJECTS)
-ods_hsmutil_DEPENDENCIES = libhsm.la
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+ods_hsmutil_DEPENDENCIES = libhsm.a
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -95,15 +96,13 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libhsm_la_SOURCES) $(ods_hsmspeed_SOURCES) \
+SOURCES = $(libhsm_a_SOURCES) $(ods_hsmspeed_SOURCES) \
 	$(ods_hsmutil_SOURCES)
-DIST_SOURCES = $(libhsm_la_SOURCES) $(ods_hsmspeed_SOURCES) \
+DIST_SOURCES = $(libhsm_a_SOURCES) $(ods_hsmspeed_SOURCES) \
 	$(ods_hsmutil_SOURCES)
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(man1_MANS)
-nobase_includeHEADERS_INSTALL = $(install_sh_DATA)
-HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -117,13 +116,48 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CP = @CP@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CUCUMBER = @CUCUMBER@
+CUNIT_INCLUDES = @CUNIT_INCLUDES@
+CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
+DB_HOST = @DB_HOST@
+DB_INCLUDES = @DB_INCLUDES@
+DB_LIBS = @DB_LIBS@
+DB_NAME = @DB_NAME@
+DB_PASS = @DB_PASS@
+DB_TYPE = @DB_TYPE@
+DB_USER = @DB_USER@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DOXYGEN_PAPER_SIZE = @DOXYGEN_PAPER_SIZE@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
+DX_CONFIG = @DX_CONFIG@
+DX_DOCDIR = @DX_DOCDIR@
+DX_DOT = @DX_DOT@
+DX_DOXYGEN = @DX_DOXYGEN@
+DX_DVIPS = @DX_DVIPS@
+DX_EGREP = @DX_EGREP@
+DX_ENV = @DX_ENV@
+DX_FLAG_chi = @DX_FLAG_chi@
+DX_FLAG_chm = @DX_FLAG_chm@
+DX_FLAG_doc = @DX_FLAG_doc@
+DX_FLAG_dot = @DX_FLAG_dot@
+DX_FLAG_html = @DX_FLAG_html@
+DX_FLAG_man = @DX_FLAG_man@
+DX_FLAG_pdf = @DX_FLAG_pdf@
+DX_FLAG_ps = @DX_FLAG_ps@
+DX_FLAG_rtf = @DX_FLAG_rtf@
+DX_FLAG_xml = @DX_FLAG_xml@
+DX_HHC = @DX_HHC@
+DX_LATEX = @DX_LATEX@
+DX_MAKEINDEX = @DX_MAKEINDEX@
+DX_PDFLATEX = @DX_PDFLATEX@
+DX_PERL = @DX_PERL@
+DX_PROJECT = @DX_PROJECT@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -136,20 +170,27 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JAVA = @JAVA@
+KILLALL = @KILLALL@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
 LDNS_LIBS = @LDNS_LIBS@
+LIBCURL = @LIBCURL@
+LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBTOOL_VERSION_INFO = @LIBTOOL_VERSION_INFO@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+MYSQL = @MYSQL@
+MYSQL_CONFIG = @MYSQL_CONFIG@
+MYSQL_INCLUDES = @MYSQL_INCLUDES@
+MYSQL_LIBS = @MYSQL_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -182,21 +223,35 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PERL = @PERL@
+PKILL = @PKILL@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
+RT_LIBS = @RT_LIBS@
+RUBY = @RUBY@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQLITE3 = @SQLITE3@
+SQLITE3_INCLUDES = @SQLITE3_INCLUDES@
+SQLITE3_LIBS = @SQLITE3_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
 XML2_INCLUDES = @XML2_INCLUDES@
 XML2_LIBS = @XML2_LIBS@
+XMLLINT = @XMLLINT@
+XSLTPROC = @XSLTPROC@
+_libcurl_config = @_libcurl_config@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
+acx_pthread_config = @acx_pthread_config@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -244,31 +299,29 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
-AM_CPPFLAGS = -I$(srcdir)/.. \
+AM_CPPFLAGS = \
+		-I$(top_srcdir)/common \
+		-I$(top_builddir)/common \
 		-I$(srcdir)/cryptoki_compat \
 		@LDNS_INCLUDES@ @XML2_INCLUDES@
 
 AM_CFLAGS = -std=c99
-lib_LTLIBRARIES = libhsm.la
-libhsm_la_SOURCES = libhsm.c compat/strlcpy.c compat/strlcat.c
-libhsm_la_LDFLAGS = -dl -version-info @LIBTOOL_VERSION_INFO@ \
-	 -export-symbols-regex '^hsm_.*' 
+noinst_LIBRARIES = libhsm.a
+libhsm_a_SOURCES = libhsm.c libhsm.h libhsmdns.h \
+	cryptoki_compat/pkcs11.h
 
-libhsm_la_LIBADD = @LDNS_LIBS@ @XML2_LIBS@
-nobase_include_HEADERS = $(srcdir)/*.h
 man1_MANS = ods-hsmutil.1 ods-hsmspeed.1
-ods_hsmutil_SOURCES = hsmutil.c hsmtest.c
-ods_hsmutil_LDADD = libhsm.la
+ods_hsmutil_SOURCES = hsmutil.c hsmtest.c hsmtest.h
+ods_hsmutil_LDADD = libhsm.a @LDNS_LIBS@ @XML2_LIBS@
 ods_hsmspeed_SOURCES = hsmspeed.c
-ods_hsmspeed_LDADD = libhsm.la -lpthread
-EXTRA_DIST = $(srcdir)/cryptoki_compat/*.h $(srcdir)/compat/*.c \
-	$(srcdir)/compat/*.h
+ods_hsmspeed_LDADD = libhsm.a -lpthread @LDNS_LIBS@ @XML2_LIBS@
 all: all-am
 
 .SUFFIXES:
@@ -282,9 +335,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  libhsm/src/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/Makefile
+	  $(AUTOMAKE) --foreign  libhsm/src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -306,35 +359,13 @@ ods-hsmspeed.1: $(top_builddir)/config.status $(srcdir)/ods-hsmspeed.1.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 ods-hsmutil.1: $(top_builddir)/config.status $(srcdir)/ods-hsmutil.1.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    f=$(am__strip_dir) \
-	    echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
-	    $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
-	  else :; fi; \
-	done
 
-uninstall-libLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  p=$(am__strip_dir) \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$p'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$p"; \
-	done
-
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libhsm.la: $(libhsm_la_OBJECTS) $(libhsm_la_DEPENDENCIES) 
-	$(libhsm_la_LINK) -rpath $(libdir) $(libhsm_la_OBJECTS) $(libhsm_la_LIBADD) $(LIBS)
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+libhsm.a: $(libhsm_a_OBJECTS) $(libhsm_a_DEPENDENCIES) 
+	-rm -f libhsm.a
+	$(libhsm_a_AR) libhsm.a $(libhsm_a_OBJECTS) $(libhsm_a_LIBADD)
+	$(RANLIB) libhsm.a
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
@@ -379,9 +410,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hsmspeed.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hsmtest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hsmutil.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhsm.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlcat.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlcpy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhsm.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -403,20 +432,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
-
-strlcpy.lo: compat/strlcpy.c
-@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlcpy.lo -MD -MP -MF $(DEPDIR)/strlcpy.Tpo -c -o strlcpy.lo `test -f 'compat/strlcpy.c' || echo '$(srcdir)/'`compat/strlcpy.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/strlcpy.Tpo $(DEPDIR)/strlcpy.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='compat/strlcpy.c' object='strlcpy.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlcpy.lo `test -f 'compat/strlcpy.c' || echo '$(srcdir)/'`compat/strlcpy.c
-
-strlcat.lo: compat/strlcat.c
-@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlcat.lo -MD -MP -MF $(DEPDIR)/strlcat.Tpo -c -o strlcat.lo `test -f 'compat/strlcat.c' || echo '$(srcdir)/'`compat/strlcat.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/strlcat.Tpo $(DEPDIR)/strlcat.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='compat/strlcat.c' object='strlcat.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlcat.lo `test -f 'compat/strlcat.c' || echo '$(srcdir)/'`compat/strlcat.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -467,25 +482,6 @@ uninstall-man1:
 	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
 	  echo " rm -f '$(DESTDIR)$(man1dir)/$$inst'"; \
 	  rm -f "$(DESTDIR)$(man1dir)/$$inst"; \
-	done
-install-nobase_includeHEADERS: $(nobase_include_HEADERS)
-	@$(NORMAL_INSTALL)
-	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_include_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  $(am__vpath_adj) \
-	  echo " $(nobase_includeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(includedir)/$$f'"; \
-	  $(nobase_includeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(includedir)/$$f"; \
-	done
-
-uninstall-nobase_includeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_include_HEADERS)'; for p in $$list; do \
-	  $(am__vpath_adj) \
-	  echo " rm -f '$(DESTDIR)$(includedir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(includedir)/$$f"; \
 	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -576,11 +572,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) $(HEADERS)
-install-binPROGRAMS: install-libLTLIBRARIES
-
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(MANS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -610,8 +604,8 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libtool \
+	clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -631,13 +625,13 @@ info: info-am
 
 info-am:
 
-install-data-am: install-man install-nobase_includeHEADERS
+install-data-am: install-man
 
 install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
+install-exec-am: install-binPROGRAMS
 
 install-html: install-html-am
 
@@ -677,29 +671,26 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
-	uninstall-man uninstall-nobase_includeHEADERS
+uninstall-am: uninstall-binPROGRAMS uninstall-man
 
 uninstall-man: uninstall-man1
 
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic clean-libLTLIBRARIES clean-libtool ctags \
+	clean-generic clean-libtool clean-noinstLIBRARIES ctags \
 	distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-binPROGRAMS \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-libLTLIBRARIES \
-	install-man install-man1 install-nobase_includeHEADERS \
+	install-info install-info-am install-man install-man1 \
 	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-libLTLIBRARIES uninstall-man \
-	uninstall-man1 uninstall-nobase_includeHEADERS
+	uninstall-binPROGRAMS uninstall-man uninstall-man1
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

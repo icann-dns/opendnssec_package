@@ -1,5 +1,5 @@
 /*
- * $Id: hsmutil.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: hsmutil.c 4191 2010-11-16 08:51:56Z jakob $
  *
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
  * Copyright (c) 2009 NLNet Labs.
@@ -46,10 +46,17 @@ unsigned int verbose = 0;
 
 
 void
+version ()
+{
+    fprintf(stderr, "%s (%s) version %s\n",
+        progname, PACKAGE_NAME, PACKAGE_VERSION);
+}
+
+void
 usage ()
 {
     fprintf(stderr,
-       "usage: %s [-c config] [-v] command [options]\n",
+       "usage: %s [-c config] [-vV] command [options]\n",
         progname);
 
     fprintf(stderr,"  list [repository]\n");
@@ -58,6 +65,7 @@ usage ()
     fprintf(stderr,"  purge <repository>\n");
     fprintf(stderr,"  dnskey <id> <name>\n");
     fprintf(stderr,"  test <repository>\n");
+    fprintf(stderr,"  info\n");
 #if 0
     fprintf(stderr,"  debug\n");
 #endif
@@ -70,6 +78,7 @@ cmd_list (int argc, char *argv[])
     char *repository = NULL;
 
     size_t key_count = 0;
+    size_t key_count_valid = 0;
     hsm_key_t **keys;
     hsm_ctx_t *ctx = NULL;
 
@@ -87,14 +96,14 @@ cmd_list (int argc, char *argv[])
            return 1;
         }
 
-        printf("Listing keys in repository: %s\n", repository);
+        fprintf(stderr, "Listing keys in repository: %s\n", repository);
         keys = hsm_list_keys_repository(NULL, &key_count, repository);
     } else {
-        printf("Listing keys in all repositories.\n");
+        fprintf(stderr, "Listing keys in all repositories.\n");
         keys = hsm_list_keys(NULL, &key_count);
     }
 
-    printf("%u %s found.\n\n", (unsigned int) key_count,
+    fprintf(stderr, "%u %s found.\n\n", (unsigned int) key_count,
         (key_count > 1 || key_count == 0 ? "keys" : "key"));
 
     if (!keys) {
@@ -102,24 +111,47 @@ cmd_list (int argc, char *argv[])
     }
 
     /* print fancy header */
-    printf(key_info_format, "Repository", "ID", "Type");
-    printf(key_info_format, "----------", "--", "----");
+    fprintf(stderr, key_info_format, "Repository", "ID", "Type");
+    fprintf(stderr, key_info_format, "----------", "--", "----");
 
     for (i = 0; i < key_count; i++) {
         hsm_key_info_t *key_info;
-        hsm_key_t *key = keys[i];
+        hsm_key_t *key = NULL;
         char key_type[HSM_MAX_ALGONAME + 8];
+        char *key_id = NULL;
+
+        key = keys[i];
+        if (key == NULL) {
+            /* Skip NULL key for now */
+            continue;
+        }
+        
+        key_count_valid++;
 
         key_info = hsm_get_key_info(NULL, key);
-        snprintf(key_type, sizeof(key_type),
-            "%s/%lu",
-            key_info->algorithm_name, key_info->keysize);
+        
+        if (key_info) {
+            snprintf(key_type, sizeof(key_type), "%s/%lu",
+                key_info->algorithm_name, key_info->keysize);
+            key_id = key_info->id;
+        } else {
+            snprintf(key_type, sizeof(key_type), "UNKNOWN");
+            key_id = "UNKNOWN";
+        }
 
-        printf(key_info_format, key->module->name, key_info->id, key_type);
+        printf(key_info_format, key->module->name, key_id, key_type);
 
         hsm_key_info_free(key_info);
     }
     hsm_key_list_free(keys, key_count);
+    
+    if (key_count != key_count_valid) {
+        size_t invalid_keys;
+        invalid_keys = key_count - key_count_valid;
+        printf("\n");
+        fprintf(stderr, "Warning: %u %s not usable by OpenDNSSEC was found.\n",
+            invalid_keys, invalid_keys > 1 ? "keys" : "key");
+    }
 
     return 0;
 }
@@ -161,7 +193,8 @@ cmd_generate (int argc, char *argv[])
             hsm_key_info_t *key_info;
 
             key_info = hsm_get_key_info(NULL, key);
-            printf("Key generation successful: %s\n", key_info->id);
+            printf("Key generation successful: %s\n",
+                key_info ? key_info->id : "NULL");
             hsm_key_info_free(key_info);
             if (verbose) hsm_print_key(key);
             hsm_key_free(key);
@@ -218,6 +251,7 @@ cmd_purge (int argc, char *argv[])
 {
     int result;
     int final_result = 0;
+    char *fresult;
 
     size_t i;
     char *repository = NULL;
@@ -257,8 +291,8 @@ cmd_purge (int argc, char *argv[])
     }
 
     printf("Are you sure you want to remove ALL keys from repository %s ? (YES/NO) ", repository);
-    fgets(confirm, sizeof(confirm) - 1, stdin);
-    if (strncasecmp(confirm, "yes", 3) != 0) {
+    fresult = fgets(confirm, sizeof(confirm) - 1, stdin);
+    if (fresult == NULL || strncasecmp(confirm, "yes", 3) != 0) {
         printf("\nPurge cancelled.\n");
         hsm_key_list_free(keys, key_count);
         return -1;
@@ -274,9 +308,11 @@ cmd_purge (int argc, char *argv[])
         result = hsm_remove_key(NULL, key);
 
         if (!result) {
-            printf("Key remove successful: %s\n", key_info->id);
+            printf("Key remove successful: %s\n",
+                key_info ? key_info->id : "NULL");
         } else {
-            printf("Key remove failed: %s\n", key_info->id);
+            printf("Key remove failed: %s\n",
+                key_info ? key_info->id : "NULL");
             final_result++;
         }
 
@@ -349,6 +385,14 @@ cmd_test (int argc, char *argv[])
 }
 
 int
+cmd_info ()
+{
+    hsm_print_tokeninfo(NULL);
+
+    return 0;
+}
+
+int
 cmd_debug ()
 {
     hsm_print_ctx(NULL);
@@ -366,13 +410,17 @@ main (int argc, char *argv[])
     int ch;
     progname = argv[0];
 
-    while ((ch = getopt(argc, argv, "c:vh")) != -1) {
+    while ((ch = getopt(argc, argv, "c:vVh")) != -1) {
         switch (ch) {
         case 'c':
             config = strdup(optarg);
             break;
         case 'v':
             verbose++;
+            break;
+        case 'V':
+            version();
+            exit(0);
             break;
         case 'h':
             usage();
@@ -423,6 +471,10 @@ main (int argc, char *argv[])
         argc --;
         argv ++;
         result = cmd_test(argc, argv);
+    } else if (!strcasecmp(argv[0], "info")) {
+        argc --;
+        argv ++;
+        result = cmd_info();
     } else if (!strcasecmp(argv[0], "debug")) {
         argc --;
         argv ++;

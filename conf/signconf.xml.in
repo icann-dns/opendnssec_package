@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: signconf.xml.in 3150 2010-04-08 11:36:13Z jakob $ -->
+<!-- $Id: signconf.xml.in 3061 2010-03-16 19:23:51Z jakob $ -->
 
 <SignerConfiguration>
 	<Zone name="opendnssec.org">

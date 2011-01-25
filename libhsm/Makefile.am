@@ -1,20 +1,13 @@
-# $Id: Makefile.am 3150 2010-04-08 11:36:13Z jakob $
+# $Id: Makefile.am 3682 2010-08-09 11:55:02Z jakob $
 
-ACLOCAL_AMFLAGS = -I m4
-
-MAINTAINERCLEANFILES = \
-	config.log config.status \
-	$(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(srcdir)/config.h.in~ \
-	$(srcdir)/configure \
-	$(srcdir)/install-sh $(srcdir)/ltmain.sh $(srcdir)/missing \
-	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
-	$(srcdir)/config.guess $(srcdir)/config.sub
+MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 SUBDIRS = src checks
 
 doxygen:
-	INPUT=$(srcdir)/src \
-	PROJECT=$(PACKAGE_NAME) \
-	VERSION=$(VERSION) \
-	doxygen $(srcdir)/libhsm.doxygen
+	rm -fr $(top_builddir)/libhsm/doxygen-doc
+	env $(DX_ENV) \
+		PROJECT_NAME="OpenDNSSEC-libhsm" \
+		SRCDIR=$(top_srcdir)/libhsm \
+		OUTPUTDIR=$(top_builddir)/libhsm/doxygen-doc \
+		$(DX_DOXYGEN) $(top_builddir)/$(DX_CONFIG)

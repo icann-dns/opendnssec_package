@@ -1,5 +1,5 @@
 /*
- * $Id: dq_string.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: dq_string.c 3776 2010-08-24 14:55:39Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -175,6 +175,10 @@ static void DqsAppendComparison(char** query, DQS_COMPARISON compare)
 
     case DQS_COMPARE_IN:
         StrAppend(query, " IN ");
+        break;
+
+    case DQS_COMPARE_NOT_IN:
+        StrAppend(query, " NOT IN ");
         break;
 
     case DQS_COMPARE_IS:

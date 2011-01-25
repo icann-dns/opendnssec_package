@@ -1,5 +1,5 @@
 /*
- * $Id: database.h 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: database.h 3776 2010-08-24 14:55:39Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -42,7 +42,7 @@ extern "C" {
 
 #include <stdlib.h>
 
-#define KSM_DB_VERSION 1    /* This needs to match that given in the dbadmin table */
+#define KSM_DB_VERSION 2    /* This needs to match that given in the dbadmin table */
 
 #define MYSQL_DB 1
 #define SQLITE_DB 2

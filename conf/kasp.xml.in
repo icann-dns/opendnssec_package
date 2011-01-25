@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: kasp.xml.in 3564 2010-07-06 13:39:29Z rb $ -->
+<!-- $Id: kasp.xml.in 3909 2010-09-09 11:13:53Z rb $ -->
 
 <!--
   
@@ -50,18 +50,16 @@
 
 			<!-- Parameters for KSK only -->
 			<KSK>
-				<Algorithm length="2048">7</Algorithm>
+				<Algorithm length="2048">8</Algorithm>
 				<Lifetime>P1Y</Lifetime>
 				<Repository>SoftHSM</Repository>
-				<Standby>0</Standby>
 			</KSK>
 
 			<!-- Parameters for ZSK only -->
 			<ZSK>
-				<Algorithm length="1024">7</Algorithm>
+				<Algorithm length="1024">8</Algorithm>
 				<Lifetime>P30D</Lifetime>
 				<Repository>SoftHSM</Repository>
-				<Standby>0</Standby>
 				<!-- <ManualRollover/> -->
 			</ZSK>
 		</Keys>

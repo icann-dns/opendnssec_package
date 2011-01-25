@@ -134,6 +134,69 @@
 /* Defined if libcurl supports TFTP */
 #undef LIBCURL_PROTOCOL_TFTP
 
+/* Path to the OpenDNSSEC kaspcheck binary */
+#undef ODS_AU_KASPCHECK
+
+/* Path to the OpenDNSSEC ods-control binary */
+#undef ODS_EN_CONTROL
+
+/* Path to the OpenDNSSEC auditor binary */
+#undef ODS_SE_AUDITOR
+
+/* Path to the OpenDNSSEC config file */
+#undef ODS_SE_CFGFILE
+
+/* Path to the OpenDNSSEC signer client binary */
+#undef ODS_SE_CLI
+
+/* Path to the OpenDNSSEC signer engine binary */
+#undef ODS_SE_ENGINE
+
+/* Path to the OpenDNSSEC signer engine pid file */
+#undef ODS_SE_PIDFILE
+
+/* Path to the OpenDNSSEC data files */
+#undef ODS_SE_RNGDIR
+
+/* Path to the OpenDNSSEC signer engine socket file */
+#undef ODS_SE_SOCKFILE
+
+/* Path to the OpenDNSSEC signer engine working directory */
+#undef ODS_SE_WORKDIR
+
+/* Path to the OpenDNSSEC signer engine pid file */
+#undef ODS_ZF_PIDFILE
+
+/* Path to the OpenDNSSEC configuration files */
+#undef OPENDNSSEC_CONFIG_DIR
+
+/* Path to the main OpenDNSSEC configuration file */
+#undef OPENDNSSEC_CONFIG_FILE
+
+/* Path to the OpenDNSSEC enforcer pid file */
+#undef OPENDNSSEC_ENFORCER_PIDFILE
+
+/* Path to the OpenDNSSEC zone fetcher pid file */
+#undef OPENDNSSEC_FETCH_PIDFILE
+
+/* Path to the OpenDNSSEC data files */
+#undef OPENDNSSEC_SCHEMA_DIR
+
+/* Path to the OpenDNSSEC signer cli */
+#undef OPENDNSSEC_SIGNER_CLI
+
+/* Path to the OpenDNSSEC signer engine */
+#undef OPENDNSSEC_SIGNER_ENGINE
+
+/* Path to the OpenDNSSEC signer pid file */
+#undef OPENDNSSEC_SIGNER_PIDFILE
+
+/* Path to the OpenDNSSEC signer socket */
+#undef OPENDNSSEC_SIGNER_SOCKET
+
+/* Path to the OpenDNSSEC var directory */
+#undef OPENDNSSEC_STATE_DIR
+
 /* Name of package */
 #undef PACKAGE
 

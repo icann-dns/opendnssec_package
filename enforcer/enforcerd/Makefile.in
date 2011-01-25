@@ -36,19 +36,26 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = ods-enforcerd$(EXEEXT)
-subdir = enforcerd
+subdir = enforcer/enforcerd
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/ods-enforcerd.8.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/acx_abs_srcdir.m4 \
-	$(top_srcdir)/m4/acx_broken_setres.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
+	$(top_srcdir)/m4/acx_check_strptime.m4 \
 	$(top_srcdir)/m4/acx_cunit.m4 \
 	$(top_srcdir)/m4/acx_database_backend.m4 \
-	$(top_srcdir)/m4/acx_dbparams.m4 $(top_srcdir)/m4/acx_ldns.m4 \
-	$(top_srcdir)/m4/acx_libhsm.m4 $(top_srcdir)/m4/acx_libxml2.m4 \
-	$(top_srcdir)/m4/acx_mysql.m4 $(top_srcdir)/m4/acx_pedantic.m4 \
+	$(top_srcdir)/m4/acx_dbparams.m4 \
+	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
+	$(top_srcdir)/m4/acx_libcurl.m4 \
+	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
+	$(top_srcdir)/m4/acx_pedantic.m4 \
+	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
-	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/acx_pthread.m4 $(top_srcdir)/m4/acx_rpath.m4 \
+	$(top_srcdir)/m4/acx_rt.m4 $(top_srcdir)/m4/acx_sqlite3.m4 \
+	$(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/am_prog_ruby.m4 \
+	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
 	$(top_srcdir)/m4/check_compiler_flag.m4 \
 	$(top_srcdir)/m4/check_compiler_flag_needed.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
@@ -66,6 +73,8 @@ sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
 am_ods_enforcerd_OBJECTS = enforcer.$(OBJEXT)
 ods_enforcerd_OBJECTS = $(am_ods_enforcerd_OBJECTS)
+ods_enforcerd_DEPENDENCIES = $(LIBENFORCER) $(LIBKSM) $(LIBHSM) \
+	$(LIBCOMPAT)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -93,12 +102,13 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BUILD_LIBHSM = @BUILD_LIBHSM@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CP = @CP@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CUCUMBER = @CUCUMBER@
 CUNIT_INCLUDES = @CUNIT_INCLUDES@
 CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
@@ -111,8 +121,32 @@ DB_TYPE = @DB_TYPE@
 DB_USER = @DB_USER@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DOXYGEN_PAPER_SIZE = @DOXYGEN_PAPER_SIZE@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
+DX_CONFIG = @DX_CONFIG@
+DX_DOCDIR = @DX_DOCDIR@
+DX_DOT = @DX_DOT@
+DX_DOXYGEN = @DX_DOXYGEN@
+DX_DVIPS = @DX_DVIPS@
+DX_EGREP = @DX_EGREP@
+DX_ENV = @DX_ENV@
+DX_FLAG_chi = @DX_FLAG_chi@
+DX_FLAG_chm = @DX_FLAG_chm@
+DX_FLAG_doc = @DX_FLAG_doc@
+DX_FLAG_dot = @DX_FLAG_dot@
+DX_FLAG_html = @DX_FLAG_html@
+DX_FLAG_man = @DX_FLAG_man@
+DX_FLAG_pdf = @DX_FLAG_pdf@
+DX_FLAG_ps = @DX_FLAG_ps@
+DX_FLAG_rtf = @DX_FLAG_rtf@
+DX_FLAG_xml = @DX_FLAG_xml@
+DX_HHC = @DX_HHC@
+DX_LATEX = @DX_LATEX@
+DX_MAKEINDEX = @DX_MAKEINDEX@
+DX_PDFLATEX = @DX_PDFLATEX@
+DX_PERL = @DX_PERL@
+DX_PROJECT = @DX_PROJECT@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -125,14 +159,15 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JAVA = @JAVA@
 KILLALL = @KILLALL@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
 LDNS_LIBS = @LDNS_LIBS@
-LIBHSM_INCLUDES = @LIBHSM_INCLUDES@
-LIBHSM_LIBS = @LIBHSM_LIBS@
+LIBCURL = @LIBCURL@
+LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -179,8 +214,12 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
 PKILL = @PKILL@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
-RUNTIME_PATH = @RUNTIME_PATH@
+RT_LIBS = @RT_LIBS@
+RUBY = @RUBY@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -192,12 +231,16 @@ VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
 XML2_INCLUDES = @XML2_INCLUDES@
 XML2_LIBS = @XML2_LIBS@
+XMLLINT = @XMLLINT@
+XSLTPROC = @XSLTPROC@
+_libcurl_config = @_libcurl_config@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
+acx_pthread_config = @acx_pthread_config@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -233,34 +276,46 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+pkcs11_aepkeyper_module = @pkcs11_aepkeyper_module@
+pkcs11_etoken_module = @pkcs11_etoken_module@
+pkcs11_ncipher_module = @pkcs11_ncipher_module@
+pkcs11_opensc_module = @pkcs11_opensc_module@
+pkcs11_sca6000_module = @pkcs11_sca6000_module@
+pkcs11_softhsm_module = @pkcs11_softhsm_module@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
+LIBHSM = ${top_builddir}/libhsm/src/libhsm.a
+LIBKSM = ../ksm/libksm.a
+LIBENFORCER = ../common/libenforcer.a
+LIBCOMPAT = ${top_builddir}/common/libcompat.a
 AM_CPPFLAGS = \
+	-I$(top_srcdir)/common \
+	-I$(top_builddir)/common \
 	-I$(srcdir)/../common \
 	-I$(builddir)/../common \
 	-I$(srcdir)/../ksm/include \
 	-I$(builddir)/../ksm/include \
-	@LIBHSM_INCLUDES@ \
+	-I$(srcdir)/../../libhsm/src \
+	-I$(builddir)/../../libhsm/src \
 	@XML2_INCLUDES@ \
 	@DB_INCLUDES@ \
 	@LDNS_INCLUDES@
 
 man8_MANS = ods-enforcerd.8
-ods_enforcerd_SOURCES = enforcer.c
-ods_enforcerd_LDADD = ../common/libenforcer.a ../ksm/libksm.a \
-	@LIBHSM_LIBS@ @XML2_LIBS@ @DB_LIBS@ $(am__empty)
-ods_enforcerd_DEPENDENCIES = @BUILD_LIBHSM@
-EXTRA_DIST = $(srcdir)/*.h
+ods_enforcerd_SOURCES = enforcer.c enforcer.h
+ods_enforcerd_LDADD = $(LIBENFORCER) $(LIBKSM) $(LIBHSM) $(LIBCOMPAT) \
+	@XML2_LIBS@ @DB_LIBS@ @LDNS_LIBS@ $(am__empty)
 all: all-am
 
 .SUFFIXES:
@@ -274,9 +329,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  enforcerd/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  enforcer/enforcerd/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  enforcerd/Makefile
+	  $(AUTOMAKE) --foreign  enforcer/enforcerd/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -616,9 +671,6 @@ uninstall-man: uninstall-man8
 	tags uninstall uninstall-am uninstall-man uninstall-man8 \
 	uninstall-sbinPROGRAMS
 
-
-../../libhsm/src/libhsm.la:
-	(cd ../../libhsm/src; ${MAKE} libhsm.la)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -1,5 +1,5 @@
 /*
- * $Id: hsmcheck.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: hsmcheck.c 3665 2010-08-06 12:30:07Z jakob $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.
@@ -42,7 +42,7 @@ char *progname = NULL;
 void
 usage ()
 {
-    fprintf(stderr, "usage: %s [-f config] [-gsd]\n", progname);
+    fprintf(stderr, "usage: %s [-c config] [-gsd]\n", progname);
 }
 
 int
@@ -72,13 +72,13 @@ main (int argc, char *argv[])
     char *config = NULL;
     const char *repository = "default";
 
-    progname = argv[0];
-
     int ch;
 
-    while ((ch = getopt(argc, argv, "hgsdrf:")) != -1) {
+    progname = argv[0];
+
+    while ((ch = getopt(argc, argv, "hgsdrc:")) != -1) {
         switch (ch) {
-        case 'f':
+        case 'c':
             config = strdup(optarg);
             break;
         case 'g':
@@ -214,7 +214,7 @@ main (int argc, char *argv[])
     if (do_delete) {
         printf("\nDelete key:\n");
         hsm_print_key(key);
-        //res = hsm_remove_key(ctx, key);
+        /* res = hsm_remove_key(ctx, key); */
         res = hsm_remove_key(ctx, key);
         printf("Deleted key. Result: %d\n", res);
         printf("\n");
