@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--$Id: kasp2html.xsl 3150 2010-04-08 11:36:13Z jakob $ -->
+<!--$Id: kasp2html.xsl 4132 2010-10-19 06:10:19Z jakob $ -->
 
 <!--
 
@@ -439,6 +439,14 @@
 		<tr>
 			<td class="tag"><xsl:text>Number of Standby Keys</xsl:text></td>
 			<td class="value"><xsl:value-of select="Standby"/></td>
+		</tr>
+		<tr>
+			<td class="tag"><xsl:text>Manual Rollover?</xsl:text></td>
+			<td class="value">
+				<xsl:call-template name="boolean2yesno">
+					<xsl:with-param name="bool" select="ManualRollover"/>
+				</xsl:call-template>
+			</td>
 		</tr>
 	</xsl:template>
 

@@ -1,17 +1,21 @@
-# $Id: Makefile.am 3150 2010-04-08 11:36:13Z jakob $
+# $Id: Makefile.am 4227 2010-11-26 12:15:02Z rb $
 
 ACLOCAL_AMFLAGS = -I m4
 
 MAINTAINERCLEANFILES = \
 	config.log config.status \
 	$(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(srcdir)/config.h.in~ \
+	$(srcdir)/common/config.h.in $(srcdir)/common/config.h.in~ \
 	$(srcdir)/configure \
 	$(srcdir)/install-sh $(srcdir)/ltmain.sh $(srcdir)/missing \
 	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
 	$(srcdir)/config.guess $(srcdir)/config.sub
 
-SUBDIRS = libhsm enforcer signer conf tools contrib
+SUBDIRS = common libhsm enforcer conf tools contrib
+
+if ENABLE_SIGNER
+SUBDIRS += signer
+endif
 
 if ENABLE_AUDITOR
 SUBDIRS += auditor
@@ -21,4 +25,14 @@ if ENABLE_EPPCLIENT
 SUBDIRS += plugins/eppclient
 endif
 
-EXTRA_DIST = $(srcdir)/KNOWN_ISSUES
+EXTRA_DIST =	$(srcdir)/KNOWN_ISSUES \
+		$(srcdir)/MIGRATION
+
+
+docs:
+	(cd libhsm; $(MAKE) doxygen)
+	(cd enforcer; $(MAKE) doxygen)
+	(cd signer; $(MAKE) doxygen)
+if ENABLE_AUDITOR
+	(cd auditor; $(MAKE) rdoc)
+endif

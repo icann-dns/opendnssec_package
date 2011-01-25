@@ -1,5 +1,5 @@
 /*
- * $Id: daemon_util.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: daemon_util.c 4253 2010-12-06 12:15:39Z matthijs $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -37,7 +37,11 @@
  *
  * Most of this is based on stuff I have seen in NSD
  */
+#include "config.h"
+
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -50,7 +54,9 @@
 #include <ctype.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <syslog.h>
 
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -60,7 +66,6 @@
 #include <libxml/xpathInternals.h>
 #include <libxml/relaxng.h>
 
-#include "config.h"
 #include "daemon.h"
 #include "daemon_util.h"
 
@@ -85,7 +90,7 @@ getPermsForDrop(DAEMONCONFIG* config)
     xmlChar *group_expr = (unsigned char*) "//Configuration/Enforcer/Privileges/Group";
 
     char* filename = NULL;
-    char* rngfilename = SCHEMA_DIR "/conf.rng";
+    char* rngfilename = OPENDNSSEC_SCHEMA_DIR "/conf.rng";
     char* temp_char = NULL;
 
     struct passwd *pwd;
@@ -96,7 +101,7 @@ getPermsForDrop(DAEMONCONFIG* config)
     if (config->configfile != NULL) {
         filename = StrStrdup(config->configfile);
     } else {
-        filename = StrStrdup(CONFIG_FILE);
+        filename = StrStrdup(OPENDNSSEC_CONFIG_FILE);
     }
 
     /* Load XML document */
@@ -231,6 +236,7 @@ getPermsForDrop(DAEMONCONFIG* config)
     xmlRelaxNGFreeParserCtxt(rngpctx);
     xmlFreeDoc(doc);
     xmlFreeDoc(rngdoc);
+    StrFree(filename);
 
     return 0;
 }
@@ -326,7 +332,7 @@ usage(const char* prog)
 /*    fprintf(stderr, "  -u user     Change effective uid to the specified user.\n");*/
     fprintf(stderr, "  -P pidfile  Specify the PID file to write.\n");
 
-    fprintf(stderr, "  -v          Print version.\n");
+    fprintf(stderr, "  -V          Print version.\n");
     fprintf(stderr, "  -[?|h]      This help.\n");
 }
 
@@ -479,7 +485,7 @@ cmdlParse(DAEMONCONFIG* config, int *argc, char **argv)
     /*
      * Read the command line
      */
-    while ((c = getopt(*argc, argv, "1c:hdv?u:P:")) != -1) {
+    while ((c = getopt(*argc, argv, "1c:hdV?u:P:")) != -1) {
         switch (c) {
             case '1':
                 config->once = true;
@@ -539,7 +545,7 @@ cmdlParse(DAEMONCONFIG* config, int *argc, char **argv)
             case '?':
                 usage(config->program);
                 exit(0);
-            case 'v':
+            case 'V':
                 version();
                 exit(0);
             default:
@@ -582,7 +588,7 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
     int status;
     int db_found = 0;
     char* filename = NULL;
-    char* rngfilename = SCHEMA_DIR "/conf.rng";
+    char* rngfilename = OPENDNSSEC_SCHEMA_DIR "/conf.rng";
 
     char* temp_char = NULL;
 
@@ -592,7 +598,7 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
     if (config->configfile != NULL) {
         filename = StrStrdup(config->configfile);
     } else {
-        filename = StrStrdup(CONFIG_FILE);
+        filename = StrStrdup(OPENDNSSEC_CONFIG_FILE);
     }
 
     if (verbose) {
@@ -693,7 +699,7 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
         return status;
     }
     else if (status == -1) {
-        log_msg(config, LOG_INFO, "Warning: converting %s to seconds may not give what you expect", temp_char);
+        log_msg(config, LOG_INFO, "Info: converting %s to seconds; M interpreted as 31 days, Y interpreted as 365 days", temp_char);
     }
     config->interval = mysec;
     if (verbose) {
@@ -740,7 +746,7 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
             return status;
         }
         else if (status == -1) {
-            log_msg(config, LOG_INFO, "Warning: converting %s to seconds may not give what you expect", temp_char);
+        log_msg(config, LOG_INFO, "Info: converting %s to seconds; M interpreted as 31 days, Y interpreted as 365 days", temp_char);
         }
         config->rolloverNotify = mysec;
         if (verbose) {

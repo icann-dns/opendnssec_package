@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 3150 2010-04-08 11:36:13Z jakob $
+# $Id: Makefile.am 4227 2010-11-26 12:15:02Z rb $
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -32,21 +32,39 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-@ENABLE_AUDITOR_TRUE@am__append_1 = auditor
-@ENABLE_EPPCLIENT_TRUE@am__append_2 = plugins/eppclient
+build_triplet = @build@
+host_triplet = @host@
+@ENABLE_SIGNER_TRUE@am__append_1 = signer
+@ENABLE_AUDITOR_TRUE@am__append_2 = auditor
+@ENABLE_EPPCLIENT_TRUE@am__append_3 = plugins/eppclient
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure NEWS install-sh \
-	missing
+DIST_COMMON = README $(am__configure_deps) $(srcdir)/Doxyfile.in \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(top_srcdir)/configure \
+	$(top_srcdir)/test/conf/softhsm.conf.in NEWS config.guess \
+	config.sub depcomp install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/acx_cunit.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
+	$(top_srcdir)/m4/acx_check_strptime.m4 \
+	$(top_srcdir)/m4/acx_cunit.m4 \
+	$(top_srcdir)/m4/acx_database_backend.m4 \
 	$(top_srcdir)/m4/acx_dbparams.m4 \
 	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
 	$(top_srcdir)/m4/acx_libcurl.m4 \
-	$(top_srcdir)/m4/acx_libxml2.m4 \
+	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
+	$(top_srcdir)/m4/acx_pedantic.m4 \
 	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
+	$(top_srcdir)/m4/acx_pthread.m4 $(top_srcdir)/m4/acx_rpath.m4 \
+	$(top_srcdir)/m4/acx_rt.m4 $(top_srcdir)/m4/acx_sqlite3.m4 \
+	$(top_srcdir)/m4/acx_strict.m4 \
 	$(top_srcdir)/m4/am_prog_ruby.m4 \
+	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
+	$(top_srcdir)/m4/check_compiler_flag.m4 \
+	$(top_srcdir)/m4/check_compiler_flag_needed.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/opendnssec_common.m4 $(top_srcdir)/version.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -54,7 +72,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES =
+CONFIG_HEADER = $(top_builddir)/common/config.h
+CONFIG_CLEAN_FILES = Doxyfile test/conf/softhsm.conf
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -68,8 +87,8 @@ RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = libhsm enforcer signer conf tools contrib auditor \
-	plugins/eppclient
+DIST_SUBDIRS = common libhsm enforcer conf tools contrib signer \
+	auditor plugins/eppclient
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -83,6 +102,7 @@ distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -90,26 +110,63 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CP = @CP@
+CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CUCUMBER = @CUCUMBER@
 CUNIT_INCLUDES = @CUNIT_INCLUDES@
 CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
 DB_HOST = @DB_HOST@
+DB_INCLUDES = @DB_INCLUDES@
+DB_LIBS = @DB_LIBS@
 DB_NAME = @DB_NAME@
 DB_PASS = @DB_PASS@
+DB_TYPE = @DB_TYPE@
 DB_USER = @DB_USER@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DOXYGEN_PAPER_SIZE = @DOXYGEN_PAPER_SIZE@
+DSYMUTIL = @DSYMUTIL@
+DUMPBIN = @DUMPBIN@
+DX_CONFIG = @DX_CONFIG@
+DX_DOCDIR = @DX_DOCDIR@
+DX_DOT = @DX_DOT@
+DX_DOXYGEN = @DX_DOXYGEN@
+DX_DVIPS = @DX_DVIPS@
+DX_EGREP = @DX_EGREP@
+DX_ENV = @DX_ENV@
+DX_FLAG_chi = @DX_FLAG_chi@
+DX_FLAG_chm = @DX_FLAG_chm@
+DX_FLAG_doc = @DX_FLAG_doc@
+DX_FLAG_dot = @DX_FLAG_dot@
+DX_FLAG_html = @DX_FLAG_html@
+DX_FLAG_man = @DX_FLAG_man@
+DX_FLAG_pdf = @DX_FLAG_pdf@
+DX_FLAG_ps = @DX_FLAG_ps@
+DX_FLAG_rtf = @DX_FLAG_rtf@
+DX_FLAG_xml = @DX_FLAG_xml@
+DX_HHC = @DX_HHC@
+DX_LATEX = @DX_LATEX@
+DX_MAKEINDEX = @DX_MAKEINDEX@
+DX_PDFLATEX = @DX_PDFLATEX@
+DX_PERL = @DX_PERL@
+DX_PROJECT = @DX_PROJECT@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+FGREP = @FGREP@
+GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JAVA = @JAVA@
+KILLALL = @KILLALL@
+LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
@@ -118,9 +175,19 @@ LIBCURL = @LIBCURL@
 LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBTOOL = @LIBTOOL@
+LIPO = @LIPO@
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+MYSQL = @MYSQL@
+MYSQL_CONFIG = @MYSQL_CONFIG@
+MYSQL_INCLUDES = @MYSQL_INCLUDES@
+MYSQL_LIBS = @MYSQL_LIBS@
+NM = @NM@
+NMEDIT = @NMEDIT@
+OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OPENDNSSEC_BIN_DIR = @OPENDNSSEC_BIN_DIR@
 OPENDNSSEC_CONFIG_DIR = @OPENDNSSEC_CONFIG_DIR@
@@ -140,6 +207,8 @@ OPENDNSSEC_SIGNER_PIDFILE = @OPENDNSSEC_SIGNER_PIDFILE@
 OPENDNSSEC_SIGNER_SOCKET = @OPENDNSSEC_SIGNER_SOCKET@
 OPENDNSSEC_STATE_DIR = @OPENDNSSEC_STATE_DIR@
 OPENDNSSEC_SYSCONF_DIR = @OPENDNSSEC_SYSCONF_DIR@
+OTOOL = @OTOOL@
+OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -149,14 +218,19 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PYTHON = @PYTHON@
-PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
-PYTHON_PLATFORM = @PYTHON_PLATFORM@
-PYTHON_PREFIX = @PYTHON_PREFIX@
-PYTHON_VERSION = @PYTHON_VERSION@
+PKILL = @PKILL@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_LIBS = @PTHREAD_LIBS@
+RANLIB = @RANLIB@
+RT_LIBS = @RT_LIBS@
 RUBY = @RUBY@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQLITE3 = @SQLITE3@
+SQLITE3_INCLUDES = @SQLITE3_INCLUDES@
+SQLITE3_LIBS = @SQLITE3_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
@@ -170,20 +244,30 @@ abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
+acx_pthread_config = @acx_pthread_config@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -192,6 +276,7 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
+lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -202,13 +287,9 @@ pkcs11_ncipher_module = @pkcs11_ncipher_module@
 pkcs11_opensc_module = @pkcs11_opensc_module@
 pkcs11_sca6000_module = @pkcs11_sca6000_module@
 pkcs11_softhsm_module = @pkcs11_softhsm_module@
-pkgpyexecdir = @pkgpyexecdir@
-pkgpythondir = @pkgpythondir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-pyexecdir = @pyexecdir@
-pythondir = @pythondir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -222,15 +303,17 @@ ACLOCAL_AMFLAGS = -I m4
 MAINTAINERCLEANFILES = \
 	config.log config.status \
 	$(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(srcdir)/config.h.in~ \
+	$(srcdir)/common/config.h.in $(srcdir)/common/config.h.in~ \
 	$(srcdir)/configure \
 	$(srcdir)/install-sh $(srcdir)/ltmain.sh $(srcdir)/missing \
 	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
 	$(srcdir)/config.guess $(srcdir)/config.sub
 
-SUBDIRS = libhsm enforcer signer conf tools contrib $(am__append_1) \
-	$(am__append_2)
-EXTRA_DIST = $(srcdir)/KNOWN_ISSUES
+SUBDIRS = common libhsm enforcer conf tools contrib $(am__append_1) \
+	$(am__append_2) $(am__append_3)
+EXTRA_DIST = $(srcdir)/KNOWN_ISSUES \
+		$(srcdir)/MIGRATION
+
 all: all-recursive
 
 .SUFFIXES:
@@ -267,6 +350,19 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+test/conf/softhsm.conf: $(top_builddir)/config.status $(top_srcdir)/test/conf/softhsm.conf.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+	-rm -f libtool config.lt
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -579,12 +675,13 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-recursive
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-tags
+distclean-am: clean-am distclean-generic distclean-libtool \
+	distclean-tags
 
 dvi: dvi-recursive
 
@@ -599,6 +696,8 @@ info: info-recursive
 info-am:
 
 install-data-am:
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
 install-dvi: install-dvi-recursive
 
@@ -634,7 +733,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-generic
+mostlyclean-am: mostlyclean-generic mostlyclean-libtool
 
 pdf: pdf-recursive
 
@@ -647,23 +746,40 @@ ps-am:
 uninstall-am:
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
-	install-strip
+	install-data-am install-strip
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am am--refresh check check-am clean clean-generic \
-	ctags ctags-recursive dist dist-all dist-bzip2 dist-gzip \
-	dist-lzma dist-shar dist-tarZ dist-zip distcheck distclean \
-	distclean-generic distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am tags \
-	tags-recursive uninstall uninstall-am
+	clean-libtool ctags ctags-recursive dist dist-all dist-bzip2 \
+	dist-gzip dist-lzma dist-shar dist-tarZ dist-zip distcheck \
+	distclean distclean-generic distclean-libtool distclean-tags \
+	distcleancheck distdir distuninstallcheck dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-data-hook install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs installdirs-am \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-recursive uninstall uninstall-am
 
+
+install-data-hook:
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/tmp
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signconf
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/unsigned
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signed
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/run
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/run/opendnssec
+
+docs:
+	(cd libhsm; $(MAKE) doxygen)
+	(cd enforcer; $(MAKE) doxygen)
+	(cd signer; $(MAKE) doxygen)
+@ENABLE_AUDITOR_TRUE@	(cd auditor; $(MAKE) rdoc)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

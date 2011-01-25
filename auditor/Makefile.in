@@ -37,7 +37,8 @@ subdir = .
 DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/ods-auditor.1.in \
 	$(srcdir)/ods-auditor.in $(srcdir)/ods-kaspcheck.1.in \
-	$(srcdir)/ods-kaspcheck.in $(top_srcdir)/configure install-sh \
+	$(srcdir)/ods-kaspcheck.in $(top_srcdir)/configure \
+	$(top_srcdir)/lib/kasp_auditor/commands.rb.in install-sh \
 	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/acx_dnsruby.m4 \
@@ -52,7 +53,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES = ods-auditor ods-auditor.1 ods-kaspcheck \
-	ods-kaspcheck.1
+	ods-kaspcheck.1 lib/kasp_auditor/commands.rb
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(bin_SCRIPTS)
@@ -78,11 +79,13 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+CUCUMBER = @CUCUMBER@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -122,6 +125,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 RUBY = @RUBY@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SORT = @SORT@
 STRIP = @STRIP@
 TIMESHIFT = @TIMESHIFT@
 VERSION = @VERSION@
@@ -166,9 +170,11 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
+RDOC = rdoc
 EXTRA_DIST = \
 	$(srcdir)/lib/*.rb \
-	$(srcdir)/lib/kasp_auditor/*.rb
+	$(srcdir)/lib/kasp_auditor/*.rb \
+	$(srcdir)/sorttest.txt
 
 MAINTAINERCLEANFILES = \
 	config.log config.status \
@@ -225,6 +231,8 @@ ods-auditor.1: $(top_builddir)/config.status $(srcdir)/ods-auditor.1.in
 ods-kaspcheck: $(top_builddir)/config.status $(srcdir)/ods-kaspcheck.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 ods-kaspcheck.1: $(top_builddir)/config.status $(srcdir)/ods-kaspcheck.1.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+lib/kasp_auditor/commands.rb: $(top_builddir)/config.status $(top_srcdir)/lib/kasp_auditor/commands.rb.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
@@ -569,6 +577,22 @@ install-data-hook:
 	${INSTALL} -d -m 755 ${DESTDIR}$(opendnsseclibdir)/kasp_auditor
 	${INSTALL_DATA} $(srcdir)/lib/*.rb ${DESTDIR}$(opendnsseclibdir)
 	${INSTALL_DATA} $(srcdir)/lib/kasp_auditor/*.rb ${DESTDIR}$(opendnsseclibdir)/kasp_auditor
+	${INSTALL_DATA} $(builddir)/lib/kasp_auditor/*.rb ${DESTDIR}$(opendnsseclibdir)/kasp_auditor
+
+check: prepare-test
+	$(RUBY) -I $(srcdir)/lib $(srcdir)/test_scripts/auditor_test.rb
+
+prepare-test:
+	test -d test || (cd $(srcdir); \
+	find test -name .svn -prune -o -type f -print |\
+	 	cpio -pmdu $(abs_builddir))
+
+rdoc:
+	rm -fr $(builddir)/doc
+	$(RDOC) \
+		--exclude ${srcdir}/test \
+		--exclude ${builddir}/test \
+		${srcdir} ${builddir}
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

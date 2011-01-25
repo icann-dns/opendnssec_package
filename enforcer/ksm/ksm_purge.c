@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_purge.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: ksm_purge.c 3776 2010-08-24 14:55:39Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -55,6 +55,7 @@ void KsmPurge(void)
 {
     char*   sql = NULL;
     char*   sql2 = NULL;
+    char*   sql3 = NULL;
     DB_RESULT	result;         /* Result of parameter query */
     int     where = 0;
     int     keypair_id;
@@ -81,6 +82,13 @@ void KsmPurge(void)
                 DdsEnd(&sql2);
                 (void) DbExecuteSqlNoResult(DbHandle(), sql2);
                 DdsFree(sql2);
+
+                /* Delete the row from keypairs */
+                sql3 = DdsInit("keypairs");
+                DdsConditionInt(&sql3, "ID", DQS_COMPARE_EQ, keypair_id, 0);
+                DdsEnd(&sql3);
+                (void) DbExecuteSqlNoResult(DbHandle(), sql3);
+                DdsFree(sql3);
             }
 
             status = DbFetchRow(result, &row);
@@ -88,21 +96,7 @@ void KsmPurge(void)
     }
     DdsFree(sql);
 
-    /* Finally, delete the rows from keypairs */
-    where = 0;
-    sql = DdsInit("keypairs");
-    DdsConditionInt(&sql, "STATE", DQS_COMPARE_EQ, KSM_STATE_DEAD, where++);
-    DdsEnd(&sql);
-    
-    /*
-     * Just execute the appropriate SQL.  Ignore the status return as we don't
-     * need to pass anything back to the caller, and if there is an error, any
-     * message will have been output.
-     */
-
-    (void) DbExecuteSqlNoResult(DbHandle(), sql);
-    DdsFree(sql);
     DbFreeRow(row);
-
+    
     return;
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: database_statement.h 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: database_statement.h 3776 2010-08-24 14:55:39Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -52,6 +52,7 @@ typedef enum {
     DQS_COMPARE_GT,
     DQS_COMPARE_GE,
     DQS_COMPARE_IN,
+    DQS_COMPARE_NOT_IN,
     DQS_COMPARE_IS
 } DQS_COMPARISON;
 

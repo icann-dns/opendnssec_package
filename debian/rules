@@ -20,7 +20,7 @@ endif
 TRANG_VERSION ?= $(shell dpkg-query -W trang | cut -f 2)
 
 %:
-	dh --with quilt --with python-support $@
+	dh --with quilt $@
 
 override_dh_auto_clean:
 	dh_auto_clean -Bbuild-sqlite3
@@ -39,7 +39,7 @@ override_dh_auto_configure:
 	dh_auto_configure -Bbuild-sqlite3 -- --with-ruby=/usr/bin/ruby1.8 --with-ldns=/usr --with-database-backend=sqlite3 --with-sqlite3=/usr --libexecdir=/usr/lib/opendnssec/ --with-pkcs11-opensc=/usr/lib/opensc-pkcs11.so
 	mkdir build-mysql
 	ln -s ../build-sqlite3/libhsm build-mysql/libhsm
-	dh_auto_configure -Denforcer -Bbuild-mysql/enforcer -- --with-ldns=/usr --with-database-backend=mysql --with-mysql=/usr --libexecdir=/usr/lib/opendnssec/
+	dh_auto_configure -Bbuild-mysql/enforcer -- --with-ldns=/usr --with-database-backend=mysql --with-mysql=/usr --libexecdir=/usr/lib/opendnssec/ --disable-auditor --disable-signer --disable-doxygen-doc
 
 	# Trang ends with bus error on kfreebsd-amd64, so we skip rebuilding at all
 	# Only rebuild RNG files if we have recent trang
@@ -49,20 +49,22 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	dh_auto_build -Bbuild-sqlite3
-	dh_auto_build -Denforcer -Bbuild-mysql/enforcer
+	dh_auto_build -Bbuild-mysql/enforcer
 
 override_dh_auto_install:
 	# Comment out example zone after regression testing
 	(cd build-sqlite3; patch -p1 -i $(CURDIR)/debian/signconf.xml.patch)
 	dh_auto_install -Bbuild-sqlite3 -- DESTDIR=$(CURDIR)/debian/tmp
 	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/opendnssec-enforcer-mysql
-	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/
-	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/ \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/ \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/bin/ods-hsm* \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/bin/ods-kasp2html \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/sbin/ods-control \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/*.rn? \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/kasp2html.xsl
 
 override_dh_link:
 	rm -rf $(CURDIR)/debian/opendnssec-enforcer-sqlite3/usr/share/doc/opendnssec-enforcer-sqlite3/
 	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/doc/opendnssec-enforcer-mysql/
 	dh_link
-
-override_dh_pysupport:
-	dh_pysupport /usr/lib/opendnssec/signer

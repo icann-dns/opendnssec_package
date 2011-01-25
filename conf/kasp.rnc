@@ -1,4 +1,4 @@
-# $Id: kasp.rnc 3150 2010-04-08 11:36:13Z jakob $
+# $Id: kasp.rnc 4027 2010-09-29 10:17:08Z sion $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -129,7 +129,7 @@ start = element KASP {
                        # Do a partial audit?
                        partial?
                 }*
-	}+
+	}*
 }
 
 serial = element Serial {
@@ -187,7 +187,7 @@ anykey = element Algorithm {
 	# Number of Standby keys
 	# Makes the rollover faster, since the key is
 	# already pre-published and ready.
-	element Standby { xsd:nonNegativeInteger },
+	element Standby { xsd:nonNegativeInteger }?,
 
 	# Use manual key rollover?
 	element ManualRollover { empty }?

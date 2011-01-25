@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.h 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: ksmutil.h 4021 2010-09-28 12:53:01Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -39,6 +39,7 @@
 #include <ksm/ksm.h>
 #include <ksm/database.h>
 #include <libxml/xpath.h>
+#include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,7 +76,9 @@ xmlDocPtr add_zone_node(const char *docname,
                         const char *output_name);
 xmlDocPtr del_zone_node(const char *docname,
                         const char *zone_name);
-void list_zone_node(const char *docname);
+void list_zone_node(const char *docname, int *zone_ids);
+xmlDocPtr del_policy_node(const char *docname,
+                          const char *policy_name);
 int append_policy(xmlDocPtr doc, KSM_POLICY *policy);
 int printKey(void* context, KSM_KEYDATA* key_data);
 void ksm_log_msg(const char *format);
@@ -84,11 +87,17 @@ int PurgeKeys(int zone_id, int policy_id);
 int cmd_genkeys();
 void SetPolicyDefaults(KSM_POLICY *policy, char *name);
 int fix_file_perms(const char *dbschema);
-int CountKeys(int *zone_id, int keytag, const char *cka_id, int *key_count, char **temp_cka_id, int *temp_key_state);
-int MarkDSSeen(const char *cka_id, int zone_id, int policy_id, const char *datetime, int key_state);
+int CountKeys(int *zone_id, int keytag, const char *cka_id, int *key_count, char **temp_cka_id, int *temp_key_state, int *temp_keypair_id);
+int MarkDSSeen(int keypair_id, int zone_id, int policy_id, const char *datetime, int key_state);
 int RetireOldKey(int zone_id, int policy_id, const char *datetime);
 int CountKeysInState(int keytype, int keystate, int* count, int zone_id);
 int ChangeKeyState(int keytype, const char *cka_id, int zone_id, int policy_id, const char *datetime, int key_state);
+int get_conf_key_info(int* interval, int* man_key_gen);
+int LinkKeys(const char* zone_name, int policy_id);
+int allocateKeysToZone(KSM_POLICY *policy, int key_type, int zone_id, uint16_t interval, const char* zone_name, int man_key_gen, int rollover_scheme);
+int keyRoll(int zone_id, int policy_id, int key_type);
+int get_policy_name_from_id(KSM_ZONE *zone);
+int append_zone(xmlDocPtr doc, KSM_ZONE *zone);
 
 #ifdef __cplusplus
 }

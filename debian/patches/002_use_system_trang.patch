@@ -1,6 +1,6 @@
 --- a/conf/Makefile.am
 +++ b/conf/Makefile.am
-@@ -16,7 +16,7 @@ RNG =	conf.rng kasp.rng zonelist.rng sig
+@@ -7,7 +7,7 @@ RNG =	conf.rng kasp.rng zonelist.rng sig
  XML =	conf.xml kasp.xml zonelist.xml signconf.xml zonefetch.xml
  XSL=	kasp2html.xsl
  
@@ -9,7 +9,7 @@
  
  sysconfdir = @sysconfdir@/opendnssec
  datadir = @datadir@/opendnssec
-@@ -25,9 +25,6 @@ noinst_DATA = ${XML}
+@@ -16,9 +16,6 @@ noinst_DATA = ${XML} ${XSL}
  
  dist_data_DATA = ${RNG} ${RNC} ${XSL}
  
@@ -19,7 +19,7 @@
  CLEANFILES =+		*.xml
  DISTCLEANFILES =+	*.rng
  
-@@ -37,7 +34,7 @@ SUFFIXES = .rng .rnc .xml
+@@ -28,7 +25,7 @@ SUFFIXES = .rng .rnc .xml
  .rnc.rng:
  	@test -x ${JAVA} || \
  		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)

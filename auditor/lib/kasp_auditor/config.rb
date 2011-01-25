@@ -1,5 +1,5 @@
 #
-# $Id: config.rb 3150 2010-04-08 11:36:13Z jakob $
+# $Id: config.rb 4181 2010-11-11 15:43:58Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -34,6 +34,7 @@ module KASPAuditor
     end
 
     attr_reader :err
+    attr_accessor :changed_config
     
     # Should the PartialAuditor be used instead of the full Auditor?
     attr_reader :partial_audit
@@ -250,7 +251,11 @@ module KASPAuditor
         def initialize(e)
           # Algorithm length and value
           @algorithm = Dnsruby::Algorithms.new(e.elements['Algorithm'].text.to_i)
-          @standby = e.elements['Standby'].text.to_i
+          begin
+            @standby = e.elements['Standby'].text.to_i
+          rescue Exception
+            @standby = 0
+          end
           lifetime_text = e.elements['Lifetime'].text
           @lifetime = Config.xsd_duration_to_seconds(lifetime_text)
           if (@lifetime == 0)

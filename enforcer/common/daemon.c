@@ -1,5 +1,5 @@
 /*
- * $Id: daemon.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: daemon.c 4269 2010-12-15 10:59:36Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -37,6 +37,8 @@
  *
  * Most of this is based on stuff I have seen in NSD
  */
+
+#include "config.h"
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -95,6 +97,12 @@ sig_handler (int sig)
     }
 }
 
+void
+exit_function(void)
+{
+    unlink(config.pidfile);
+}
+
 int
 main(int argc, char *argv[]){
     int fd;
@@ -106,15 +114,14 @@ main(int argc, char *argv[]){
 
     config.pidfile = NULL;
     config.program = NULL;
+    config.host = NULL;
+    config.port = NULL;
     config.user = (unsigned char *)calloc(MAX_USER_LENGTH, sizeof(char));
-    config.host = (unsigned char *)calloc(MAX_HOST_LENGTH, sizeof(char));
     config.password = (unsigned char *)calloc(MAX_PASSWORD_LENGTH, sizeof(char));
     config.schema = (unsigned char *)calloc(MAX_SCHEMA_LENGTH, sizeof(char));
-    config.port = (unsigned char *)calloc(MAX_PORT_LENGTH, sizeof(char));
     config.DSSubmitCmd = (char *)calloc(MAXPATHLEN + 1024, sizeof(char));
 
-    if (config.user == NULL || config.host == NULL || config.password == NULL || 
-          config.schema == NULL || config.port == NULL ) {
+    if (config.user == NULL || config.password == NULL || config.schema == NULL) {
         log_msg(&config, LOG_ERR, "Malloc for config struct failed");
         exit(1);
     }
@@ -230,6 +237,8 @@ main(int argc, char *argv[]){
 							exit(1);
     }
 
+    atexit(exit_function);
+
     log_msg(&config, LOG_NOTICE, "%s started (version %s), pid %d", PACKAGE_NAME, PACKAGE_VERSION, 
             (int) config.pid);
 
@@ -241,11 +250,12 @@ main(int argc, char *argv[]){
     server_main(&config);
 
     /* Free stuff here (exit from sigs pass through) */
+    MsgRundown();
+    if (config.host) free(config.host);
+    if (config.port) free(config.port);
     free(config.user);
-    free(config.host);
     free(config.password);
     free(config.schema);
-    free(config.port);
     free(config.DSSubmitCmd);
 
     StrFree(config.username);

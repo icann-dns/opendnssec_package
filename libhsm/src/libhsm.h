@@ -1,4 +1,4 @@
-/* $Id: libhsm.h 3150 2010-04-08 11:36:13Z jakob $ */
+/* $Id: libhsm.h 3667 2010-08-06 12:56:16Z jakob $ */
 
 /*
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
@@ -50,6 +50,11 @@
 #define HSM_MODULE_NOT_FOUND      0x10000006
 
 
+/*! HSM configuration */
+typedef struct {
+    unsigned int use_pubkey;     /*!< Maintain public keys in HSM */
+} hsm_config_t;
+
 /*! Data type to describe an HSM */
 typedef struct {
     unsigned int id;             /*!< HSM numerical identifier */
@@ -58,6 +63,7 @@ typedef struct {
     char         *path;          /*!< path to PKCS#11 library */
     void         *handle;        /*!< handle from dlopen()*/
     void         *sym;           /*!< Function list from dlsym */
+    hsm_config_t *config;        /*!< optional per HSM configuration */
 } hsm_module_t;
 
 /*! HSM Session */
@@ -358,13 +364,15 @@ hsm_random64(hsm_ctx_t *ctx);
 \param token_label the name of the token to attach
 \param path the path of the shared PKCS#11 library
 \param pin the PIN to log into the token
+\param config optional configuration
 \return 0 on success, -1 on error
 */
 int
-hsm_attach(char *repository,
-           char *token_name,
-           char *path,
-           char *pin);
+hsm_attach(const char *repository,
+           const char *token_name,
+           const char *path,
+           const char *pin,
+           const hsm_config_t *config);
 
 /*! Detach a named HSM
    This function changes the global state, and is not threadsafe
@@ -399,5 +407,6 @@ void hsm_print_session(hsm_session_t *session);
 void hsm_print_ctx(hsm_ctx_t *gctx);
 void hsm_print_key(hsm_key_t *key);
 void hsm_print_error(hsm_ctx_t *ctx);
+void hsm_print_tokeninfo(hsm_ctx_t *gctx);
 
 #endif /* HSM_H */

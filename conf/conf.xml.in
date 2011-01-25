@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: conf.xml.in 3192 2010-04-14 20:51:42Z rb $ -->
+<!-- $Id: conf.xml.in 4262 2010-12-07 14:15:22Z rb $ -->
 
 <Configuration>
 
@@ -19,8 +19,9 @@
 			<Module>@pkcs11_sca6000_module@</Module>
 			<TokenLabel>Sun Metaslot</TokenLabel>
 			<PIN>test:1234</PIN>
-			<Capacity>1000</Capacity>
+			<Capacity>255</Capacity>
 			<RequireBackup/>
+			<SkipPublicKey/>
 		</Repository>
 -->
 

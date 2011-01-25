@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: signconf.rnc 3150 2010-04-08 11:36:13Z jakob $
+  $Id: signconf.rnc 3852 2010-09-01 12:44:40Z jakob $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -105,6 +105,12 @@
             <optional>
               <!-- include this key in the zonefile? -->
               <element name="Publish">
+                <empty/>
+              </element>
+            </optional>
+            <optional>
+              <!-- deactivate this key (i.e. do not recycle any signatures) -->
+              <element name="Deactivate">
                 <empty/>
               </element>
             </optional>
