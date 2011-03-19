@@ -22,5 +22,5 @@ zcat "$tarball" | tar --wildcards --delete '*/trang/*' > "$tdir/${fname/.gz}"
 #touch -m -r "$tarball" "$tdir/${fname/.gz}"
 gzip -9 "$tdir/${fname/.gz}"
 
-mv "$tarball" "$tarball.bkp"
-mv "$tdir/$fname" "$tarball"
+#mv "$tarball" "$tarball.bkp"
+mv "$tdir/$fname" "${tarball/.tar.gz}.dfsg.tar.gz"

@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.h 4115 2010-10-15 07:14:19Z matthijs $
+ * $Id: rrset.h 4516 2011-02-24 09:20:32Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -50,6 +50,7 @@ struct rrset_struct {
     uint32_t del_count;
     uint32_t rrsig_count;
     uint32_t internal_serial;
+    int initialized;
     ldns_dnssec_rrs* rrs;
     ldns_dnssec_rrs* add;
     ldns_dnssec_rrs* del;

@@ -49,13 +49,16 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	dh_auto_build -Bbuild-sqlite3
+	dh_auto_build -Bbuild-sqlite3 -- docs
 	dh_auto_build -Bbuild-mysql/enforcer
 
 override_dh_auto_install:
 	# Comment out example zone after regression testing
 	(cd build-sqlite3; patch -p1 -i $(CURDIR)/debian/signconf.xml.patch)
 	dh_auto_install -Bbuild-sqlite3 -- DESTDIR=$(CURDIR)/debian/tmp
+	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_sqlite3.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/opendnssec-enforcer-mysql
+	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_mysql.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
 	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/ \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/ \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/bin/ods-hsm* \
@@ -64,7 +67,10 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/*.rn? \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/kasp2html.xsl
 
-override_dh_link:
-	rm -rf $(CURDIR)/debian/opendnssec-enforcer-sqlite3/usr/share/doc/opendnssec-enforcer-sqlite3/
-	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/doc/opendnssec-enforcer-mysql/
-	dh_link
+override_dh_installdocs:
+	dh_installdocs -popendnssec-common -popendnssec --link-doc=opendnssec-common
+	dh_installdocs -popendnssec-enforcer -popendnssec-enforcer-sqlite3 -popendnssec-enforcer-mysql --link-doc=opendnssec-enforcer
+	dh_installdocs -plibhsm-bin -popendnssec-auditor -popendnssec-signer
+
+override_dh_installchangelogs:
+	dh_installchangelogs NEWS

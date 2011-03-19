@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 4279 2010-12-27 10:27:34Z rb $
+ * $Id: enforcer.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

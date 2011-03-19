@@ -1,5 +1,5 @@
 /*
- * $Id: test_dd_string.c 3811 2010-08-26 15:05:19Z jakob $
+ * $Id: test_dd_string.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

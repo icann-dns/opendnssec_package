@@ -1,5 +1,5 @@
 /*
- * $Id: eppconfig.h 2927 2010-03-02 11:17:16Z jakob $
+ * $Id: eppconfig.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2010 .SE (The Internet Infrastructure Foundation).
  * All rights reserved.

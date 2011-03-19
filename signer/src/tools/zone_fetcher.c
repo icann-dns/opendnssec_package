@@ -1,5 +1,5 @@
 /*
- * $Id: zone_fetcher.c 4276 2010-12-20 09:29:42Z matthijs $
+ * $Id: zone_fetcher.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLnet Labs. All rights reserved.
  *

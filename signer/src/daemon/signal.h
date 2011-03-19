@@ -1,5 +1,5 @@
 /*
- * $Id: signal.h 3695 2010-08-10 09:00:55Z jakob $
+ * $Id: signal.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

@@ -1,0 +1,11 @@
+opendnssec (1.2.1.dfsg-1) unstable; urgency=low
+
+  If you are migrating from 1.1.x release, you need to run migration
+  scripts located in /usr/share/opendnssec/.  There is a script for
+  sqlite called migrate_keyshare_sqlite3.pl and one for mysql called
+  migrate_keyshare_mysql.pl.  It's recommended you backup your data-
+  base before the migration, so it's not run automatically.  You can
+  read more about migration in /usr/share/opendnssec-common/MIGRATION
+  file.
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 19 Mar 2011 16:12:24 +0100

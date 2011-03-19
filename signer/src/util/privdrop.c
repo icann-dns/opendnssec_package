@@ -1,5 +1,5 @@
 /*
- * $Id: privdrop.c 4257 2010-12-06 14:16:43Z matthijs $
+ * $Id: privdrop.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 Nominet UK. All rights reserved.
  *

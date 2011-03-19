@@ -1,5 +1,5 @@
 /*
- * $Id: zone.h 4138 2010-10-25 12:59:43Z matthijs $
+ * $Id: zone.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

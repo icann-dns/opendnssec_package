@@ -1,3 +1,21 @@
+opendnssec (1.2.1.dfsg-1) unstable; urgency=low
+
+  * Imported Upstream version 1.2.1
+  * Fix typos in package descriptions (Courtesy of Thijs Kinkhorst)
+    (Closes: #603929)
+  * Install README.Debian only to opendnssec-enforcer (Closes: #603933)
+  * Conflicts with old packages no longer in archive
+  * Install migration scripts for sqlite3 and mysql and add NEWS file
+    about migration to opendnssec-enforcer (Closes: #612605)
+  * Remove trang from build-depends because we are not using it
+  * Use source:Version in any packages to enforce correct interpackage
+    dependencies
+  * Build doxygen html documentation and install it into respective
+    packages
+  * Add general README.Debian to all packages
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 19 Mar 2011 17:22:59 +0100
+
 opendnssec (1.2.0-1) unstable; urgency=low
 
   * New upstream version

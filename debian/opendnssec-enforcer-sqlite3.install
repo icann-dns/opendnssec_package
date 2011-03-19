@@ -1,3 +1,4 @@
 usr/bin/ods-ksmutil
 usr/sbin/ods-enforcerd
 usr/share/opendnssec/database_create.sqlite3
+usr/share/opendnssec/migrate_keyshare_sqlite3.pl

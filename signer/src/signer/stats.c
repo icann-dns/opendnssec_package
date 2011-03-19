@@ -1,5 +1,5 @@
 /*
- * $Id: stats.c 4091 2010-10-13 09:56:51Z matthijs $
+ * $Id: stats.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

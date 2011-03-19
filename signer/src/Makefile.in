@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 4052 2010-10-05 12:43:57Z matthijs $
+# $Id: Makefile.am 4519 2011-02-28 14:49:27Z matthijs $
 
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -79,13 +79,14 @@ am_ods_signerd_OBJECTS = ods-signerd.$(OBJEXT) adapter.$(OBJEXT) \
 	engine.$(OBJEXT) signal.$(OBJEXT) worker.$(OBJEXT) \
 	confparser.$(OBJEXT) signconfparser.$(OBJEXT) \
 	zonelistparser.$(OBJEXT) locks.$(OBJEXT) task.$(OBJEXT) \
-	backup.$(OBJEXT) domain.$(OBJEXT) hsm.$(OBJEXT) \
-	nsec3params.$(OBJEXT) rrset.$(OBJEXT) rrsigs.$(OBJEXT) \
-	se_key.$(OBJEXT) signconf.$(OBJEXT) stats.$(OBJEXT) \
-	tools.$(OBJEXT) zone.$(OBJEXT) zonedata.$(OBJEXT) \
-	zonelist.$(OBJEXT) toolutil.$(OBJEXT) zone_fetcher.$(OBJEXT) \
-	duration.$(OBJEXT) file.$(OBJEXT) log.$(OBJEXT) \
-	privdrop.$(OBJEXT) se_malloc.$(OBJEXT) util.$(OBJEXT)
+	backup.$(OBJEXT) denial.$(OBJEXT) domain.$(OBJEXT) \
+	hsm.$(OBJEXT) nsec3params.$(OBJEXT) rrset.$(OBJEXT) \
+	rrsigs.$(OBJEXT) se_key.$(OBJEXT) signconf.$(OBJEXT) \
+	stats.$(OBJEXT) tools.$(OBJEXT) zone.$(OBJEXT) \
+	zonedata.$(OBJEXT) zonelist.$(OBJEXT) toolutil.$(OBJEXT) \
+	zone_fetcher.$(OBJEXT) duration.$(OBJEXT) file.$(OBJEXT) \
+	log.$(OBJEXT) privdrop.$(OBJEXT) se_malloc.$(OBJEXT) \
+	util.$(OBJEXT)
 ods_signerd_OBJECTS = $(am_ods_signerd_OBJECTS)
 ods_signerd_DEPENDENCIES = $(LIBHSM)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
@@ -330,6 +331,7 @@ ods_signerd_SOURCES = ods-signerd.c \
 				scheduler/locks.c scheduler/locks.h \
 				scheduler/task.c scheduler/task.h \
 				signer/backup.c signer/backup.h \
+				signer/denial.c signer/denial.h \
 				signer/domain.c signer/domain.h \
 				signer/hsm.c signer/hsm.h \
 				signer/nsec3params.c signer/nsec3params.h \
@@ -440,6 +442,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdhandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/confparser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/denial.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/domain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duration.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/engine.Po@am__quote@
@@ -728,6 +731,20 @@ backup.obj: signer/backup.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/backup.c' object='backup.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o backup.obj `if test -f 'signer/backup.c'; then $(CYGPATH_W) 'signer/backup.c'; else $(CYGPATH_W) '$(srcdir)/signer/backup.c'; fi`
+
+denial.o: signer/denial.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT denial.o -MD -MP -MF $(DEPDIR)/denial.Tpo -c -o denial.o `test -f 'signer/denial.c' || echo '$(srcdir)/'`signer/denial.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/denial.Tpo $(DEPDIR)/denial.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/denial.c' object='denial.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o denial.o `test -f 'signer/denial.c' || echo '$(srcdir)/'`signer/denial.c
+
+denial.obj: signer/denial.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT denial.obj -MD -MP -MF $(DEPDIR)/denial.Tpo -c -o denial.obj `if test -f 'signer/denial.c'; then $(CYGPATH_W) 'signer/denial.c'; else $(CYGPATH_W) '$(srcdir)/signer/denial.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/denial.Tpo $(DEPDIR)/denial.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/denial.c' object='denial.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o denial.obj `if test -f 'signer/denial.c'; then $(CYGPATH_W) 'signer/denial.c'; else $(CYGPATH_W) '$(srcdir)/signer/denial.c'; fi`
 
 domain.o: signer/domain.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT domain.o -MD -MP -MF $(DEPDIR)/domain.Tpo -c -o domain.o `test -f 'signer/domain.c' || echo '$(srcdir)/'`signer/domain.c

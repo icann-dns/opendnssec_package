@@ -1,4 +1,4 @@
-# $Id: Makefile.am 4052 2010-10-05 12:43:57Z matthijs $
+# $Id: Makefile.am 4519 2011-02-28 14:49:27Z matthijs $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
@@ -31,6 +31,7 @@ ods_signerd_SOURCES=		ods-signerd.c \
 				scheduler/locks.c scheduler/locks.h \
 				scheduler/task.c scheduler/task.h \
 				signer/backup.c signer/backup.h \
+				signer/denial.c signer/denial.h \
 				signer/domain.c signer/domain.h \
 				signer/hsm.c signer/hsm.h \
 				signer/nsec3params.c signer/nsec3params.h \
