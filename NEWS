@@ -1,4 +1,31 @@
-$Id: NEWS 4291 2011-01-13 19:32:24Z jakob $
+$Id: NEWS 4600 2011-03-18 14:40:38Z rb $
+
+OpenDNSSEC 1.2.1 - 2011-03-18
+
+* ldns 1.6.9 is required for bugfixes.
+* dnsruby-1.52 required for bugfixes.
+
+Bugfixes:
+* Auditor: 'make check' now works when srcdir != builddir.
+* Auditor: Include the 'make check' files in the tarball.
+* Enforcer: Fix the migration script for SQLite. 
+* Enforcer: Increase size of keypairs(id) field in MySQL to allow more than
+  32767 keys; see MIGRATION for details.
+* Enforcer: Minor change to NOT_READY_KEY error message.
+* libhsm: Increase the maximum number of attached HSM:s from 10 to 100. 
+* ods-ksmutil: Send trivial MySQL messages to stdout when exporting zonelist
+  etc. Otherwise the resulting XML needs to be edited by hand.
+* ods-control: Fix for Bourne shell.
+* Signer Engine: Prevent race condition when setting up the workers and
+  the command handler.
+* Signer Engine: Check if the signature exists before recycling it.
+* Signer Engine: Quit when there are errors in the configuration.
+* Signer Engine: Enable core dump on failure.
+* Signer Engine: Explicitly close down log msg with null.
+* Signer Engine: Backup state after writing output.
+* Signer Engine: Allow update of serial if internal structure is not
+  initialized.
+
 
 OpenDNSSEC 1.2.0 - 2011-01-13
 

@@ -1,5 +1,5 @@
 /*
- * $Id: task.h 4271 2010-12-16 10:20:38Z matthijs $
+ * $Id: task.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

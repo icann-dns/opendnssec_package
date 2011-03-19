@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_request.c 4284 2011-01-05 08:03:32Z rb $
+ * $Id: ksm_request.c 4489 2011-02-17 10:17:39Z rb $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -440,7 +440,7 @@ int KsmRequestKeysByType(int keytype, int rollover, const char* datetime,
                     }
                 }
 
-                (void) MsgLog(KME_NOREADYKEY);
+                (void) MsgLog(KME_NOREADYKEY, (keytype == KSM_TYPE_KSK ?  "KSK" : "ZSK"), zone_name);
                 /* TODO return here? */
             }
         }

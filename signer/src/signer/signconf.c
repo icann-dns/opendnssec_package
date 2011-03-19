@@ -1,5 +1,5 @@
 /*
- * $Id: signconf.c 4258 2010-12-06 15:00:46Z matthijs $
+ * $Id: signconf.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

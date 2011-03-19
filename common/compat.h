@@ -1,4 +1,4 @@
-/* $Id: compat.h 3713 2010-08-10 20:23:49Z jakob $ */
+/* $Id: compat.h 4294 2011-01-13 19:58:29Z jakob $ */
 
 /*
  * Copyright (c) 2010 .SE (The Internet Infrastructure Foundation).

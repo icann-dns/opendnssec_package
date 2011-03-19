@@ -19,7 +19,7 @@ static const char* m_messages[] = {
 	"INFO: %d %ss available in 'generate' state (need %d) - unable to promote until more keys generated",
 	"INFO: moving %d key(s) from '%s' state to '%s' state",
 	"INFO: %d keys required, therefore %d new keys need to be put in 'publish' state",
-	"WARNING: key rollover not completed as there are no keys in the 'ready' state; ods-enforcerd will try again when it runs next",
+	"WARNING: %s rollover for zone '%s' not completed as there are no keys in the 'ready' state; ods-enforcerd will try again when it runs next",
 	"ERROR: no such parameter with name %s",
 	"ERROR: unable to find object '%s'",
 	"WARNING: Command not implemented yet",

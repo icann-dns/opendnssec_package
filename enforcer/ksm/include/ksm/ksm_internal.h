@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_internal.h 872 2009-06-02 14:50:51Z jakob $
+ * $Id: ksm_internal.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

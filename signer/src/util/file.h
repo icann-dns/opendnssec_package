@@ -1,5 +1,5 @@
 /*
- * $Id: file.h 3947 2010-09-17 09:22:04Z matthijs $
+ * $Id: file.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

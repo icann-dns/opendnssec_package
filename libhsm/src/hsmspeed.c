@@ -1,5 +1,5 @@
 /*
- * $Id: hsmspeed.c 3620 2010-07-27 07:58:00Z rb $
+ * $Id: hsmspeed.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.

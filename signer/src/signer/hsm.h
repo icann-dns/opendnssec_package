@@ -1,5 +1,5 @@
 /*
- * $Id: hsm.h 3784 2010-08-25 11:20:13Z matthijs $
+ * $Id: hsm.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

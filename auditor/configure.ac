@@ -1,4 +1,4 @@
-# $Id: configure.ac 4187 2010-11-12 10:14:19Z alex $
+# $Id: configure.ac 4598 2011-03-18 13:45:26Z matthijs $
 
 m4_sinclude([version.m4])
 
@@ -14,7 +14,7 @@ OPENDNSSEC_COMMON
 
 AM_PROG_RUBY
 ACX_RUBY_LIBRARY([syslog openssl xsd/datatypes rexml/document])
-ACX_DNSRUBY(1.51)
+ACX_DNSRUBY(1.52)
 
 # check for xmllint
 AC_PATH_PROG(XMLLINT, xmllint)

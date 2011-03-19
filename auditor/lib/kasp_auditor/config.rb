@@ -1,5 +1,5 @@
 #
-# $Id: config.rb 4181 2010-11-11 15:43:58Z alex $
+# $Id: config.rb 4294 2011-01-13 19:58:29Z jakob $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #

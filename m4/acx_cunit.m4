@@ -1,4 +1,4 @@
-# $Id: acx_cunit.m4 3790 2010-08-26 08:45:52Z jakob $
+# $Id: acx_cunit.m4 4294 2011-01-13 19:58:29Z jakob $
 
 AC_DEFUN([ACX_CUNIT],[
 	AC_ARG_WITH(cunit,

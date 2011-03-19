@@ -1,2 +1,3 @@
-debian/tmp/usr/sbin/ods-signer*
-debian/tmp/usr/share/man/man8/ods-signer*
+usr/sbin/ods-signer*
+usr/share/man/man8/ods-signer*
+build-sqlite3/signer/doxygen-doc/html /usr/share/doc/opendnssec-signer/

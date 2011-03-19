@@ -1,4 +1,4 @@
-# $Id: acx_dnsruby.m4 2675 2010-01-08 15:10:19Z rb $
+# $Id: acx_dnsruby.m4 4294 2011-01-13 19:58:29Z jakob $
 
 AC_DEFUN([ACX_DNSRUBY],[
 
