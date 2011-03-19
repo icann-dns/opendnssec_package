@@ -6,11 +6,13 @@
 
 	<RepositoryList>
 
+<!--
 		<Repository name="SoftHSM">
 			<Module>@pkcs11_softhsm_module@</Module>
 			<TokenLabel>OpenDNSSEC</TokenLabel>
 			<PIN>1234</PIN>
 		</Repository>
+-->
 
 <!--
 		<Repository name="sca6000">
@@ -46,7 +48,7 @@
 		</Privileges>
 -->
 
-		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/kasp.db</SQLite></Datastore>
+		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/db/kasp.db</SQLite></Datastore>
 		<Interval>PT3600S</Interval>
 		<!-- <ManualKeyGeneration/> -->
 		
@@ -57,12 +59,10 @@
 	</Enforcer>
 
 	<Signer>
-<!--
 		<Privileges>
 			<User>opendnssec</User>
 			<Group>opendnssec</Group>
 		</Privileges>
--->
 
 		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
 		<WorkerThreads>8</WorkerThreads>
@@ -81,12 +81,10 @@
 	</Signer>
 
 	<Auditor>
-<!--
 		<Privileges>
 			<User>opendnssec</User>
 			<Group>opendnssec</Group>
 		</Privileges>
--->
 
 		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
 	</Auditor>
