@@ -1,4 +1,4 @@
-# $Id: conf.rnc 4294 2011-01-13 19:58:29Z jakob $
+# $Id: conf.rnc 4998 2011-04-21 12:29:27Z jakob $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -114,11 +114,14 @@ start = element Configuration {
 		# Number of Worker Threads
 		# DEFAULT: 4
 		element WorkerThreads { xsd:positiveInteger }?,
+		# Number of Signer Threads
+		# DEFAULT: 4
+		element SignerThreads { xsd:positiveInteger }?,
 
 		# System command to call after a zone has been (re)signed
 		#
 		# '%zone' in the string will be replaced by the zone name
-		# '%znefile' in the string will be replaced by the zone file
+		# '%zonefile' in the string will be replaced by the zone file
 		element NotifyCommand { xsd:string }?
 	}?,
 

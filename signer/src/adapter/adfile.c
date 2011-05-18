@@ -1,5 +1,5 @@
 /*
- * $Id: adfile.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: adfile.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -31,208 +31,34 @@
  *
  */
 
-#include "adapter/adapter.h"
-#include "adapter/adfile.h"
 #include "config.h"
+#include "adapter/adapi.h"
+#include "adapter/adfile.h"
+#include "adapter/adutil.h"
+#include "shared/duration.h"
+#include "shared/file.h"
+#include "shared/log.h"
+#include "shared/status.h"
+#include "shared/util.h"
 #include "signer/zone.h"
-#include "signer/zonedata.h"
-#include "util/duration.h"
-#include "util/file.h"
-#include "util/log.h"
-#include "util/se_malloc.h"
-#include "util/util.h"
 
-#include <ldns/ldns.h> /* ldns_*() */
-#include <stdio.h> /* rewind() */
+#include <ldns/ldns.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-static int adfile_read_file(FILE* fd, struct zone_struct* zone, int include,
-    int recover);
+static const char* adapter_str = "adapter";
+static ods_status adfile_read_file(FILE* fd, zone_type* zone);
 
 
 /**
- * Check for white space.
+ * Initialize file adapters.
  *
  */
-static int
-line_contains_space_only(char* line, int line_len)
+ods_status
+adfile_init(void)
 {
-    int i;
-    for (i = 0; i < line_len; i++) {
-        if (!isspace((int)line[i])) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-
-/*
- * Trim trailing whitespace.
- *
- */
-static void
-adfile_rtrim(char* line, int* line_len)
-{
-    int i = strlen(line), nl = 0;
-    int trimmed = 0;
-
-    while (i>0) {
-        --i;
-        if (line[i] == '\n') {
-            nl = 1;
-        }
-        if (line[i] == ' ' || line[i] == '\t' || line[i] == '\n') {
-            line[i] = '\0';
-            trimmed++;
-        } else {
-            break;
-        }
-    }
-    if (nl) {
-        line[++i] = '\n';
-    }
-    *line_len -= trimmed;
-    return;
-}
-
-
-/**
- * Read one line from zone file.
- *
- */
-static int
-adfile_read_line(FILE* fd, char* line, unsigned int* l)
-{
-    int i = 0;
-    int li = 0;
-    int in_string = 0;
-    int depth = 0;
-    int comments = 0;
-    char c = 0;
-    char lc = 0;
-
-    for (i = 0; i < SE_ADFILE_MAXLINE; i++) {
-        c = (char) se_fgetc(fd, l);
-        if (comments) {
-            while (c != EOF && c != '\n') {
-                c = (char) se_fgetc(fd, l);
-            }
-        }
-
-        if (c == EOF) {
-            if (depth != 0) {
-                se_log_error("read line: bracket mismatch discovered at "
-                    "line %i, missing ')'", l&&*l?*l:0);
-            }
-            if (li > 0) {
-                line[li] = '\0';
-                return li;
-            } else {
-                return -1;
-            }
-        } else if (c == '"' && lc != '\\') {
-            in_string = 1 - in_string; /* swap status */
-            line[li] = c;
-            li++;
-        } else if (c == '(') {
-            if (in_string) {
-                line[li] = c;
-                li++;
-            } else if (lc != '\\') {
-                depth++;
-                line[li] = ' ';
-                li++;
-            } else {
-                line[li] = c;
-                li++;
-            }
-        } else if (c == ')') {
-            if (in_string) {
-                line[li] = c;
-                li++;
-            } else if (lc != '\\') {
-                if (depth < 1) {
-                    se_log_error("read line: bracket mismatch discovered at "
-                        "line %i, missing '('", l&&*l?*l:0);
-                    line[li] = '\0';
-                    return li;
-                }
-                depth--;
-                line[li] = ' ';
-                li++;
-            } else {
-                line[li] = c;
-                li++;
-            }
-        } else if (c == ';') {
-            if (in_string) {
-                line[li] = c;
-                li++;
-            } else if (lc != '\\') {
-                comments = 1;
-            } else {
-                line[li] = c;
-                li++;
-            }
-        } else if (c == '\n' && lc != '\\') {
-            comments = 0;
-            /* if no depth issue, we are done */
-            if (depth == 0) {
-                break;
-            }
-            line[li] = ' ';
-            li++;
-        } else {
-            line[li] = c;
-            li++;
-        }
-        /* continue with line */
-        lc = c;
-    }
-
-    /* done */
-    if (depth != 0) {
-        se_log_error("read line: bracket mismatch discovered at line %i, "
-            "missing ')'", l&&*l?*l:0);
-        return li;
-    }
-    line[li] = '\0';
-    return li;
-}
-
-
-/**
- * Lookup SOA RR.
- *
- */
-static ldns_rr*
-adfile_lookup_soa_rr(FILE* fd)
-{
-    ldns_rr *cur_rr = NULL;
-    char line[SE_ADFILE_MAXLINE];
-    ldns_status status = LDNS_STATUS_OK;
-    int line_len = 0;
-    unsigned int l = 0;
-
-    while (line_len >= 0) {
-        line_len = adfile_read_line(fd, (char*) line, &l);
-        adfile_rtrim(line, &line_len);
-
-        if (line_len > 0) {
-            if (line[0] != ';') {
-                status = ldns_rr_new_frm_str(&cur_rr, line, 0, NULL, NULL);
-                if (status == LDNS_STATUS_OK) {
-                    if (ldns_rr_get_type(cur_rr) == LDNS_RR_TYPE_SOA) {
-                        return cur_rr;
-                    } else {
-                        ldns_rr_free(cur_rr);
-                        cur_rr = NULL;
-                    }
-                }
-            }
-        }
-    }
-    return NULL;
+    /* nothing to initialize */
+    return ODS_STATUS_OK;
 }
 
 
@@ -241,14 +67,14 @@ adfile_lookup_soa_rr(FILE* fd)
  *
  */
 static ldns_rr*
-adfile_read_rr(FILE* fd, zone_type* zone_in, char* line, ldns_rdf** orig,
-    ldns_rdf** prev, uint32_t* ttl, ldns_status* status, unsigned int* l,
-    int recover)
+adfile_read_rr(FILE* fd, zone_type* zone, char* line, ldns_rdf** orig,
+    ldns_rdf** prev, uint32_t* ttl, ldns_status* status, unsigned int* l)
 {
     ldns_rr* rr = NULL;
     ldns_rdf* tmp = NULL;
     FILE* fd_include = NULL;
-    int len = 0, error = 0;
+    int len = 0;
+    ods_status s = ODS_STATUS_OK;
     uint32_t new_ttl = 0;
     const char *endptr;  /* unused */
     int offset = 0;
@@ -258,8 +84,8 @@ adfile_read_line:
         new_ttl = *ttl;
     }
 
-    len = adfile_read_line(fd, line, l);
-    adfile_rtrim(line, &len);
+    len = adutil_readline_frm_file(fd, line, l);
+    adutil_rtrim_line(line, &len);
 
     if (len >= 0) {
         switch (line[0]) {
@@ -275,7 +101,8 @@ adfile_read_line:
                     while (isspace(line[offset])) {
                         offset++;
                     }
-                    tmp = ldns_rdf_new_frm_str(LDNS_RDF_TYPE_DNAME, line + offset);
+                    tmp = ldns_rdf_new_frm_str(LDNS_RDF_TYPE_DNAME,
+                        line + offset);
                     if (!tmp) {
                         /* could not parse what next to $ORIGIN */
                         *status = LDNS_STATUS_SYNTAX_DNAME_ERR;
@@ -305,29 +132,29 @@ adfile_read_line:
                     while (isspace(line[offset])) {
                         offset++;
                     }
-                    fd_include = se_fopen(line + offset, NULL, "r");
+                    fd_include = ods_fopen(line + offset, NULL, "r");
                     if (fd_include) {
-                        error = adfile_read_file(fd_include, zone_in, 1,
-                            recover);
-                        se_fclose(fd_include);
+                        s = adfile_read_file(fd_include, zone);
+                        ods_fclose(fd_include);
                     } else {
-                        se_log_error("unable to open include file %s",
-                            (line+offset)?(line+offset):"(null)");
+                        ods_log_error("[%s] unable to open include file %s",
+                            adapter_str, (line+offset));
                         *status = LDNS_STATUS_SYNTAX_ERR;
                         return NULL;
                     }
-                    if (error) {
-                        *status = LDNS_STATUS_ERR;
-                        se_log_error("error in include file %s",
-                            (line+offset)?(line+offset):"(null)");
+                    if (s != ODS_STATUS_OK) {
+                        *status = LDNS_STATUS_SYNTAX_ERR;
+                        ods_log_error("[%s] error in include file %s",
+                            adapter_str, (line+offset));
                         return NULL;
                     }
                     /* restore current ttl */
-                    *ttl = new_ttl;
+                    if (ttl) {
+                        *ttl = new_ttl;
+                    }
                     goto adfile_read_line; /* perhaps next line is rr */
                     break;
                 }
-
                 goto adfile_read_rr; /* this can be an owner name */
                 break;
             /* comments, empty lines */
@@ -338,7 +165,7 @@ adfile_read_line:
             /* let's hope its a RR */
             default:
 adfile_read_rr:
-                if (line_contains_space_only(line, len)) {
+                if (adutil_whitespace_line(line, len)) {
                     goto adfile_read_line; /* perhaps next line is rr */
                     break;
                 }
@@ -356,10 +183,11 @@ adfile_read_rr:
                     goto adfile_read_line; /* perhaps next line is rr */
                     break;
                 } else {
-                    se_log_error("error parsing RR at line %i (%s): %s",
-                        l&&*l?*l:0, ldns_get_errorstr_by_id(*status), line);
+                    ods_log_error("[%s] error parsing RR at line %i (%s): %s",
+                        adapter_str, l&&*l?*l:0,
+                        ldns_get_errorstr_by_id(*status), line);
                     while (len >= 0) {
-                        len = adfile_read_line(fd, line, l);
+                        len = adutil_readline_frm_file(fd, line, l);
                     }
                     if (rr) {
                         ldns_rr_free(rr);
@@ -381,71 +209,54 @@ adfile_read_rr:
  * Read zone file.
  *
  */
-static int
-adfile_read_file(FILE* fd, struct zone_struct* zone, int include, int recover)
+static ods_status
+adfile_read_file(FILE* fd, zone_type* zone)
 {
-    int result = 0;
-    uint32_t soa_min = 0;
-    zone_type* zone_in = zone;
+    ods_status result = ODS_STATUS_OK;
     ldns_rr* rr = NULL;
     ldns_rdf* prev = NULL;
     ldns_rdf* orig = NULL;
+    ldns_rdf* dname = NULL;
+    uint32_t ttl = 0;
     ldns_status status = LDNS_STATUS_OK;
     char line[SE_ADFILE_MAXLINE];
     unsigned int line_update_interval = 100000;
     unsigned int line_update = line_update_interval;
     unsigned int l = 0;
 
-    se_log_assert(fd);
-    se_log_assert(zone_in);
-    se_log_assert(zone_in->stats);
-
-    if (!include) {
-        rr = adfile_lookup_soa_rr(fd);
-        /* default TTL: taking the SOA MINIMUM is in conflict with RFC2308 */
-        if (zone_in->signconf->soa_min) {
-            soa_min = (uint32_t) duration2time(zone_in->signconf->soa_min);
-        } else if (rr) {
-            soa_min = ldns_rdf2native_int32(ldns_rr_rdf(rr,
-                SE_SOA_RDATA_MINIMUM));
-        }
-        zone_in->zonedata->default_ttl = soa_min;
-        /* serial */
-        if (rr) {
-            zone_in->zonedata->inbound_serial =
-                ldns_rdf2native_int32(ldns_rr_rdf(rr, SE_SOA_RDATA_SERIAL));
-            ldns_rr_free(rr);
-        }
-        rewind(fd);
-
-        if (se_strcmp(zone_in->signconf->soa_serial, "keep") == 0) {
-            if (zone_in->zonedata->inbound_serial <=
-                zone_in->zonedata->outbound_serial) {
-                se_log_error("cannot read zone %s: SOA SERIAL is set to keep "
-                    "but serial %u in input zone is not incremental",
-                    zone_in->name?zone_in->name:"(null)",
-                    zone_in->zonedata->inbound_serial);
-                return 1;
-            }
-        }
-    }
+    ods_log_assert(fd);
+    ods_log_assert(zone);
 
     /* $ORIGIN <zone name> */
-    orig = ldns_rdf_clone(zone_in->dname);
+    dname = adapi_get_origin(zone);
+    if (!dname) {
+        ods_log_error("[%s] error getting default value for $ORIGIN",
+            adapter_str);
+        return ODS_STATUS_ERR;
+    }
+    orig = ldns_rdf_clone(dname);
+    if (!orig) {
+        ods_log_error("[%s] error setting default value for $ORIGIN",
+            adapter_str);
+        return ODS_STATUS_ERR;
+    }
 
-    /* read records */
-    while ((rr = adfile_read_rr(fd, zone_in, line, &orig, &prev,
-        &(zone_in->zonedata->default_ttl), &status, &l, recover)) != NULL) {
+    /* $TTL <default ttl> */
+    ttl = adapi_get_ttl(zone);
+
+    /* read RRs */
+    while ((rr = adfile_read_rr(fd, zone, line, &orig, &prev, &ttl,
+        &status, &l)) != NULL) {
 
         if (status != LDNS_STATUS_OK) {
-            se_log_error("error reading RR at line %i (%s): %s", l,
-                ldns_get_errorstr_by_id(status), line);
-            result = 1;
+            ods_log_error("[%s] error reading RR at line %i (%s): %s",
+                adapter_str, l, ldns_get_errorstr_by_id(status), line);
+            result = ODS_STATUS_ERR;
             break;
         }
 
         if (l > line_update) {
-            se_log_debug("...at line %i: %s", l, line);
+            ods_log_debug("[%s] ...at line %i: %s", adapter_str, l, line);
             line_update += line_update_interval;
         }
 
@@ -457,12 +268,12 @@ adfile_read_file(FILE* fd, struct zone_struct* zone, int include, int recover)
         }
 
         /* add to the zonedata */
-        result = zone_add_rr(zone_in, rr, recover);
-        if (result != 0) {
-            se_log_error("error adding RR at line %i: %s", l, line);
+        result = adapi_add_rr(zone, rr);
+        if (result != ODS_STATUS_OK) {
+            ods_log_error("[%s] error adding RR at line %i: %s",
+                adapter_str, l, line);
             break;
         }
-        zone_in->stats->sort_count += 1;
     }
 
     /* and done */
@@ -475,94 +286,177 @@ adfile_read_file(FILE* fd, struct zone_struct* zone, int include, int recover)
         prev = NULL;
     }
 
-    if (!result && status != LDNS_STATUS_OK) {
-        se_log_error("error reading RR at line %i (%s): %s", l,
-            ldns_get_errorstr_by_id(status), line);
-        result = 1;
+    if (result == ODS_STATUS_OK && status != LDNS_STATUS_OK) {
+        ods_log_error("[%s] error reading RR at line %i (%s): %s",
+            adapter_str, l, ldns_get_errorstr_by_id(status), line);
+        result = ODS_STATUS_ERR;
     }
-
-    /* reset the default ttl (directives only affect the zone file) */
-    zone_in->zonedata->default_ttl = soa_min;
-
     return result;
 }
 
 
 /**
- * Read input file adapter.
+ * Read zone from zonefile.
  *
  */
-int
-adfile_read(struct zone_struct* zone, const char* filename, int recover)
+ods_status
+adfile_read(struct zone_struct* zone, const char* filename)
 {
     FILE* fd = NULL;
-    zone_type* zone_in = zone;
-    int error = 0;
+    zone_type* adzone = (zone_type*) zone;
+    ods_status status = ODS_STATUS_OK;
+    uint32_t new_serial = 0;
+    ldns_rr* rr = NULL;
 
-    se_log_assert(zone_in);
-    se_log_assert(zone_in->name);
-    se_log_assert(filename);
-    se_log_debug("read zone %s from file %s",
-        zone_in->name?zone_in->name:"(null)", filename?filename:"(null)");
+    /* [start] sanity parameter checking */
+    if (!adzone) {
+        ods_log_error("[%s] unable to read file: no zone (or no name given)",
+            adapter_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(adzone);
+    if (!filename) {
+        ods_log_error("[%s] unable to read file: no filename given",
+            adapter_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(filename);
+    /* [end] sanity parameter checking */
 
-    /* read the zonefile */
-    fd = se_fopen(filename, NULL, "r");
+    /* [start] read zone */
+    fd = ods_fopen(filename, NULL, "r");
     if (fd) {
-        if (recover) {
-            error = adfile_read_file(fd, zone_in, 1, 1);
-        } else {
-            error = adfile_read_file(fd, zone_in, 0, 0);
+        /* serial */
+        rr = adutil_lookup_soa_rr(fd);
+        if (rr) {
+            new_serial =
+                ldns_rdf2native_int32(ldns_rr_rdf(rr, SE_SOA_RDATA_SERIAL));
         }
-        se_fclose(fd);
-    } else {
-        error = 1;
-    }
-    if (error) {
-        se_log_error("error reading zone %s from file %s",
-            zone_in->name?zone_in->name:"(null)",
-            filename?filename:"(null)");
-        return error;
-    }
+        ldns_rr_free(rr);
+        rewind(fd);
 
-    if (!recover) {
-        /* remove current rrs */
-        error = zonedata_del_rrs(zone_in->zonedata);
-        if (error) {
-            se_log_error("error removing current RRs in zone %s",
-                zone_in->name?zone_in->name:"(null)");
-        }
+        status = adfile_read_file(fd, adzone);
+        ods_fclose(fd);
+    } else {
+        status = ODS_STATUS_FOPEN_ERR;
     }
-    return error;
+    if (status != ODS_STATUS_OK) {
+        ods_log_error("[%s] unable to read file: %s", adapter_str,
+            ods_status2str(status));
+        return status;
+    }
+    /* [end] read zone */
+
+    /* [start] full transaction */
+    status = adapi_trans_full(adzone);
+    if (status != ODS_STATUS_OK) {
+        ods_log_error("[%s] unable to read file: start transaction failed",
+            adapter_str);
+        return status;
+    }
+    /* [end] full transaction */
+
+    /* [start] validate updates */
+    status = zone_examine(adzone);
+    if (status != ODS_STATUS_OK) {
+        ods_log_error("[%s] unable to read file: zonefile contains errors",
+            adapter_str);
+        return status;
+    }
+    /* [end] validate updates */
+    adapi_set_serial(adzone, new_serial);
+    return ODS_STATUS_OK;
 }
 
 
 /**
- * Write zone file.
+ * Read zone from backup file.
  *
  */
-int
+ods_status
+adbackup_read(struct zone_struct* zone, const char* filename)
+{
+    FILE* fd = NULL;
+    zone_type* adzone = (zone_type*) zone;
+    ods_status status = ODS_STATUS_OK;
+
+    /* [start] sanity parameter checking */
+    if (!adzone) {
+        ods_log_error("[%s] unable to read file: no zone (or no name given)",
+            adapter_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(adzone);
+    if (!filename) {
+        ods_log_error("[%s] unable to read file: no filename given",
+            adapter_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(filename);
+    /* [end] sanity parameter checking */
+
+    /* [start] read zone */
+    fd = ods_fopen(filename, NULL, "r");
+    if (fd) {
+        status = adfile_read_file(fd, adzone);
+        ods_fclose(fd);
+    } else {
+        status = ODS_STATUS_FOPEN_ERR;
+    }
+    if (status != ODS_STATUS_OK) {
+        ods_log_error("[%s] unable to recover file: %s", adapter_str,
+            ods_status2str(status));
+        return status;
+    }
+    /* [end] read zone */
+
+    /* [start] full transaction */
+    status = adapi_trans_full(adzone);
+    if (status != ODS_STATUS_OK) {
+        ods_log_error("[%s] unable to recover file: start transaction failed",
+            adapter_str);
+        return status;
+    }
+    /* [end] full transaction */
+    return ODS_STATUS_OK;
+}
+
+
+/**
+ * Write zonefile.
+ *
+ */
+ods_status
 adfile_write(struct zone_struct* zone, const char* filename)
 {
     FILE* fd = NULL;
-    zone_type* zone_out = zone;
+    zone_type* adzone = (zone_type*) zone;
+    ods_status status = ODS_STATUS_OK;
 
-    se_log_assert(zone_out);
-    se_log_assert(zone_out->name);
-
-    if (filename) {
-        se_log_debug("write zone %s to file %s",
-            zone_out->name, filename);
-        fd = se_fopen(filename, NULL, "w");
-    } else {
-        se_log_assert(zone_out->outbound_adapter);
-        se_log_debug("write zone %s to output file adapter %s",
-            zone_out->name,
-            zone_out->outbound_adapter->filename?zone_out->outbound_adapter->filename:"(null)");
-        fd = se_fopen(zone_out->outbound_adapter->filename, NULL, "w");
+    /* [start] sanity parameter checking */
+    if (!adzone) {
+        ods_log_error("[%s] unable to write file: no zone (or no "
+            "name given)", adapter_str);
+        return ODS_STATUS_ASSERT_ERR;
     }
+    ods_log_assert(adzone);
+    if (!filename) {
+        ods_log_error("[%s] unable to write file: no filename given",
+            adapter_str);
+        return ODS_STATUS_ERR;
+    }
+    ods_log_assert(filename);
+    /* [end] sanity parameter checking */
+
+    /* [start] write zone */
+    fd = ods_fopen(filename, NULL, "w");
     if (fd) {
-        zone_print(fd, zone_out);
-        se_fclose(fd);
+        status = zone_print(fd, adzone);
+        ods_fclose(fd);
+    } else {
+        status = ODS_STATUS_FOPEN_ERR;
     }
-    return 0;
+    /* [end] write zone */
+
+    return status;
 }

@@ -1,5 +1,5 @@
 /*
- * $Id: se_key.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: keys.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -31,8 +31,11 @@
  *
  */
 
-#ifndef SIGNER_SE_KEY_H
-#define SIGNER_SE_KEY_H
+#ifndef SIGNER_KEYS_H
+#define SIGNER_KEYS_H
+
+#include "shared/allocator.h"
+#include "shared/status.h"
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
@@ -44,12 +47,14 @@
 #include <libhsm.h>
 #include <libhsmdns.h>
 
+
 /**
  * Key.
  *
  */
 typedef struct key_struct key_type;
 struct key_struct {
+    allocator_type* allocator;
     const char* locator;
     ldns_rr* dnskey;
     hsm_key_t* hsmkey;
@@ -68,12 +73,14 @@ struct key_struct {
  */
 typedef struct keylist_struct keylist_type;
 struct keylist_struct {
+    allocator_type* allocator;
     size_t count;
     key_type* first_key;
 };
 
 /**
  * Create a new key.
+ * \param[in] allocator memory allocator
  * \param[in] locator string that identifies location of key
  * \param[in] algorithm DNSKEY algorithm field value
  * \param[in] flags DNSKEY flags field value
@@ -83,56 +90,34 @@ struct keylist_struct {
  * \return key_type* key
  *
  */
-key_type* key_create(const char* locator, uint8_t algorithm, uint32_t flags,
-    int publish, int ksk, int zsk);
+key_type* key_create(allocator_type* allocator, const char* locator,
+    uint8_t algorithm, uint32_t flags, int publish, int ksk, int zsk);
 
 /**
- * Recover a key from backup.
+ * Recover key from backup.
  * \param[in] fd file descriptor of key backup file
+ * \param[in] allocator memory allocator
  * \return key_type* key
  *
  */
-key_type* key_recover_from_backup(FILE* fd);
-
-/**
- * Clean up key.
- * \param[in] key cleaun up this key
- *
- */
-void key_cleanup(key_type* key);
-
-/**
- * Print key.
- * \param[in] out file descriptor
- * \param[in] key print this key
- *
- */
-void key_print(FILE* out, key_type* key);
+key_type* key_recover(FILE* fd, allocator_type* allocator);
 
 /**
  * Create a new key list.
+ * \param[in] allocator memory allocator
  * \return keylist_type* key list
  *
  */
-keylist_type* keylist_create(void);
+keylist_type* keylist_create(allocator_type* allocator);
 
 /**
- * Add a key to the keylist.
+ * Push a key to the keylist.
  * \param[in] kl key list
  * \param[in] key key
- * \return int 0 on success, 1 on error
+ * \return ods_status status
  *
  */
-int keylist_add(keylist_type* kl, key_type* key);
-
-/**
- * Compare two key references.
- * \param[in] a one key
- * \param[in] b another key
- * \return 0 on equal, -1 if a a < b, 1 if a > b.
- *
- */
-int key_compare(key_type* a, key_type* b);
+ods_status keylist_push(keylist_type* kl, key_type* key);
 
 /**
  * Lookup a key in the key list by locator.
@@ -143,24 +128,14 @@ int key_compare(key_type* a, key_type* b);
  */
 key_type* keylist_lookup(keylist_type* kl, const char* locator);
 
-
 /**
- * Delete a key from the keylist.
+ * Lookup a key in the key list by dnskey.
  * \param[in] kl key list
- * \param[in] key key
- * \return int 0 on success, 1 on error
+ * \param[in] dnskey dnskey
+ * \return key_type* key if it exists, NULL otherwise
  *
  */
-int keylist_delete(keylist_type* kl, key_type* key);
-
-/**
- * Compare two key lists.
- * \param[in] a one key list
- * \param[in] b another key list
- * \return 0 on equal, -1 if a a < b, 1 if a > b.
- *
- */
-int keylist_compare(keylist_type* a, keylist_type* b);
+key_type* keylist_lookup_by_dnskey(keylist_type* kl, ldns_rr* dnskey);
 
 /**
  * Clean up key list.
@@ -171,10 +146,26 @@ void keylist_cleanup(keylist_type* kl);
 
 /**
  * Print key list.
- * \param[in] out file descriptor
+ * \param[in] fd file descriptor
  * \param[in] kl key list to print
  *
  */
-void keylist_print(FILE* out, keylist_type* kl);
+void keylist_print(FILE* fd, keylist_type* kl);
 
-#endif /* SIGNER_SE_KEY_H */
+/**
+ * Backup key list.
+ * \param[in] fd file descriptor
+ * \param[in] kl key list to print
+ *
+ */
+void keylist_backup(FILE* fd, keylist_type* kl);
+
+/**
+ * Log key list.
+ * \param[in] kl key list to print
+ * \param[in] name zone name
+ *
+ */
+void keylist_log(keylist_type* kl, const char* name);
+
+#endif /* SIGNER_KEYS_H */

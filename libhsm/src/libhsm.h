@@ -1,4 +1,4 @@
-/* $Id: libhsm.h 4482 2011-02-16 13:25:18Z rb $ */
+/* $Id: libhsm.h 4998 2011-04-21 12:29:27Z jakob $ */
 
 /*
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
@@ -33,8 +33,8 @@
 #include <stdint.h>
 
 #define HSM_MAX_SESSIONS 100
-/*
- * Note that currently the MySQL kasp schema limits the number of HSMs to
+/* 
+ * Note that currently the MySQL kasp schema limits the number of HSMs to 
  * 127; so to increase it beyond that requires some database changes similar
  * to when keypairs(id) was increased, see svn r4465.
  */

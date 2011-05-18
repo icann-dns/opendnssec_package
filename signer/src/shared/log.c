@@ -1,5 +1,5 @@
 /*
- * $Id: log.c 4512 2011-02-23 09:48:58Z matthijs $
+ * $Id: log.c 3845 2010-08-31 14:19:24Z matthijs $
  *
  * Copyright (c) 2009 NLnet Labs. All rights reserved.
  *
@@ -32,9 +32,10 @@
  */
 
 #include "config.h"
-#include "util/duration.h"
-#include "util/file.h"
-#include "util/log.h"
+#include "shared/duration.h"
+#include "shared/file.h"
+#include "shared/log.h"
+#include "shared/util.h"
 
 #include <stdarg.h> /* va_start(), va_end()  */
 #include <stdio.h> /* fflush, fprintf(), vsnprintf() */
@@ -46,17 +47,17 @@
 #include <syslog.h> /* openlog(), closelog(), syslog() */
 static int logging_to_syslog = 0;
 #else /* !HAVE_SYSLOG_H */
-#define LOG_EMERG   0 /* se_fatal_exit */
-#define LOG_ALERT   1 /* se_log_alert */
-#define LOG_CRIT    2 /* se_log_crit */
-#define LOG_ERR     3 /* se_log_error */
-#define LOG_WARNING 4 /* se_log_warning */
-#define LOG_NOTICE  5 /* se_log_info */
-#define LOG_INFO    6 /* se_log_verbose */
-#define LOG_DEBUG   7 /* se_log_debug */
+#define LOG_EMERG   0 /* ods_fatal_exit */
+#define LOG_ALERT   1 /* ods_log_alert */
+#define LOG_CRIT    2 /* ods_log_crit */
+#define LOG_ERR     3 /* ods_log_error */
+#define LOG_WARNING 4 /* ods_log_warning */
+#define LOG_NOTICE  5 /* ods_log_info */
+#define LOG_INFO    6 /* ods_log_verbose */
+#define LOG_DEBUG   7 /* ods_log_debug */
 #endif /* HAVE_SYSLOG_H */
 
-#define LOG_DEEEBUG 8 /* se_log_deeebug */
+#define LOG_DEEEBUG 8 /* ods_log_deeebug */
 
 static FILE* logfile = NULL;
 static int log_level = LOG_CRIT;
@@ -65,8 +66,7 @@ static int log_level = LOG_CRIT;
 
 
 /* TODO:
-   - prepend ods_ in common library
-   - log_init should have program_name variable)
+   - log_init should have program_name variable
    - wrap special case logging onto generic one
    - check if xml-specific logging functions are still neeeded (enforcer)
    -
@@ -74,22 +74,23 @@ static int log_level = LOG_CRIT;
 
 #define MY_PACKAGE_TARNAME "ods-signerd"
 
+static const char* log_str = "log";
 
 /**
  * Initialize logging.
  *
  */
 void
-se_log_init(const char *filename, int use_syslog, int verbosity)
+ods_log_init(const char *filename, int use_syslog, int verbosity)
 {
 #ifdef HAVE_SYSLOG_H
     int facility;
 #endif /* HAVE_SYSLOG_H */
-    se_log_verbose("switching log to %s verbosity %i (log level %i)",
-        use_syslog?"syslog":(filename&&filename[0]?filename:"stderr"),
+    ods_log_verbose("[%s] switching log to %s verbosity %i (log level %i)",
+        log_str, use_syslog?"syslog":(filename&&filename[0]?filename:"stderr"),
         verbosity, verbosity+2);
     if (logfile && logfile != stderr) {
-            se_fclose(logfile);
+            ods_fclose(logfile);
 	}
     log_level = verbosity + 2;
 
@@ -99,7 +100,7 @@ se_log_init(const char *filename, int use_syslog, int verbosity)
         logging_to_syslog = 0;
     }
     if(use_syslog) {
-       facility = se_log_get_facility(filename);
+       facility = ods_log_get_facility(filename);
        openlog(MY_PACKAGE_TARNAME, LOG_NDELAY, facility);
        logging_to_syslog = 1;
        return;
@@ -107,14 +108,14 @@ se_log_init(const char *filename, int use_syslog, int verbosity)
 #endif /* HAVE_SYSLOG_H */
 
     if(filename && filename[0]) {
-        logfile = se_fopen(filename, NULL, "a");
+        logfile = ods_fopen(filename, NULL, "a");
         if (logfile) {
-            se_log_debug("new logfile %s", filename);
+            ods_log_debug("[%s] new logfile %s", log_str, filename);
             return;
         }
         logfile = stderr;
-        se_log_warning("cannot open %s for appending, logging to "
-                       "stderr", filename);
+        ods_log_warning("[%s] cannot open %s for appending, logging to "
+            "stderr", log_str, filename);
     } else {
         logfile = stderr;
     }
@@ -127,10 +128,10 @@ se_log_init(const char *filename, int use_syslog, int verbosity)
  *
  */
 void
-se_log_close(void)
+ods_log_close(void)
 {
-    se_log_debug("close log");
-    se_log_init(NULL, 0, 0);
+    ods_log_debug("[%s] close log", log_str);
+    ods_log_init(NULL, 0, 0);
 }
 
 
@@ -143,7 +144,7 @@ se_log_close(void)
  */
 #ifdef HAVE_SYSLOG_H
 int
-se_log_get_facility(const char* facility)
+ods_log_get_facility(const char* facility)
 {
     int length;
 
@@ -186,30 +187,35 @@ se_log_get_facility(const char* facility)
         return LOG_LOCAL6;
     else if (length == 6 && strncasecmp(facility, "LOCAL7", 6) == 0)
         return LOG_LOCAL7;
-    se_log_warning("syslog facility %s not supported, logging to "
-                   "log_daemon", facility);
+    ods_log_warning("[%s] syslog facility %s not supported, logging to "
+                   "log_daemon", log_str, facility);
     return LOG_DAEMON;
 
 }
 #endif /* HAVE_SYSLOG_H */
 
+/**
+ * Get the log level.
+ *
+ */
+int
+ods_log_get_level()
+{
+    return log_level;
+}
 
 /**
  * Log message wrapper.
  *
  */
 static void
-se_log_vmsg(int priority, const char* t, const char* s, va_list args)
+ods_log_vmsg(int priority, const char* t, const char* s, va_list args)
 {
     char message[ODS_SE_MAXLINE];
     static char nowstr[CTIME_LENGTH];
-    size_t len = 0;
     time_t now = time_now();
 
     vsnprintf(message, sizeof(message), s, args);
-    message[ODS_SE_MAXLINE-1] = '\0';
-    len = strlen(message);
-    message[len] = '\0';
 
 #ifdef HAVE_SYSLOG_H
     if (logging_to_syslog) {
@@ -236,12 +242,12 @@ se_log_vmsg(int priority, const char* t, const char* s, va_list args)
  *
  */
 void
-se_log_deeebug(const char *format, ...)
+ods_log_deeebug(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_DEEEBUG) {
-        se_log_vmsg(LOG_DEBUG, "debug", format, args);
+        ods_log_vmsg(LOG_DEBUG, "debug  ", format, args);
     }
     va_end(args);
 }
@@ -252,12 +258,12 @@ se_log_deeebug(const char *format, ...)
  *
  */
 void
-se_log_debug(const char *format, ...)
+ods_log_debug(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_DEBUG) {
-        se_log_vmsg(LOG_DEBUG, "debug", format, args);
+        ods_log_vmsg(LOG_DEBUG, "debug  ", format, args);
     }
     va_end(args);
 }
@@ -268,12 +274,12 @@ se_log_debug(const char *format, ...)
  *
  */
 void
-se_log_verbose(const char *format, ...)
+ods_log_verbose(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_INFO) {
-        se_log_vmsg(LOG_INFO, "verbose", format, args);
+        ods_log_vmsg(LOG_INFO, "verbose", format, args);
     }
     va_end(args);
 }
@@ -284,12 +290,12 @@ se_log_verbose(const char *format, ...)
  *
  */
 void
-se_log_info(const char *format, ...)
+ods_log_info(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_NOTICE) {
-        se_log_vmsg(LOG_NOTICE, "msg", format, args);
+        ods_log_vmsg(LOG_NOTICE, "msg    ", format, args);
     }
     va_end(args);
 }
@@ -300,12 +306,12 @@ se_log_info(const char *format, ...)
  *
  */
 void
-se_log_warning(const char *format, ...)
+ods_log_warning(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_WARNING) {
-        se_log_vmsg(LOG_WARNING, "warning", format, args);
+        ods_log_vmsg(LOG_WARNING, "warning", format, args);
     }
     va_end(args);
 }
@@ -316,12 +322,12 @@ se_log_warning(const char *format, ...)
  *
  */
 void
-se_log_error(const char *format, ...)
+ods_log_error(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_ERR) {
-        se_log_vmsg(LOG_ERR, "error", format, args);
+        ods_log_vmsg(LOG_ERR, "error  ", format, args);
     }
     va_end(args);
 }
@@ -332,12 +338,12 @@ se_log_error(const char *format, ...)
  *
  */
 void
-se_log_crit(const char *format, ...)
+ods_log_crit(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_CRIT) {
-        se_log_vmsg(LOG_CRIT, "critical", format, args);
+        ods_log_vmsg(LOG_CRIT, "crit   ", format, args);
     }
     va_end(args);
 }
@@ -348,12 +354,12 @@ se_log_crit(const char *format, ...)
  *
  */
 void
-se_log_alert(const char *format, ...)
+ods_log_alert(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_ALERT) {
-        se_log_vmsg(LOG_ALERT, "critical", format, args);
+        ods_log_vmsg(LOG_ALERT, "alert  ", format, args);
     }
     va_end(args);
 }
@@ -364,12 +370,12 @@ se_log_alert(const char *format, ...)
  *
  */
 void
-se_fatal_exit(const char *format, ...)
+ods_fatal_exit(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     if (log_level >= LOG_CRIT) {
-        se_log_vmsg(LOG_CRIT, "fatal error", format, args);
+        ods_log_vmsg(LOG_CRIT, "fatal  ", format, args);
     }
     va_end(args);
     abort();

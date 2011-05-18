@@ -1,5 +1,5 @@
 /*
- * $Id: test_routines_database.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: test_routines_database.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -34,6 +34,8 @@
 -*/
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "ksm/database.h"
 #include "test_routines.h"
@@ -43,6 +45,7 @@
  * TdbUsername - Return database username
  * TdbPassword - Return database password
  * TdbHost - Return database host
+ * TdbPort - Return database port
  * TdbName - Return database name
  *
  * Description:
@@ -51,6 +54,7 @@
  * 			DB_USERNAME
  * 			DB_PASSWORD
  * 			DB_HOST
+ * 			DB_PORT
  * 			DB_NAME
  *
  * 		... and returns the value.
@@ -87,7 +91,10 @@ const char* TdbName(void)
 	return getenv("DB_NAME");
 }
 
-
+const char* TdbPort(void)
+{
+	return getenv("DB_PORT");
+}
 
 /*+
  * TdbSetup - Set Up Database
@@ -102,25 +109,47 @@ const char* TdbName(void)
  *
  * Returns:
  *		int
- *			0		Success
+ *			0	Success
  *			Other	Some failure
 -*/
 
 int TdbSetup(void)
 {
 	DB_HANDLE	handle;		/* database handle (unused) */
-	int			status;		/* Status return from connection */
+	int		status;		/* Status return from connection */
+	const char*	name = TdbName();
+	const char*	host = TdbHost();
+	const char*	port = TdbPort();
+	const char*	user = TdbUsername();
+	const char*	pass = TdbPassword();
+
+	if (name && !strlen(name)) name=NULL;
+	if (host && !strlen(host)) host=NULL;
+	if (port && !strlen(port)) port=NULL;
+	if (user && !strlen(user)) user=NULL;
+	if (pass && !strlen(pass)) pass=NULL;
 
 #ifdef USE_MYSQL
+	if (!name || !pass || !user)
+	{
+		printf("Please run ./configure with --with-dbname, --with-dbuser, and --with-dbpass. "
+			"(--with-dbhost and --with-dbport are optional)\n");
+		exit(1);
+	}
+
 	(void) system("sh ./database_setup_mysql.sh setup");
 #else
+	if (!name) {
+		printf("Please run ./configure with --with-dbname to indicate the location of a test database.\n");
+		exit(1);
+	}
+
 	(void) system("sh ./database_setup_sqlite3.sh setup");
 #endif
 
 	DbInit();
 
-	status = DbConnect(&handle, TdbName(), TdbHost(), TdbPassword(),
-		TdbUsername());
+	status = DbConnect(&handle, name, host, pass, user, port);
 
 	return status;
 }

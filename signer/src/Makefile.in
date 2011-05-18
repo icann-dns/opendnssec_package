@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 4519 2011-02-28 14:49:27Z matthijs $
+# $Id: Makefile.am 4998 2011-04-21 12:29:27Z jakob $
 
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -70,23 +70,24 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
-am_ods_signer_OBJECTS = ods-signer.$(OBJEXT) duration.$(OBJEXT) \
-	file.$(OBJEXT) log.$(OBJEXT) se_malloc.$(OBJEXT)
+am_ods_signer_OBJECTS = ods-signer.$(OBJEXT) allocator.$(OBJEXT) \
+	duration.$(OBJEXT) file.$(OBJEXT) log.$(OBJEXT) util.$(OBJEXT)
 ods_signer_OBJECTS = $(am_ods_signer_OBJECTS)
 ods_signer_DEPENDENCIES = $(LIBHSM)
-am_ods_signerd_OBJECTS = ods-signerd.$(OBJEXT) adapter.$(OBJEXT) \
-	adfile.$(OBJEXT) cmdhandler.$(OBJEXT) cfg.$(OBJEXT) \
-	engine.$(OBJEXT) signal.$(OBJEXT) worker.$(OBJEXT) \
-	confparser.$(OBJEXT) signconfparser.$(OBJEXT) \
-	zonelistparser.$(OBJEXT) locks.$(OBJEXT) task.$(OBJEXT) \
-	backup.$(OBJEXT) denial.$(OBJEXT) domain.$(OBJEXT) \
-	hsm.$(OBJEXT) nsec3params.$(OBJEXT) rrset.$(OBJEXT) \
-	rrsigs.$(OBJEXT) se_key.$(OBJEXT) signconf.$(OBJEXT) \
-	stats.$(OBJEXT) tools.$(OBJEXT) zone.$(OBJEXT) \
-	zonedata.$(OBJEXT) zonelist.$(OBJEXT) toolutil.$(OBJEXT) \
-	zone_fetcher.$(OBJEXT) duration.$(OBJEXT) file.$(OBJEXT) \
-	log.$(OBJEXT) privdrop.$(OBJEXT) se_malloc.$(OBJEXT) \
-	util.$(OBJEXT)
+am_ods_signerd_OBJECTS = ods-signerd.$(OBJEXT) adapi.$(OBJEXT) \
+	adapter.$(OBJEXT) adfile.$(OBJEXT) adutil.$(OBJEXT) \
+	cfg.$(OBJEXT) cmdhandler.$(OBJEXT) engine.$(OBJEXT) \
+	signal.$(OBJEXT) worker.$(OBJEXT) confparser.$(OBJEXT) \
+	signconfparser.$(OBJEXT) zonelistparser.$(OBJEXT) \
+	fifoq.$(OBJEXT) schedule.$(OBJEXT) task.$(OBJEXT) \
+	allocator.$(OBJEXT) duration.$(OBJEXT) file.$(OBJEXT) \
+	hsm.$(OBJEXT) locks.$(OBJEXT) log.$(OBJEXT) privdrop.$(OBJEXT) \
+	status.$(OBJEXT) util.$(OBJEXT) backup.$(OBJEXT) \
+	denial.$(OBJEXT) domain.$(OBJEXT) keys.$(OBJEXT) \
+	nsec3params.$(OBJEXT) rrset.$(OBJEXT) rrsigs.$(OBJEXT) \
+	signconf.$(OBJEXT) stats.$(OBJEXT) tools.$(OBJEXT) \
+	zone.$(OBJEXT) zonedata.$(OBJEXT) zonelist.$(OBJEXT) \
+	toolutil.$(OBJEXT) zone_fetcher.$(OBJEXT)
 ods_signerd_OBJECTS = $(am_ods_signerd_OBJECTS)
 ods_signerd_DEPENDENCIES = $(LIBHSM)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
@@ -128,6 +129,7 @@ DB_INCLUDES = @DB_INCLUDES@
 DB_LIBS = @DB_LIBS@
 DB_NAME = @DB_NAME@
 DB_PASS = @DB_PASS@
+DB_PORT = @DB_PORT@
 DB_TYPE = @DB_TYPE@
 DB_USER = @DB_USER@
 DEFS = @DEFS@
@@ -318,26 +320,37 @@ AM_CPPFLAGS = \
 signerdir = @libdir@/opendnssec/signer
 # man8_MANS =     man/ods-signer.8 man/ods-signerd.8
 ods_signerd_SOURCES = ods-signerd.c \
+				adapter/adapi.c adapter/adapi.h \
 				adapter/adapter.c adapter/adapter.h \
 				adapter/adfile.c adapter/adfile.h \
-				daemon/cmdhandler.c daemon/cmdhandler.h \
+				adapter/adutil.c adapter/adutil.h \
 				daemon/cfg.c daemon/cfg.h \
+				daemon/cmdhandler.c daemon/cmdhandler.h \
 				daemon/engine.c daemon/engine.h \
 				daemon/signal.c daemon/signal.h \
 				daemon/worker.c daemon/worker.h \
 				parser/confparser.c parser/confparser.h \
 				parser/signconfparser.c parser/signconfparser.h \
 				parser/zonelistparser.c parser/zonelistparser.h \
-				scheduler/locks.c scheduler/locks.h \
+				scheduler/fifoq.c scheduler/fifoq.h \
+				scheduler/schedule.c scheduler/schedule.h \
 				scheduler/task.c scheduler/task.h \
+				shared/allocator.c shared/allocator.h \
+				shared/duration.c shared/duration.h \
+				shared/file.c shared/file.h \
+				shared/hsm.c shared/hsm.h \
+				shared/locks.c shared/locks.h \
+				shared/log.c shared/log.h \
+				shared/privdrop.c shared/privdrop.h \
+				shared/status.c shared/status.h \
+				shared/util.c shared/util.h \
 				signer/backup.c signer/backup.h \
 				signer/denial.c signer/denial.h \
 				signer/domain.c signer/domain.h \
-				signer/hsm.c signer/hsm.h \
+				signer/keys.c signer/keys.h \
 				signer/nsec3params.c signer/nsec3params.h \
 				signer/rrset.c signer/rrset.h \
 				signer/rrsigs.c signer/rrsigs.h \
-				signer/se_key.c signer/se_key.h \
 				signer/signconf.c signer/signconf.h \
 				signer/stats.c signer/stats.h \
 				signer/tools.c signer/tools.h \
@@ -345,21 +358,16 @@ ods_signerd_SOURCES = ods-signerd.c \
 				signer/zonedata.c signer/zonedata.h \
 				signer/zonelist.c signer/zonelist.h \
 				tools/toolutil.c tools/toolutil.h \
-				tools/zone_fetcher.c tools/zone_fetcher.h \
-				util/duration.c util/duration.h \
-				util/file.c util/file.h \
-				util/log.c util/log.h \
-				util/privdrop.c util/privdrop.h \
-				util/se_malloc.c util/se_malloc.h \
-				util/util.c util/util.h
+				tools/zone_fetcher.c tools/zone_fetcher.h
 
 ods_signerd_LDADD = $(LIBHSM) @LDNS_LIBS@ @XML2_LIBS@ @PTHREAD_LIBS@ \
 	@RT_LIBS@ $(am__empty)
 ods_signer_SOURCES = ods-signer.c \
-				util/duration.c util/duration.h \
-				util/file.c util/file.h \
-				util/log.c util/log.h \
-				util/se_malloc.c util/se_malloc.h
+				shared/allocator.c shared/allocator.h \
+				shared/duration.c shared/duration.h \
+				shared/file.c shared/file.h \
+				shared/log.c shared/log.h \
+				shared/util.c shared/util.h
 
 ods_signer_LDADD = $(LIBHSM) @LDNS_LIBS@ @XML2_LIBS@
 all: all-am
@@ -436,8 +444,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adapi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adapter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adfile.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adutil.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allocator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/backup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdhandler.Po@am__quote@
@@ -446,8 +457,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/domain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duration.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/engine.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fifoq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hsm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/keys.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locks.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nsec3params.Po@am__quote@
@@ -456,12 +469,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/privdrop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rrset.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rrsigs.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/se_key.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/se_malloc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/schedule.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signconf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signconfparser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/status.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/task.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tools.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/toolutil.Po@am__quote@
@@ -494,61 +507,89 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-duration.o: util/duration.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT duration.o -MD -MP -MF $(DEPDIR)/duration.Tpo -c -o duration.o `test -f 'util/duration.c' || echo '$(srcdir)/'`util/duration.c
+allocator.o: shared/allocator.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT allocator.o -MD -MP -MF $(DEPDIR)/allocator.Tpo -c -o allocator.o `test -f 'shared/allocator.c' || echo '$(srcdir)/'`shared/allocator.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/allocator.Tpo $(DEPDIR)/allocator.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/allocator.c' object='allocator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o allocator.o `test -f 'shared/allocator.c' || echo '$(srcdir)/'`shared/allocator.c
+
+allocator.obj: shared/allocator.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT allocator.obj -MD -MP -MF $(DEPDIR)/allocator.Tpo -c -o allocator.obj `if test -f 'shared/allocator.c'; then $(CYGPATH_W) 'shared/allocator.c'; else $(CYGPATH_W) '$(srcdir)/shared/allocator.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/allocator.Tpo $(DEPDIR)/allocator.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/allocator.c' object='allocator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o allocator.obj `if test -f 'shared/allocator.c'; then $(CYGPATH_W) 'shared/allocator.c'; else $(CYGPATH_W) '$(srcdir)/shared/allocator.c'; fi`
+
+duration.o: shared/duration.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT duration.o -MD -MP -MF $(DEPDIR)/duration.Tpo -c -o duration.o `test -f 'shared/duration.c' || echo '$(srcdir)/'`shared/duration.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/duration.Tpo $(DEPDIR)/duration.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/duration.c' object='duration.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/duration.c' object='duration.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o duration.o `test -f 'util/duration.c' || echo '$(srcdir)/'`util/duration.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o duration.o `test -f 'shared/duration.c' || echo '$(srcdir)/'`shared/duration.c
 
-duration.obj: util/duration.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT duration.obj -MD -MP -MF $(DEPDIR)/duration.Tpo -c -o duration.obj `if test -f 'util/duration.c'; then $(CYGPATH_W) 'util/duration.c'; else $(CYGPATH_W) '$(srcdir)/util/duration.c'; fi`
+duration.obj: shared/duration.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT duration.obj -MD -MP -MF $(DEPDIR)/duration.Tpo -c -o duration.obj `if test -f 'shared/duration.c'; then $(CYGPATH_W) 'shared/duration.c'; else $(CYGPATH_W) '$(srcdir)/shared/duration.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/duration.Tpo $(DEPDIR)/duration.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/duration.c' object='duration.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/duration.c' object='duration.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o duration.obj `if test -f 'util/duration.c'; then $(CYGPATH_W) 'util/duration.c'; else $(CYGPATH_W) '$(srcdir)/util/duration.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o duration.obj `if test -f 'shared/duration.c'; then $(CYGPATH_W) 'shared/duration.c'; else $(CYGPATH_W) '$(srcdir)/shared/duration.c'; fi`
 
-file.o: util/file.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT file.o -MD -MP -MF $(DEPDIR)/file.Tpo -c -o file.o `test -f 'util/file.c' || echo '$(srcdir)/'`util/file.c
+file.o: shared/file.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT file.o -MD -MP -MF $(DEPDIR)/file.Tpo -c -o file.o `test -f 'shared/file.c' || echo '$(srcdir)/'`shared/file.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/file.Tpo $(DEPDIR)/file.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/file.c' object='file.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/file.c' object='file.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o file.o `test -f 'util/file.c' || echo '$(srcdir)/'`util/file.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o file.o `test -f 'shared/file.c' || echo '$(srcdir)/'`shared/file.c
 
-file.obj: util/file.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT file.obj -MD -MP -MF $(DEPDIR)/file.Tpo -c -o file.obj `if test -f 'util/file.c'; then $(CYGPATH_W) 'util/file.c'; else $(CYGPATH_W) '$(srcdir)/util/file.c'; fi`
+file.obj: shared/file.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT file.obj -MD -MP -MF $(DEPDIR)/file.Tpo -c -o file.obj `if test -f 'shared/file.c'; then $(CYGPATH_W) 'shared/file.c'; else $(CYGPATH_W) '$(srcdir)/shared/file.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/file.Tpo $(DEPDIR)/file.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/file.c' object='file.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/file.c' object='file.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o file.obj `if test -f 'util/file.c'; then $(CYGPATH_W) 'util/file.c'; else $(CYGPATH_W) '$(srcdir)/util/file.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o file.obj `if test -f 'shared/file.c'; then $(CYGPATH_W) 'shared/file.c'; else $(CYGPATH_W) '$(srcdir)/shared/file.c'; fi`
 
-log.o: util/log.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT log.o -MD -MP -MF $(DEPDIR)/log.Tpo -c -o log.o `test -f 'util/log.c' || echo '$(srcdir)/'`util/log.c
+log.o: shared/log.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT log.o -MD -MP -MF $(DEPDIR)/log.Tpo -c -o log.o `test -f 'shared/log.c' || echo '$(srcdir)/'`shared/log.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/log.Tpo $(DEPDIR)/log.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/log.c' object='log.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/log.c' object='log.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o log.o `test -f 'util/log.c' || echo '$(srcdir)/'`util/log.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o log.o `test -f 'shared/log.c' || echo '$(srcdir)/'`shared/log.c
 
-log.obj: util/log.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT log.obj -MD -MP -MF $(DEPDIR)/log.Tpo -c -o log.obj `if test -f 'util/log.c'; then $(CYGPATH_W) 'util/log.c'; else $(CYGPATH_W) '$(srcdir)/util/log.c'; fi`
+log.obj: shared/log.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT log.obj -MD -MP -MF $(DEPDIR)/log.Tpo -c -o log.obj `if test -f 'shared/log.c'; then $(CYGPATH_W) 'shared/log.c'; else $(CYGPATH_W) '$(srcdir)/shared/log.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/log.Tpo $(DEPDIR)/log.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/log.c' object='log.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/log.c' object='log.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o log.obj `if test -f 'util/log.c'; then $(CYGPATH_W) 'util/log.c'; else $(CYGPATH_W) '$(srcdir)/util/log.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o log.obj `if test -f 'shared/log.c'; then $(CYGPATH_W) 'shared/log.c'; else $(CYGPATH_W) '$(srcdir)/shared/log.c'; fi`
 
-se_malloc.o: util/se_malloc.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT se_malloc.o -MD -MP -MF $(DEPDIR)/se_malloc.Tpo -c -o se_malloc.o `test -f 'util/se_malloc.c' || echo '$(srcdir)/'`util/se_malloc.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/se_malloc.Tpo $(DEPDIR)/se_malloc.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/se_malloc.c' object='se_malloc.o' libtool=no @AMDEPBACKSLASH@
+util.o: shared/util.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util.o -MD -MP -MF $(DEPDIR)/util.Tpo -c -o util.o `test -f 'shared/util.c' || echo '$(srcdir)/'`shared/util.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/util.Tpo $(DEPDIR)/util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/util.c' object='util.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o se_malloc.o `test -f 'util/se_malloc.c' || echo '$(srcdir)/'`util/se_malloc.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util.o `test -f 'shared/util.c' || echo '$(srcdir)/'`shared/util.c
 
-se_malloc.obj: util/se_malloc.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT se_malloc.obj -MD -MP -MF $(DEPDIR)/se_malloc.Tpo -c -o se_malloc.obj `if test -f 'util/se_malloc.c'; then $(CYGPATH_W) 'util/se_malloc.c'; else $(CYGPATH_W) '$(srcdir)/util/se_malloc.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/se_malloc.Tpo $(DEPDIR)/se_malloc.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/se_malloc.c' object='se_malloc.obj' libtool=no @AMDEPBACKSLASH@
+util.obj: shared/util.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util.obj -MD -MP -MF $(DEPDIR)/util.Tpo -c -o util.obj `if test -f 'shared/util.c'; then $(CYGPATH_W) 'shared/util.c'; else $(CYGPATH_W) '$(srcdir)/shared/util.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/util.Tpo $(DEPDIR)/util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/util.c' object='util.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o se_malloc.obj `if test -f 'util/se_malloc.c'; then $(CYGPATH_W) 'util/se_malloc.c'; else $(CYGPATH_W) '$(srcdir)/util/se_malloc.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util.obj `if test -f 'shared/util.c'; then $(CYGPATH_W) 'shared/util.c'; else $(CYGPATH_W) '$(srcdir)/shared/util.c'; fi`
+
+adapi.o: adapter/adapi.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adapi.o -MD -MP -MF $(DEPDIR)/adapi.Tpo -c -o adapi.o `test -f 'adapter/adapi.c' || echo '$(srcdir)/'`adapter/adapi.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/adapi.Tpo $(DEPDIR)/adapi.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adapter/adapi.c' object='adapi.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adapi.o `test -f 'adapter/adapi.c' || echo '$(srcdir)/'`adapter/adapi.c
+
+adapi.obj: adapter/adapi.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adapi.obj -MD -MP -MF $(DEPDIR)/adapi.Tpo -c -o adapi.obj `if test -f 'adapter/adapi.c'; then $(CYGPATH_W) 'adapter/adapi.c'; else $(CYGPATH_W) '$(srcdir)/adapter/adapi.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/adapi.Tpo $(DEPDIR)/adapi.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adapter/adapi.c' object='adapi.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adapi.obj `if test -f 'adapter/adapi.c'; then $(CYGPATH_W) 'adapter/adapi.c'; else $(CYGPATH_W) '$(srcdir)/adapter/adapi.c'; fi`
 
 adapter.o: adapter/adapter.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adapter.o -MD -MP -MF $(DEPDIR)/adapter.Tpo -c -o adapter.o `test -f 'adapter/adapter.c' || echo '$(srcdir)/'`adapter/adapter.c
@@ -578,19 +619,19 @@ adfile.obj: adapter/adfile.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adfile.obj `if test -f 'adapter/adfile.c'; then $(CYGPATH_W) 'adapter/adfile.c'; else $(CYGPATH_W) '$(srcdir)/adapter/adfile.c'; fi`
 
-cmdhandler.o: daemon/cmdhandler.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cmdhandler.o -MD -MP -MF $(DEPDIR)/cmdhandler.Tpo -c -o cmdhandler.o `test -f 'daemon/cmdhandler.c' || echo '$(srcdir)/'`daemon/cmdhandler.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/cmdhandler.Tpo $(DEPDIR)/cmdhandler.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/cmdhandler.c' object='cmdhandler.o' libtool=no @AMDEPBACKSLASH@
+adutil.o: adapter/adutil.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adutil.o -MD -MP -MF $(DEPDIR)/adutil.Tpo -c -o adutil.o `test -f 'adapter/adutil.c' || echo '$(srcdir)/'`adapter/adutil.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/adutil.Tpo $(DEPDIR)/adutil.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adapter/adutil.c' object='adutil.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cmdhandler.o `test -f 'daemon/cmdhandler.c' || echo '$(srcdir)/'`daemon/cmdhandler.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adutil.o `test -f 'adapter/adutil.c' || echo '$(srcdir)/'`adapter/adutil.c
 
-cmdhandler.obj: daemon/cmdhandler.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cmdhandler.obj -MD -MP -MF $(DEPDIR)/cmdhandler.Tpo -c -o cmdhandler.obj `if test -f 'daemon/cmdhandler.c'; then $(CYGPATH_W) 'daemon/cmdhandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/cmdhandler.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/cmdhandler.Tpo $(DEPDIR)/cmdhandler.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/cmdhandler.c' object='cmdhandler.obj' libtool=no @AMDEPBACKSLASH@
+adutil.obj: adapter/adutil.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adutil.obj -MD -MP -MF $(DEPDIR)/adutil.Tpo -c -o adutil.obj `if test -f 'adapter/adutil.c'; then $(CYGPATH_W) 'adapter/adutil.c'; else $(CYGPATH_W) '$(srcdir)/adapter/adutil.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/adutil.Tpo $(DEPDIR)/adutil.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adapter/adutil.c' object='adutil.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cmdhandler.obj `if test -f 'daemon/cmdhandler.c'; then $(CYGPATH_W) 'daemon/cmdhandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/cmdhandler.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adutil.obj `if test -f 'adapter/adutil.c'; then $(CYGPATH_W) 'adapter/adutil.c'; else $(CYGPATH_W) '$(srcdir)/adapter/adutil.c'; fi`
 
 cfg.o: daemon/cfg.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cfg.o -MD -MP -MF $(DEPDIR)/cfg.Tpo -c -o cfg.o `test -f 'daemon/cfg.c' || echo '$(srcdir)/'`daemon/cfg.c
@@ -605,6 +646,20 @@ cfg.obj: daemon/cfg.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/cfg.c' object='cfg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cfg.obj `if test -f 'daemon/cfg.c'; then $(CYGPATH_W) 'daemon/cfg.c'; else $(CYGPATH_W) '$(srcdir)/daemon/cfg.c'; fi`
+
+cmdhandler.o: daemon/cmdhandler.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cmdhandler.o -MD -MP -MF $(DEPDIR)/cmdhandler.Tpo -c -o cmdhandler.o `test -f 'daemon/cmdhandler.c' || echo '$(srcdir)/'`daemon/cmdhandler.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/cmdhandler.Tpo $(DEPDIR)/cmdhandler.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/cmdhandler.c' object='cmdhandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cmdhandler.o `test -f 'daemon/cmdhandler.c' || echo '$(srcdir)/'`daemon/cmdhandler.c
+
+cmdhandler.obj: daemon/cmdhandler.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cmdhandler.obj -MD -MP -MF $(DEPDIR)/cmdhandler.Tpo -c -o cmdhandler.obj `if test -f 'daemon/cmdhandler.c'; then $(CYGPATH_W) 'daemon/cmdhandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/cmdhandler.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/cmdhandler.Tpo $(DEPDIR)/cmdhandler.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/cmdhandler.c' object='cmdhandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cmdhandler.obj `if test -f 'daemon/cmdhandler.c'; then $(CYGPATH_W) 'daemon/cmdhandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/cmdhandler.c'; fi`
 
 engine.o: daemon/engine.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT engine.o -MD -MP -MF $(DEPDIR)/engine.Tpo -c -o engine.o `test -f 'daemon/engine.c' || echo '$(srcdir)/'`daemon/engine.c
@@ -690,19 +745,33 @@ zonelistparser.obj: parser/zonelistparser.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zonelistparser.obj `if test -f 'parser/zonelistparser.c'; then $(CYGPATH_W) 'parser/zonelistparser.c'; else $(CYGPATH_W) '$(srcdir)/parser/zonelistparser.c'; fi`
 
-locks.o: scheduler/locks.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT locks.o -MD -MP -MF $(DEPDIR)/locks.Tpo -c -o locks.o `test -f 'scheduler/locks.c' || echo '$(srcdir)/'`scheduler/locks.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/locks.Tpo $(DEPDIR)/locks.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='scheduler/locks.c' object='locks.o' libtool=no @AMDEPBACKSLASH@
+fifoq.o: scheduler/fifoq.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT fifoq.o -MD -MP -MF $(DEPDIR)/fifoq.Tpo -c -o fifoq.o `test -f 'scheduler/fifoq.c' || echo '$(srcdir)/'`scheduler/fifoq.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/fifoq.Tpo $(DEPDIR)/fifoq.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='scheduler/fifoq.c' object='fifoq.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o locks.o `test -f 'scheduler/locks.c' || echo '$(srcdir)/'`scheduler/locks.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o fifoq.o `test -f 'scheduler/fifoq.c' || echo '$(srcdir)/'`scheduler/fifoq.c
 
-locks.obj: scheduler/locks.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT locks.obj -MD -MP -MF $(DEPDIR)/locks.Tpo -c -o locks.obj `if test -f 'scheduler/locks.c'; then $(CYGPATH_W) 'scheduler/locks.c'; else $(CYGPATH_W) '$(srcdir)/scheduler/locks.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/locks.Tpo $(DEPDIR)/locks.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='scheduler/locks.c' object='locks.obj' libtool=no @AMDEPBACKSLASH@
+fifoq.obj: scheduler/fifoq.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT fifoq.obj -MD -MP -MF $(DEPDIR)/fifoq.Tpo -c -o fifoq.obj `if test -f 'scheduler/fifoq.c'; then $(CYGPATH_W) 'scheduler/fifoq.c'; else $(CYGPATH_W) '$(srcdir)/scheduler/fifoq.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/fifoq.Tpo $(DEPDIR)/fifoq.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='scheduler/fifoq.c' object='fifoq.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o locks.obj `if test -f 'scheduler/locks.c'; then $(CYGPATH_W) 'scheduler/locks.c'; else $(CYGPATH_W) '$(srcdir)/scheduler/locks.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o fifoq.obj `if test -f 'scheduler/fifoq.c'; then $(CYGPATH_W) 'scheduler/fifoq.c'; else $(CYGPATH_W) '$(srcdir)/scheduler/fifoq.c'; fi`
+
+schedule.o: scheduler/schedule.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT schedule.o -MD -MP -MF $(DEPDIR)/schedule.Tpo -c -o schedule.o `test -f 'scheduler/schedule.c' || echo '$(srcdir)/'`scheduler/schedule.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/schedule.Tpo $(DEPDIR)/schedule.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='scheduler/schedule.c' object='schedule.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o schedule.o `test -f 'scheduler/schedule.c' || echo '$(srcdir)/'`scheduler/schedule.c
+
+schedule.obj: scheduler/schedule.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT schedule.obj -MD -MP -MF $(DEPDIR)/schedule.Tpo -c -o schedule.obj `if test -f 'scheduler/schedule.c'; then $(CYGPATH_W) 'scheduler/schedule.c'; else $(CYGPATH_W) '$(srcdir)/scheduler/schedule.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/schedule.Tpo $(DEPDIR)/schedule.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='scheduler/schedule.c' object='schedule.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o schedule.obj `if test -f 'scheduler/schedule.c'; then $(CYGPATH_W) 'scheduler/schedule.c'; else $(CYGPATH_W) '$(srcdir)/scheduler/schedule.c'; fi`
 
 task.o: scheduler/task.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT task.o -MD -MP -MF $(DEPDIR)/task.Tpo -c -o task.o `test -f 'scheduler/task.c' || echo '$(srcdir)/'`scheduler/task.c
@@ -717,6 +786,62 @@ task.obj: scheduler/task.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='scheduler/task.c' object='task.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o task.obj `if test -f 'scheduler/task.c'; then $(CYGPATH_W) 'scheduler/task.c'; else $(CYGPATH_W) '$(srcdir)/scheduler/task.c'; fi`
+
+hsm.o: shared/hsm.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT hsm.o -MD -MP -MF $(DEPDIR)/hsm.Tpo -c -o hsm.o `test -f 'shared/hsm.c' || echo '$(srcdir)/'`shared/hsm.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/hsm.Tpo $(DEPDIR)/hsm.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/hsm.c' object='hsm.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hsm.o `test -f 'shared/hsm.c' || echo '$(srcdir)/'`shared/hsm.c
+
+hsm.obj: shared/hsm.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT hsm.obj -MD -MP -MF $(DEPDIR)/hsm.Tpo -c -o hsm.obj `if test -f 'shared/hsm.c'; then $(CYGPATH_W) 'shared/hsm.c'; else $(CYGPATH_W) '$(srcdir)/shared/hsm.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/hsm.Tpo $(DEPDIR)/hsm.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/hsm.c' object='hsm.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hsm.obj `if test -f 'shared/hsm.c'; then $(CYGPATH_W) 'shared/hsm.c'; else $(CYGPATH_W) '$(srcdir)/shared/hsm.c'; fi`
+
+locks.o: shared/locks.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT locks.o -MD -MP -MF $(DEPDIR)/locks.Tpo -c -o locks.o `test -f 'shared/locks.c' || echo '$(srcdir)/'`shared/locks.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/locks.Tpo $(DEPDIR)/locks.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/locks.c' object='locks.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o locks.o `test -f 'shared/locks.c' || echo '$(srcdir)/'`shared/locks.c
+
+locks.obj: shared/locks.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT locks.obj -MD -MP -MF $(DEPDIR)/locks.Tpo -c -o locks.obj `if test -f 'shared/locks.c'; then $(CYGPATH_W) 'shared/locks.c'; else $(CYGPATH_W) '$(srcdir)/shared/locks.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/locks.Tpo $(DEPDIR)/locks.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/locks.c' object='locks.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o locks.obj `if test -f 'shared/locks.c'; then $(CYGPATH_W) 'shared/locks.c'; else $(CYGPATH_W) '$(srcdir)/shared/locks.c'; fi`
+
+privdrop.o: shared/privdrop.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT privdrop.o -MD -MP -MF $(DEPDIR)/privdrop.Tpo -c -o privdrop.o `test -f 'shared/privdrop.c' || echo '$(srcdir)/'`shared/privdrop.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/privdrop.Tpo $(DEPDIR)/privdrop.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/privdrop.c' object='privdrop.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o privdrop.o `test -f 'shared/privdrop.c' || echo '$(srcdir)/'`shared/privdrop.c
+
+privdrop.obj: shared/privdrop.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT privdrop.obj -MD -MP -MF $(DEPDIR)/privdrop.Tpo -c -o privdrop.obj `if test -f 'shared/privdrop.c'; then $(CYGPATH_W) 'shared/privdrop.c'; else $(CYGPATH_W) '$(srcdir)/shared/privdrop.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/privdrop.Tpo $(DEPDIR)/privdrop.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/privdrop.c' object='privdrop.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o privdrop.obj `if test -f 'shared/privdrop.c'; then $(CYGPATH_W) 'shared/privdrop.c'; else $(CYGPATH_W) '$(srcdir)/shared/privdrop.c'; fi`
+
+status.o: shared/status.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT status.o -MD -MP -MF $(DEPDIR)/status.Tpo -c -o status.o `test -f 'shared/status.c' || echo '$(srcdir)/'`shared/status.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/status.Tpo $(DEPDIR)/status.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/status.c' object='status.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o status.o `test -f 'shared/status.c' || echo '$(srcdir)/'`shared/status.c
+
+status.obj: shared/status.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT status.obj -MD -MP -MF $(DEPDIR)/status.Tpo -c -o status.obj `if test -f 'shared/status.c'; then $(CYGPATH_W) 'shared/status.c'; else $(CYGPATH_W) '$(srcdir)/shared/status.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/status.Tpo $(DEPDIR)/status.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='shared/status.c' object='status.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o status.obj `if test -f 'shared/status.c'; then $(CYGPATH_W) 'shared/status.c'; else $(CYGPATH_W) '$(srcdir)/shared/status.c'; fi`
 
 backup.o: signer/backup.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT backup.o -MD -MP -MF $(DEPDIR)/backup.Tpo -c -o backup.o `test -f 'signer/backup.c' || echo '$(srcdir)/'`signer/backup.c
@@ -760,19 +885,19 @@ domain.obj: signer/domain.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o domain.obj `if test -f 'signer/domain.c'; then $(CYGPATH_W) 'signer/domain.c'; else $(CYGPATH_W) '$(srcdir)/signer/domain.c'; fi`
 
-hsm.o: signer/hsm.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT hsm.o -MD -MP -MF $(DEPDIR)/hsm.Tpo -c -o hsm.o `test -f 'signer/hsm.c' || echo '$(srcdir)/'`signer/hsm.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/hsm.Tpo $(DEPDIR)/hsm.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/hsm.c' object='hsm.o' libtool=no @AMDEPBACKSLASH@
+keys.o: signer/keys.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT keys.o -MD -MP -MF $(DEPDIR)/keys.Tpo -c -o keys.o `test -f 'signer/keys.c' || echo '$(srcdir)/'`signer/keys.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/keys.Tpo $(DEPDIR)/keys.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/keys.c' object='keys.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hsm.o `test -f 'signer/hsm.c' || echo '$(srcdir)/'`signer/hsm.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o keys.o `test -f 'signer/keys.c' || echo '$(srcdir)/'`signer/keys.c
 
-hsm.obj: signer/hsm.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT hsm.obj -MD -MP -MF $(DEPDIR)/hsm.Tpo -c -o hsm.obj `if test -f 'signer/hsm.c'; then $(CYGPATH_W) 'signer/hsm.c'; else $(CYGPATH_W) '$(srcdir)/signer/hsm.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/hsm.Tpo $(DEPDIR)/hsm.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/hsm.c' object='hsm.obj' libtool=no @AMDEPBACKSLASH@
+keys.obj: signer/keys.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT keys.obj -MD -MP -MF $(DEPDIR)/keys.Tpo -c -o keys.obj `if test -f 'signer/keys.c'; then $(CYGPATH_W) 'signer/keys.c'; else $(CYGPATH_W) '$(srcdir)/signer/keys.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/keys.Tpo $(DEPDIR)/keys.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/keys.c' object='keys.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hsm.obj `if test -f 'signer/hsm.c'; then $(CYGPATH_W) 'signer/hsm.c'; else $(CYGPATH_W) '$(srcdir)/signer/hsm.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o keys.obj `if test -f 'signer/keys.c'; then $(CYGPATH_W) 'signer/keys.c'; else $(CYGPATH_W) '$(srcdir)/signer/keys.c'; fi`
 
 nsec3params.o: signer/nsec3params.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nsec3params.o -MD -MP -MF $(DEPDIR)/nsec3params.Tpo -c -o nsec3params.o `test -f 'signer/nsec3params.c' || echo '$(srcdir)/'`signer/nsec3params.c
@@ -815,20 +940,6 @@ rrsigs.obj: signer/rrsigs.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/rrsigs.c' object='rrsigs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o rrsigs.obj `if test -f 'signer/rrsigs.c'; then $(CYGPATH_W) 'signer/rrsigs.c'; else $(CYGPATH_W) '$(srcdir)/signer/rrsigs.c'; fi`
-
-se_key.o: signer/se_key.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT se_key.o -MD -MP -MF $(DEPDIR)/se_key.Tpo -c -o se_key.o `test -f 'signer/se_key.c' || echo '$(srcdir)/'`signer/se_key.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/se_key.Tpo $(DEPDIR)/se_key.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/se_key.c' object='se_key.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o se_key.o `test -f 'signer/se_key.c' || echo '$(srcdir)/'`signer/se_key.c
-
-se_key.obj: signer/se_key.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT se_key.obj -MD -MP -MF $(DEPDIR)/se_key.Tpo -c -o se_key.obj `if test -f 'signer/se_key.c'; then $(CYGPATH_W) 'signer/se_key.c'; else $(CYGPATH_W) '$(srcdir)/signer/se_key.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/se_key.Tpo $(DEPDIR)/se_key.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/se_key.c' object='se_key.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o se_key.obj `if test -f 'signer/se_key.c'; then $(CYGPATH_W) 'signer/se_key.c'; else $(CYGPATH_W) '$(srcdir)/signer/se_key.c'; fi`
 
 signconf.o: signer/signconf.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT signconf.o -MD -MP -MF $(DEPDIR)/signconf.Tpo -c -o signconf.o `test -f 'signer/signconf.c' || echo '$(srcdir)/'`signer/signconf.c
@@ -941,34 +1052,6 @@ zone_fetcher.obj: tools/zone_fetcher.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/zone_fetcher.c' object='zone_fetcher.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zone_fetcher.obj `if test -f 'tools/zone_fetcher.c'; then $(CYGPATH_W) 'tools/zone_fetcher.c'; else $(CYGPATH_W) '$(srcdir)/tools/zone_fetcher.c'; fi`
-
-privdrop.o: util/privdrop.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT privdrop.o -MD -MP -MF $(DEPDIR)/privdrop.Tpo -c -o privdrop.o `test -f 'util/privdrop.c' || echo '$(srcdir)/'`util/privdrop.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/privdrop.Tpo $(DEPDIR)/privdrop.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/privdrop.c' object='privdrop.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o privdrop.o `test -f 'util/privdrop.c' || echo '$(srcdir)/'`util/privdrop.c
-
-privdrop.obj: util/privdrop.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT privdrop.obj -MD -MP -MF $(DEPDIR)/privdrop.Tpo -c -o privdrop.obj `if test -f 'util/privdrop.c'; then $(CYGPATH_W) 'util/privdrop.c'; else $(CYGPATH_W) '$(srcdir)/util/privdrop.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/privdrop.Tpo $(DEPDIR)/privdrop.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/privdrop.c' object='privdrop.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o privdrop.obj `if test -f 'util/privdrop.c'; then $(CYGPATH_W) 'util/privdrop.c'; else $(CYGPATH_W) '$(srcdir)/util/privdrop.c'; fi`
-
-util.o: util/util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util.o -MD -MP -MF $(DEPDIR)/util.Tpo -c -o util.o `test -f 'util/util.c' || echo '$(srcdir)/'`util/util.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/util.Tpo $(DEPDIR)/util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/util.c' object='util.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util.o `test -f 'util/util.c' || echo '$(srcdir)/'`util/util.c
-
-util.obj: util/util.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT util.obj -MD -MP -MF $(DEPDIR)/util.Tpo -c -o util.obj `if test -f 'util/util.c'; then $(CYGPATH_W) 'util/util.c'; else $(CYGPATH_W) '$(srcdir)/util/util.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/util.Tpo $(DEPDIR)/util.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='util/util.c' object='util.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o util.obj `if test -f 'util/util.c'; then $(CYGPATH_W) 'util/util.c'; else $(CYGPATH_W) '$(srcdir)/util/util.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

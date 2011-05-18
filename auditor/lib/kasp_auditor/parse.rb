@@ -1,4 +1,4 @@
-# $Id: parse.rb 4294 2011-01-13 19:58:29Z jakob $
+# $Id: parse.rb 4998 2011-04-21 12:29:27Z jakob $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -48,7 +48,7 @@ module KASPAuditor
         doc = REXML::Document.new(file)
         doc.elements.each("ZoneList/Zone") {|z|
           # First load the config files
-          zone_name = z.attributes['name']
+          zone_name = z.attributes['name'].chomp(".")
           if (zone) # We're only asked to load a single zone
             next if (zone_name.downcase != zone.downcase) # So don't bother loading any other zones
           end

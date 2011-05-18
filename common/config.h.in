@@ -480,6 +480,19 @@
 /* Path to the OpenDNSSEC signer engine binary */
 #undef ODS_SE_ENGINE
 
+/* File magic for storing backups from the OpenDNSSEC signer engine */
+#undef ODS_SE_FILE_MAGIC
+
+/* File magic for storing backups from the OpenDNSSEC signer engine */
+#undef ODS_SE_FILE_MAGIC_V1
+
+/* Maximum line length that the OpenDNSSEC signer client can handle */
+#undef ODS_SE_MAXLINE
+
+/* Number of seconds the OpenDNSSEC signer engine should backoff when a task
+   failed */
+#undef ODS_SE_MAX_BACKOFF
+
 /* Path to the OpenDNSSEC signer engine pid file */
 #undef ODS_SE_PIDFILE
 
@@ -489,8 +502,14 @@
 /* Path to the OpenDNSSEC signer engine socket file */
 #undef ODS_SE_SOCKFILE
 
+/* Shutdown message for the OpenDNSSEC signer client */
+#undef ODS_SE_STOP_RESPONSE
+
 /* Path to the OpenDNSSEC signer engine working directory */
 #undef ODS_SE_WORKDIR
+
+/* Default number of worker threads for the OpenDNSSEC signer engine */
+#undef ODS_SE_WORKERTHREADS
 
 /* Path to the OpenDNSSEC signer engine pid file */
 #undef ODS_ZF_PIDFILE
@@ -676,11 +695,4 @@
 	#    define _ALL_SOURCE 1
 	#  endif
 	#endif
-
-	#define ODS_SE_MAXLINE 1024
-	#define ODS_SE_SIGNERTHREADS 1
-	#define ODS_SE_WORKERTHREADS 8
-	#define ODS_SE_STOP_RESPONSE "Engine shut down."
-	#define ODS_SE_FILE_MAGIC ";ODSSE1"
-	#define ODS_SE_MAX_BACKOFF 3600
 

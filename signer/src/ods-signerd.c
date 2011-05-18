@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signerd.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: ods-signerd.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -156,7 +156,6 @@ main(int argc, char* argv[])
         fprintf(stdout, "DEBUG: timeshift mode enabled, but not set.\n");
     }
 #endif /* ENFORCER_TIMESHIFT */
-
 
     /* main stuff */
     fprintf(stdout, "OpenDNSSEC signer engine version %s\n", PACKAGE_VERSION);

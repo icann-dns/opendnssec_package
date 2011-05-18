@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: conf.xml.in 4294 2011-01-13 19:58:29Z jakob $ -->
-
 <Configuration>
 
 	<RepositoryList>
@@ -11,6 +9,7 @@
 			<Module>@pkcs11_softhsm_module@</Module>
 			<TokenLabel>OpenDNSSEC</TokenLabel>
 			<PIN>1234</PIN>
+			<SkipPublicKey/>
 		</Repository>
 -->
 
@@ -51,6 +50,7 @@
 		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/db/kasp.db</SQLite></Datastore>
 		<Interval>PT3600S</Interval>
 		<!-- <ManualKeyGeneration/> -->
+		<!-- <RolloverNotification>P14D</RolloverNotification> -->
 		
 		<!-- the <DelegationSignerSubmitCommand> will get all current
 		     DNSKEYs (as a RRset) on standard input
@@ -65,7 +65,10 @@
 		</Privileges>
 
 		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
-		<WorkerThreads>8</WorkerThreads>
+		<WorkerThreads>4</WorkerThreads>
+<!--
+		<SignerThreads>4</SignerThreads>
+-->
 
 		<!-- the <NotifyCommmand> will expand the following variables:
 

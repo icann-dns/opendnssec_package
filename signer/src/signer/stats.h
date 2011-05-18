@@ -1,5 +1,5 @@
 /*
- * $Id: stats.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: stats.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -34,6 +34,8 @@
 #ifndef SIGNER_STATS_H
 #define SIGNER_STATS_H
 
+#include "shared/locks.h"
+
 #include <config.h>
 #include <ctype.h>
 #include <stdint.h>
@@ -64,6 +66,7 @@ struct stats_struct {
     time_t      audit_time;
     time_t      start_time;
     time_t      end_time;
+    lock_basic_type stats_lock;
 };
 
 /**

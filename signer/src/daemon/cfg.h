@@ -1,5 +1,5 @@
 /*
- * $Id: cfg.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: cfg.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,7 +35,10 @@
 #define DAEMON_CONFIG_H
 
 #include "config.h"
-#include "scheduler/locks.h"
+#include "adapter/adapter.h"
+#include "shared/allocator.h"
+#include "shared/locks.h"
+#include "shared/status.h"
 
 #include <stdio.h>
 
@@ -45,6 +48,8 @@
  */
 typedef struct engineconfig_struct engineconfig_type;
 struct engineconfig_struct {
+    allocator_type* allocator;
+    adapter_type** adapters;
     const char* cfg_filename;
     const char* zonelist_filename;
     const char* zonefetch_filename;
@@ -57,6 +62,7 @@ struct engineconfig_struct {
     const char* group;
     const char* chroot;
     int use_syslog;
+    int num_adapters;
     int num_worker_threads;
     int num_signer_threads;
     int verbosity;
@@ -64,20 +70,22 @@ struct engineconfig_struct {
 
 /**
  * Configure engine.
+ * \param[in] allocator memory allocation
  * \param[in] cfgfile config file
  * \param[in] cmdline_verbosity log level
  * \return engineconfig_type* engine configuration
  *
  */
-engineconfig_type* engine_config(const char* cfgfile, int cmdline_verbosity);
+engineconfig_type* engine_config(allocator_type* allocator,
+    const char* cfgfile, int cmdline_verbosity);
 
 /**
  * Check configuration.
  * \param[in] config engine configuration
- * \return int 0 on success, 1 on error
+ * \return ods_status status
  *
  */
-int engine_check_config(engineconfig_type* config);
+ods_status engine_config_check(engineconfig_type* config);
 
 /**
  * Print engine configuration.
@@ -88,7 +96,7 @@ int engine_check_config(engineconfig_type* config);
 void engine_config_print(FILE* out, engineconfig_type* config);
 
 /**
- * Clean up engine configuration.
+ * Clean up config.
  * \param[in] config engine configuration
  *
  */

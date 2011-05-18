@@ -1,5 +1,5 @@
 /*
- * $Id: signal.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: signal.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -50,8 +50,7 @@ struct engine_struct;
  * \param[in] engine corresponding engine
  *
  */
-void
-signal_set_engine(struct engine_struct* engine);
+void signal_set_engine(struct engine_struct* engine);
 
 /**
  * Handle signals.

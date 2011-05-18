@@ -27,7 +27,7 @@ Build-Depends: quilt (>= 0.46-7~),
 	       rdoc,
 	       graphviz,
 	       doxygen
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Homepage: http://www.opendnssec.org/
 
 Package: opendnssec-auditor

@@ -1,5 +1,5 @@
 /*
- * $Id: privdrop.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: privdrop.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 Nominet UK. All rights reserved.
  *
@@ -35,23 +35,22 @@
 
 #define _GNU_SOURCE /* defines for setres{g|u}id */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <syslog.h>
-#include <stdarg.h>
+#include "config.h"
+#include "shared/log.h"
+#include "shared/privdrop.h"
+#include "shared/status.h"
+
 #include <errno.h>
 #include <pwd.h>
 #include <grp.h>
 #include <ctype.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
-
-#include "config.h"
-#include "util/log.h"
-#include "util/privdrop.h"
-#include "util/se_malloc.h"
-
+#include <syslog.h>
+#include <unistd.h>
 
 #ifndef _SC_GETPW_R_SIZE_MAX
 #define _SC_GETPW_R_SIZE_MAX 16384
@@ -60,6 +59,8 @@
 #ifndef _SC_GETGR_R_SIZE_MAX
 #define _SC_GETGR_R_SIZE_MAX 16384
 #endif /* _SC_GETGR_R_SIZE_MAX */
+
+static const char* privdrop_str = "privdrop";
 
 
 /**
@@ -83,17 +84,17 @@ privuid(const char* username)
         if (bufsize == -1) {
             bufsize = 16384; /* should be more than enough */
         }
-        buf = (char*) se_calloc(bufsize, sizeof(char));
-        /* Lookup the user id in /etc/passwd */
-        s = getpwnam_r(username, &pwd, buf, bufsize, &result);
-        if (result == NULL) {
-            se_free((void*) buf);
+        buf = (char*) calloc(bufsize, sizeof(char));
+        if (!buf) {
+            ods_log_error("[%s] calloc failed: out of memory?", privdrop_str);
             return -1;
-        } else {
-            uid = pwd.pw_uid;
-            se_free((void*) buf);
         }
-        endpwent();
+        /* Lookup the user id in /etc/passwd */
+        s = getpwnam_r(username, &pwd, buf, bufsize, &result); /* LEAK */
+        if (result != NULL) {
+            uid = pwd.pw_uid;
+        }
+        free((void*) buf);
     } else {
         uid = -1;
     }
@@ -122,17 +123,17 @@ privgid(const char *groupname)
         if (bufsize == -1) {
             bufsize = 16384; /* should be more than enough */
         }
-        buf = (char*) se_calloc(bufsize, sizeof(char));
-        /* Lookup the group id in /etc/group */
-        s = getgrnam_r(groupname, &grp, buf, bufsize, &result);
-        if (result == NULL) {
-            se_free((void*) buf);
+        buf = (char*) calloc(bufsize, sizeof(char));
+        if (!buf) {
+            ods_log_error("[%s] calloc failed: out of memory?", privdrop_str);
             return -1;
-        } else {
-            gid = grp.gr_gid;
-            se_free((void*) buf);
         }
-        endgrent();
+        /* Lookup the group id in /etc/group */
+        s = getgrnam_r(groupname, &grp, buf, bufsize, &result); /* LEAK */
+        if (result != NULL) {
+            gid = grp.gr_gid;
+        }
+        free((void*) buf);
     } else {
         gid = -1;
     }
@@ -144,8 +145,9 @@ privgid(const char *groupname)
  * Drop privileges.
  *
  */
-int
-privdrop(const char *username, const char *groupname, const char *newroot)
+ods_status
+privdrop(const char *username, const char *groupname, const char *newroot,
+    uid_t* puid, gid_t* pgid)
 {
     int status;
     uid_t uid, olduid;
@@ -162,8 +164,9 @@ privdrop(const char *username, const char *groupname, const char *newroot)
     if (username) {
         uid = privuid(username);
         if (uid == (uid_t)-1) {
-            se_log_error("user %s does not exist", username);
-            return -1;
+            ods_log_error("[%s] user %s does not exist", privdrop_str,
+                username);
+            return ODS_STATUS_PRIVDROP_ERR;
         }
     }
 
@@ -171,8 +174,9 @@ privdrop(const char *username, const char *groupname, const char *newroot)
     if (groupname) {
         gid = privgid(groupname);
         if (gid == (gid_t)-1) {
-            se_log_error("group %s does not exist", groupname);
-            return -1;
+            ods_log_error("[%s] group %s does not exist", privdrop_str,
+                groupname);
+            return ODS_STATUS_PRIVDROP_ERR;
         }
     }
 
@@ -181,31 +185,35 @@ privdrop(const char *username, const char *groupname, const char *newroot)
 #ifdef HAVE_CHROOT
        status = chroot(newroot);
        if (status != 0 || chdir("/") != 0) {
-           se_log_error("chroot to %s failed: %.100s", newroot, strerror(errno));
-           return -1;
+            ods_log_error("[%s] chroot to %s failed: %.100s", privdrop_str,
+                newroot, strerror(errno));
+            return ODS_STATUS_CHROOT_ERR;
        }
 #else
-       se_log_error("chroot to %s failed: !HAVE_CHROOT", newroot);
-       return -1;
+       ods_log_error("[%s] chroot to %s failed: !HAVE_CHROOT", privdrop_str,
+           newroot);
+       return ODS_STATUS_CHROOT_ERR;
 #endif /* HAVE_CHROOT */
-
     }
 
     /* Do additional groups first */
     if (username != NULL && !olduid) {
 #ifdef HAVE_INITGROUPS
         if (initgroups(username, gid) < 0) {
-            se_log_error("initgroups failed: %s: %.100s", username,
-                strerror(errno));
-            return -1;
+            ods_log_error("[%s] initgroups failed: %s: %.100s", privdrop_str,
+                username, strerror(errno));
+            return ODS_STATUS_PRIVDROP_ERR;
         }
 #else
-        se_log_error("initgroups failed: %s: !HAVE_INITGROUPS", username);
-        return -1;
+        ods_log_error("initgroups failed: %s: !HAVE_INITGROUPS", username);
+        return ODS_STATUS_PRIVDROP_ERR;
 #endif /* HAVE_INITGROUPS */
 
         ngroups_max = sysconf(_SC_NGROUPS_MAX) + 1;
-        final_groups = (gid_t *)se_malloc(ngroups_max *sizeof(gid_t));
+        final_groups = (gid_t *)malloc(ngroups_max *sizeof(gid_t));
+        if (!final_groups) {
+            return ODS_STATUS_MALLOC_ERR;
+        }
 #if defined(HAVE_GETGROUPS) && defined(HAVE_SETGROUPS)
         final_group_len = getgroups(ngroups_max, final_groups);
         /* If we are root then drop all groups other than the final one */
@@ -213,7 +221,7 @@ privdrop(const char *username, const char *groupname, const char *newroot)
             setgroups(final_group_len, final_groups);
         }
 #endif /* defined(HAVE_GETGROUPS) && defined(HAVE_SETGROUPS) */
-        se_free((void*)final_groups);
+        free((void*)final_groups);
     }
     else {
         /* If we are root then drop all groups other than the final one */
@@ -234,9 +242,9 @@ privdrop(const char *username, const char *groupname, const char *newroot)
 # ifndef SETEUID_BREAKS_SETUID
         status = setegid(gid);
         if (status != 0) {
-           se_log_error("setegid() for %s (%lu) failed: %s",
-               groupname, (unsigned long) gid, strerror(errno));
-           return -1;
+           ods_log_error("[%s] setegid() for %s (%lu) failed: %s",
+               privdrop_str, groupname, (unsigned long) gid, strerror(errno));
+           return ODS_STATUS_PRIVDROP_ERR;
         }
 # endif  /* SETEUID_BREAKS_SETUID */
 
@@ -244,11 +252,12 @@ privdrop(const char *username, const char *groupname, const char *newroot)
 #endif
 
         if (status != 0) {
-           se_log_error("setgid() for %s (%lu) failed: %s",
-               groupname, (unsigned long) gid, strerror(errno));
-           return -1;
+           ods_log_error("[%s] setgid() for %s (%lu) failed: %s",
+               privdrop_str, groupname, (unsigned long) gid, strerror(errno));
+           return ODS_STATUS_PRIVDROP_ERR;
         } else {
-            se_log_debug("group set to %s (%lu)", groupname, (unsigned long) gid);
+            ods_log_debug("[%s] group set to %s (%lu)", privdrop_str,
+                groupname, (unsigned long) gid);
         }
     }
 
@@ -264,9 +273,9 @@ privdrop(const char *username, const char *groupname, const char *newroot)
 # ifndef SETEUID_BREAKS_SETUID
         status = seteuid(uid);
         if (status != 0) {
-           se_log_error("seteuid() for %s (%lu) failed: %s",
-               username, (unsigned long) uid, strerror(errno));
-           return -1;
+           ods_log_error("[%s] seteuid() for %s (%lu) failed: %s",
+               privdrop_str, username, (unsigned long) uid, strerror(errno));
+           return ODS_STATUS_PRIVDROP_ERR;
         }
 # endif  /* SETEUID_BREAKS_SETUID */
 
@@ -274,13 +283,33 @@ privdrop(const char *username, const char *groupname, const char *newroot)
 #endif
 
         if (status != 0) {
-           se_log_error("setuid() for %s (%lu) failed: %s",
-               username, (unsigned long) uid, strerror(errno));
-           return -1;
+           ods_log_error("[%s] setuid() for %s (%lu) failed: %s",
+               privdrop_str, username, (unsigned long) uid, strerror(errno));
+           return ODS_STATUS_PRIVDROP_ERR;
         } else {
-            se_log_debug("user set to %s (%lu)", username, (unsigned long) uid);
+            ods_log_debug("[%s] user set to %s (%lu)", privdrop_str,
+                username, (unsigned long) uid);
         }
     }
 
-    return 0;
+    *puid = uid;
+    *pgid = gid;
+    return ODS_STATUS_OK;
+}
+
+
+/**
+ * Close privdrop.
+ *
+ */
+void
+privclose(const char* username, const char* groupname)
+{
+    if (username) {
+        endpwent();
+    }
+    if (groupname) {
+        endgrent();
+    }
+    return;
 }

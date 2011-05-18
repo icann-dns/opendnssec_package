@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: ods-control.in 4484 2011-02-16 14:40:23Z matthijs $
+# $Id: ods-control.in 5009 2011-04-27 10:05:10Z matthijs $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation)
 # All rights reserved.
@@ -30,8 +30,8 @@
 progname="ods-control"
 bindir="@OPENDNSSEC_BIN_DIR@"
 sbindir="@OPENDNSSEC_SBIN_DIR@"
-enforcer_pid_file="@OPENDNSSEC_PID_DIR@/enforcerd.pid"
-signer_pid_file="@OPENDNSSEC_PID_DIR@/signerd.pid"
+enforcer_pid_file="@OPENDNSSEC_ENFORCER_PIDFILE@"
+signer_pid_file="@OPENDNSSEC_SIGNER_PIDFILE@"
 
 
 case "$1" in
@@ -90,15 +90,15 @@ case "$1" in
 			"$sbindir/ods-enforcerd"
 			RETVAL=$?
 			if [ $RETVAL = 0 ]; then
-                i=0
+				i=0
 				while [ ! -r "$enforcer_pid_file" ]; do
 					sleep 1
-                    i=`expr $i + 1`
-                    if [ $i -ge 5 ]; then
-                        RETVAL=1
-                        echo "Could not start enforcer"
-                        break
-                    fi
+					i=`expr $i + 1`
+					if [ $i -ge 5 ]; then
+						RETVAL=1
+						echo "Could not start enforcer"
+						break
+					fi
 				done
 			fi
 		fi
