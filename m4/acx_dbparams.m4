@@ -1,4 +1,4 @@
-# $Id: acx_dbparams.m4 4294 2011-01-13 19:58:29Z jakob $
+# $Id: acx_dbparams.m4 4998 2011-04-21 12:29:27Z jakob $
 
 AC_DEFUN([ACX_DBPARAMS],[
 
@@ -13,6 +13,12 @@ AC_DEFUN([ACX_DBPARAMS],[
 		DB_HOST="$withval"
 	)
 	AC_SUBST(DB_HOST)
+
+	AC_ARG_WITH(dbport,
+		[AS_HELP_STRING([--with-dbport=DB_PORT],[Database port for unit tests])],
+		DB_PORT="$withval"
+	)
+	AC_SUBST(DB_PORT)
 	
 	AC_ARG_WITH(dbuser,
 		[AS_HELP_STRING([--with-dbuser=DB_USER],[Database user for unit tests])],

@@ -1,5 +1,5 @@
 /*
- * $Id: log.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: log.h 3845 2010-08-31 14:19:24Z matthijs $
  *
  * Copyright (c) 2009 NLnet Labs. All rights reserved.
  *
@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef UTIL_LOG_H
-#define UTIL_LOG_H
+#ifndef SHARED_LOG_H
+#define SHARED_LOG_H
 
 #include "config.h"
 
@@ -46,13 +46,13 @@
  * \param[in] verbosity: log level
  *
  */
-void se_log_init(const char *filename, int use_syslog, int verbosity);
+void ods_log_init(const char *filename, int use_syslog, int verbosity);
 
 /**
  * Close logging.
  *
  */
-void se_log_close(void);
+void ods_log_close(void);
 
 /**
  * Get the facility by string.
@@ -60,85 +60,92 @@ void se_log_close(void);
  * \return int facility
  *
  */
-int se_log_get_facility(const char* facility);
+int ods_log_get_facility(const char* facility);
+
+/**
+ * Get the log level.
+ * \return int log_level
+ *
+ */
+int ods_log_get_level();
 
 /**
  * Heavy debug loggin.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_deeebug(const char *format, ...);
+void ods_log_deeebug(const char *format, ...);
 
 /**
  * Log debug.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_debug(const char *format, ...);
+void ods_log_debug(const char *format, ...);
 
 /**
  * Log verbose.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_verbose(const char *format, ...);
+void ods_log_verbose(const char *format, ...);
 
 /**
  * Log informational messages.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_info(const char *format, ...);
+void ods_log_info(const char *format, ...);
 
 /**
  * Log warnings.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_warning(const char *format, ...);
+void ods_log_warning(const char *format, ...);
 
 /**
  * Log errors.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_error(const char *format, ...);
+void ods_log_error(const char *format, ...);
 
 /**
  * Log criticals.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_crit(const char *format, ...);
+void ods_log_crit(const char *format, ...);
 
 /**
  * Log alerts.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_log_alert(const char *format, ...);
+void ods_log_alert(const char *format, ...);
 
 /**
  * Log critical errors and exit.
  * \param[in] format printf-style format string, arguments follow
  *
  */
-void se_fatal_exit(const char *format, ...);
+void ods_fatal_exit(const char *format, ...);
 
 /**
  * Log assertion.
  *
  */
-#define SE_LOG_DEBUG 1
-#ifdef SE_LOG_DEBUG
-#define se_log_assert(x) \
+#define ODS_LOG_DEBUG 1
+#ifdef ODS_LOG_DEBUG
+#define ods_log_assert(x) \
 	do { if(!(x)) \
-		se_fatal_exit("%s:%d: %s: assertion %s failed", \
+		ods_fatal_exit("%s:%d: %s: assertion %s failed", \
 		__FILE__, __LINE__, __func__, #x); \
 	} while(0);
 
 #else
-#define se_log_assert(x)
+#define ods_log_assert(x)
 #endif
 
-#endif /* UTIL_LOG_H */
+#endif /* SHARED_LOG_H */

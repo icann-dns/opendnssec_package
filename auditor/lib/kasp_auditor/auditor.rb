@@ -1,5 +1,5 @@
 #
-# $Id: auditor.rb 4294 2011-01-13 19:58:29Z jakob $
+# $Id: auditor.rb 4998 2011-04-21 12:29:27Z jakob $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -185,7 +185,7 @@ module KASPAuditor
         end
 
         # Now take a look at how the keys are changing over time...
-        @key_tracker.process_key_data(@keys, @keys_used, @soa.serial, @config.soa.ttl)
+        @key_tracker.process_key_data(@keys, @keys_used, @soa.serial, @config.keys.ttl)
       rescue FatalError => e
         return 3
       end
@@ -634,7 +634,11 @@ module KASPAuditor
       }
       if (!l_rr.opt_out?)
         File.open(@working + "#{File::SEPARATOR}audit.optout.#{Process.pid}", "a") { |f|
-          f.write("#{l_rr.name.to_s} #{RR::NSEC3.encode_next_hashed(l_rr.next_hashed) + "." + @soa.name.to_s}\n")
+        l_rr_name = l_rr.name.to_s
+        if (@soa.name.to_s == "")
+          l_rr_name += "."
+        end
+        f.write("#{l_rr_name} #{RR::NSEC3.encode_next_hashed(l_rr.next_hashed) + "." + @soa.name.to_s}\n")
         }
       end
     end
@@ -922,7 +926,18 @@ module KASPAuditor
       hashed_domain = RR::NSEC3.calculate_hash(domain, iterations,
         RR::NSEC3.decode_salt(salt), hash_alg)
       File.open(@working + "#{File::SEPARATOR}audit.types.#{Process.pid}", "a") { |f|
-        f.write("#{hashed_domain+"."+@soa.name.to_s} #{domain} #{types_string}\n")
+        hashed_name = hashed_domain+"."+@soa.name.to_s
+        if (@soa.name.to_s == "")
+          hashed_name = hashed_domain
+          if (hashed_name == "")
+            hashed_name = "."
+          end
+        end
+        domain_string = domain
+        if (domain.to_s == "")
+          domain_string = "."
+        end
+        f.write("#{hashed_name} #{domain_string} #{types_string}\n")
       }
     end
 
@@ -1108,6 +1123,7 @@ module KASPAuditor
         @syslog.log(LOG_WARNING, msg)
         return
       end
+      msg.gsub!("\t", " ")
       print "#{pri}: #{msg}\n"
       begin
         @syslog.log(pri, msg)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: conf.rnc 4294 2011-01-13 19:58:29Z jakob $
+  $Id: conf.rnc 4998 2011-04-21 12:29:27Z jakob $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -177,10 +177,19 @@
           </optional>
           <optional>
             <!--
+              Number of Signer Threads
+              DEFAULT: 4
+            -->
+            <element name="SignerThreads">
+              <data type="positiveInteger"/>
+            </element>
+          </optional>
+          <optional>
+            <!--
               System command to call after a zone has been (re)signed
               
               '%zone' in the string will be replaced by the zone name
-              '%znefile' in the string will be replaced by the zone file
+              '%zonefile' in the string will be replaced by the zone file
             -->
             <element name="NotifyCommand">
               <data type="string"/>

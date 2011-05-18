@@ -3,3 +3,4 @@
 004-runas_opendnssec.patch
 005-rename_regress_for_autotest.patch
 009-ods-control.in_fixes.patch
+010-remove_Id_tags_from_conffiles.patch

@@ -1,5 +1,5 @@
 /*
- * $Id: nsec3params.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: nsec3params.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -34,7 +34,10 @@
 #ifndef SIGNER_NSEC3PARAMS_H
 #define SIGNER_NSEC3PARAMS_H
 
-#include <config.h>
+#include "config.h"
+#include "shared/allocator.h"
+#include "shared/status.h"
+
 #include <ctype.h>
 #include <stdint.h>
 #ifdef HAVE_SYS_TYPES_H
@@ -51,11 +54,13 @@
  */
 typedef struct nsec3params_struct nsec3params_type;
 struct nsec3params_struct {
+    allocator_type* allocator;
     uint8_t     algorithm;
     uint8_t     flags;
     uint16_t    iterations;
     uint8_t     salt_len;
     uint8_t*    salt_data;
+    ldns_rr*    rr;
 };
 
 /**
@@ -63,16 +68,16 @@ struct nsec3params_struct {
  * \param[in] salt_str the salt in string format
  * \param[out] salt_len lenght of the salt data
  * \param[out] salt salt in raw data format
- * \return 0 on success, 1 on error
+ * \return ods_status status
  *
  */
-int nsec3params_create_salt(const char* salt_str, uint8_t* salt_len,
+ods_status nsec3params_create_salt(const char* salt_str, uint8_t* salt_len,
     uint8_t** salt);
 
- /**
+/**
  * Create new NSEC3 parameters.
- * \param[in] algo algorithm.
- * \param[in] flags flags, Opt-Out or Opt-In.
+ * \param[in] algo algorithm
+ * \param[in] flags flags, Opt-Out or Opt-In
  * \param[in] iter number of iterations
  * \param[in] salt salt
  * \return nsec3params_type* the created nsec3params
@@ -80,6 +85,19 @@ int nsec3params_create_salt(const char* salt_str, uint8_t* salt_len,
  */
 nsec3params_type* nsec3params_create(uint8_t algo, uint8_t flags,
     uint16_t iter, const char* salt);
+
+/**
+ * Backup NSEC3 parameters.
+ * \param[in] fd file descriptor
+ * \param[in] algo algorithm
+ * \param[in] flags glags, Opt-Out or Opt-In
+ * \param[in] iter number of iterations
+ * \param[in] salt salt
+ * \param[in] rr NSEC3PARAM RR
+ *
+ */
+void nsec3params_backup(FILE* fd, uint8_t algo, uint8_t flags,
+    uint16_t iter, const char* salt, ldns_rr* rr);
 
 /**
  * Recover NSEC3 parameters from backup.
@@ -91,7 +109,7 @@ nsec3params_type* nsec3params_create(uint8_t algo, uint8_t flags,
 nsec3params_type* nsec3params_recover_from_backup(FILE* fd, ldns_rr** rr);
 
 /**
- * Convert Salt to string.
+ * Convert salt to string.
  * \param[in] nsec3params NSEC3 parameters
  * \return const char* str salt in string format
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: test.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: test.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -122,5 +122,5 @@ int main(int argc, char **argv)
         TcuExecute();
     }
 
-    return CU_get_error();
+    return CU_get_number_of_failure_records();
 }

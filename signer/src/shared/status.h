@@ -1,7 +1,7 @@
 /*
- * $Id: privdrop.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id$
  *
- * Copyright (c) 2009 Nominet UK. All rights reserved.
+ * Copyright (c) 2010-2011 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,39 +28,61 @@
 
 /**
  *
- * Privileges.
+ * Status.
  */
 
-#ifndef UTIL_PRIVDROP_H
-#define UTIL_PRIVDROP_H
+#ifndef UTIL_STATUS_H
+#define UTIL_STATUS_H
 
-#include <pwd.h>
-#include <grp.h>
+#include "config.h"
+
+enum ods_enum_status {
+    ODS_STATUS_OK,
+    ODS_STATUS_ASSERT_ERR,
+    ODS_STATUS_CFG_ERR,
+    ODS_STATUS_CHDIR_ERR,
+    ODS_STATUS_CHROOT_ERR,
+    ODS_STATUS_CMDHANDLER_ERR,
+    ODS_STATUS_CONFLICT_ERR,
+    ODS_STATUS_ERR,
+    ODS_STATUS_FOPEN_ERR,
+    ODS_STATUS_FORK_ERR,
+    ODS_STATUS_HSM_ERR,
+    ODS_STATUS_INSECURE,
+    ODS_STATUS_MALLOC_ERR,
+    ODS_STATUS_PARSE_ERR,
+    ODS_STATUS_PRIVDROP_ERR,
+    ODS_STATUS_RNG_ERR,
+    ODS_STATUS_SETSID_ERR,
+    ODS_STATUS_UNCHANGED,
+    ODS_STATUS_WRITE_PIDFILE_ERR,
+    ODS_STATUS_XML_ERR
+};
+typedef enum ods_enum_status ods_status;
+
+typedef struct ods_struct_lookup_table ods_lookup_table;
+struct ods_struct_lookup_table {
+    int id;
+    const char* name;
+};
+
+extern ods_lookup_table ods_status_str[];
+
 
 /**
- * Get the group identifier from a group name.
- * \param[in] groupname group name
- * \return gid_t group identifier
+ * Look up item in table.
+ * \param[in] table table
+ * \param[in] id identifier
  *
  */
-gid_t privgid(const char* groupname);
+ods_lookup_table* ods_lookup_by_id(ods_lookup_table *table, int id);
 
 /**
- * Get the user identifier from a username.
- * \param[in] username username
- * \return uid_t user identifier
+ * Look up a descriptive text by each status.
+ * \param[in] status status identifierr
+ * \return const char* corresponding descriptive text
  *
  */
-uid_t privuid(const char* username);
+const char *ods_status2str(ods_status status);
 
-/**
- * Drop privileges.
- * \param[in] username drop priviliges to this user
- * \param[in] groupname drop priviliges to this group
- * \param[in] newroot make this the new root directory
- * \return 0 on success, 1 on error.
- *
- */
-int privdrop(const char *username, const char *groupname, const char *newroot);
-
-#endif /* UTIL_PRIVDROP_H */
+#endif /* UTIL_STATUS_H */

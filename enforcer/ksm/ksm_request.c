@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_request.c 4489 2011-02-17 10:17:39Z rb $
+ * $Id: ksm_request.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

@@ -65,12 +65,17 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/bin/ods-kasp2html \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/sbin/ods-control \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/*.rn? \
-	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/kasp2html.xsl
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/kasp2html.xsl \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/etc/opendnssec
 
 override_dh_installdocs:
 	dh_installdocs -popendnssec-common -popendnssec --link-doc=opendnssec-common
 	dh_installdocs -popendnssec-enforcer -popendnssec-enforcer-sqlite3 -popendnssec-enforcer-mysql --link-doc=opendnssec-enforcer
 	dh_installdocs -plibhsm-bin -popendnssec-auditor -popendnssec-signer
+	# Remove extra and unnecessary jquery.js library from generated docs (See #622147)
+	for p in libhsm-bin opendnssec-signer opendnssec-enforcer; do \
+	    rm -f $(CURDIR)/debian/$$p/usr/share/doc/$$p/html/jquery.js; \
+	done
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS

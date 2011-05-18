@@ -1,4 +1,4 @@
-# $Id: check_compiler_flag.m4 4294 2011-01-13 19:58:29Z jakob $
+# $Id: check_compiler_flag.m4 4998 2011-04-21 12:29:27Z jakob $
 
 # routine to help check for compiler flags.
 AC_DEFUN([CHECK_COMPILER_FLAG],[

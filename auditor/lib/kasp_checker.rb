@@ -1,5 +1,5 @@
 #
-# $Id: kasp_checker.rb 4294 2011-01-13 19:58:29Z jakob $
+# $Id: kasp_checker.rb 5105 2011-05-12 13:58:45Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -45,6 +45,7 @@ module KASPChecker
     CONF_FILE = "conf"
     attr_accessor :conf_file, :kasp_file, :rng_path, :xmllint
     def check
+      @ret_val = 999
       conf_file = @conf_file
       if (!conf_file)
         KASPAuditor.exit("No configuration file specified", 1)
@@ -68,9 +69,19 @@ module KASPChecker
         log(LOG_ERR, "KASP configuration file cannot be found")
       end
 
+      @ret_val = 0 if (@ret_val >= LOG_WARNING) # Only return an error if LOG_ERR or above was raised
+      if (@ret_val == 999)
+        exit(0)
+      else
+        exit(@ret_val)
+      end
+
     end
 
     def log(level, msg)
+      if (level.to_i < @ret_val)
+        @ret_val = level.to_i
+      end
       if (@syslog)
         Syslog.open("ods-kaspcheck", Syslog::LOG_PID |
           Syslog::LOG_CONS, @syslog) { |slog|
@@ -419,6 +430,13 @@ module KASPChecker
               denial_type = "NSEC"
             else
               denial_type = "NSEC3"
+              # Now check that the algorithm is correct
+              policy.each_element('Denial/NSEC3/Hash/') {|hash|
+                alg = hash.elements["Algorithm"].text
+                if (alg.to_i != 1)
+                  log(LOG_ERR, "NSEC3 Hash algorithm is #{alg} but should be 1");
+                end
+              }
             end
 
             # For all keys (if any are configured)...
@@ -441,6 +459,17 @@ module KASPChecker
               log(LOG_WARNING, "KSK minimum lifetime (#{ksk_lifetime} seconds)" +
                   " is less than ZSK minimum lifetime (#{zsk_lifetime} seconds)"+
                   " for #{name} Policy in #{kasp_file}")
+            end
+
+            # 15. Warn if resalt is less than resign interval.
+            resign_secs = get_duration(policy,'Signatures/Resign', kasp_file)
+            resalt_secs = get_duration(policy,'Denial/NSEC3/Resalt', kasp_file)
+            if (resalt_secs)
+              if (resalt_secs < resign_secs)
+                log(LOG_WARNING, "NSEC3 resalt interval (#{resalt_secs}) is less than" +
+                    " signature resign interval (#{resign_secs})" +
+                    " for #{name} Policy in #{kasp_file}")
+              end
             end
 
             #   9. If datecounter is used for serial, then no more than 99 signings should be done per day (there are only two digits to play with in the version number).

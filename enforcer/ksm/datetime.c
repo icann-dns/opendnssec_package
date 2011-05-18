@@ -1,5 +1,5 @@
 /*
- * $Id: datetime.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: datetime.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -932,12 +932,12 @@ int DtXMLIntervalSeconds(const char* text, int* interval)
     short   is_neg = 0;    /* Do we have a negative number */
     short   warning = 0;    /* Do we need a warning code for duration approximation? */
     short   got_temp = 0;    /* Have we seen a number? */
-    long     temp = 0;       /* Number from this section */
+    long long    temp = 0;       /* Number from this section */
     const char  *ptr = text;    /* allow us to read through */
 
     int status = 0;
 
-    long temp_interval = 0;
+    long long temp_interval = 0;
 
     if (text && interval && *text) {
         length = strlen(text);
@@ -1037,7 +1037,7 @@ int DtXMLIntervalSeconds(const char* text, int* interval)
                 case '8':
                 case '9':
                     if (!temp) {
-                        temp = atol(ptr);
+                        temp = atoll(ptr);
                         got_temp = 1;
                         if ((temp_interval <= INT_MIN) || (temp_interval >= INT_MAX)) {
                             return(3);

@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: enforcer.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -26,7 +26,7 @@
  *
  */
 
-/* 
+/*
  * enforcer.c code implements the server_main
  * function needed by daemon.c
  *
@@ -618,7 +618,7 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
                 if (status != 0 || zone_id == -1)
                 {
                     /* error */
-                    log_msg(NULL, LOG_ERR, "Error looking up zone \"%s\" in database (maybe it doesn't exist?)", zone_name);
+                    log_msg(NULL, LOG_ERR, "Error looking up zone \"%s\" in database (please make sure that the zonelist file is up to date)", zone_name);
                     /* Don't return? try to parse the rest of the zones? */
                     ret = xmlTextReaderRead(reader);
                     StrFree(tag_name);

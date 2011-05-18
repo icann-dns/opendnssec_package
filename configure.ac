@@ -1,4 +1,4 @@
-# $Id: configure.ac 4568 2011-03-16 08:09:15Z matthijs $
+# $Id: configure.ac 4998 2011-04-21 12:29:27Z jakob $
 
 m4_sinclude([version.m4])
 
@@ -197,13 +197,6 @@ AH_BOTTOM([
 	#    define _ALL_SOURCE 1
 	#  endif
 	#endif
-
-	#define ODS_SE_MAXLINE 1024
-	#define ODS_SE_SIGNERTHREADS 1
-	#define ODS_SE_WORKERTHREADS 8
-	#define ODS_SE_STOP_RESPONSE "Engine shut down."
-	#define ODS_SE_FILE_MAGIC ";ODSSE1"
-	#define ODS_SE_MAX_BACKOFF 3600
 ])
 AM_CONDITIONAL([ENABLE_SIGNER], [test "${enable_signer}" = "yes"])
 

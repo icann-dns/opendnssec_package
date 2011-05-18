@@ -1,5 +1,5 @@
 /*
- * $Id: util.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: util.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -32,10 +32,14 @@
  */
 
 #include "config.h"
-#include "util/log.h"
-#include "util/util.h"
+#include "shared/file.h"
+#include "shared/log.h"
+#include "shared/util.h"
 
-#include <ldns/ldns.h> /* ldns_*() */
+#include <time.h>
+#include <ldns/ldns.h>
+
+static const char* util_str = "util";
 
 
 /**
@@ -46,7 +50,10 @@ int
 util_is_dnssec_rr(ldns_rr* rr)
 {
     ldns_rr_type type = 0;
-    se_log_assert(rr);
+
+    if (!rr) {
+        return 0;
+    }
 
     type = ldns_rr_get_type(rr);
     return (type == LDNS_RR_TYPE_RRSIG ||
@@ -87,8 +94,9 @@ util_soa_compare(ldns_rr* rr1, ldns_rr* rr2)
     size_t rr2_len = 0;
     size_t offset = 0;
 
-    se_log_assert(rr1);
-    se_log_assert(rr2);
+    if (!rr1 || !rr2) {
+        return 1;
+    }
 
     rr1_len = ldns_rr_uncompressed_size(rr1);
     rr2_len = ldns_rr_uncompressed_size(rr2);
@@ -124,10 +132,19 @@ ldns_status
 util_dnssec_rrs_compare(ldns_rr* rr1, ldns_rr* rr2, int* cmp)
 {
     ldns_status status = LDNS_STATUS_OK;
-    size_t rr1_len = ldns_rr_uncompressed_size(rr1);
-    size_t rr2_len = ldns_rr_uncompressed_size(rr2);
-    ldns_buffer* rr1_buf = ldns_buffer_new(rr1_len);
-    ldns_buffer* rr2_buf = ldns_buffer_new(rr2_len);
+    size_t rr1_len;
+    size_t rr2_len;
+    ldns_buffer* rr1_buf;
+    ldns_buffer* rr2_buf;
+
+    if (!rr1 || !rr2) {
+        return LDNS_STATUS_ERR;
+    }
+
+    rr1_len = ldns_rr_uncompressed_size(rr1);
+    rr2_len = ldns_rr_uncompressed_size(rr2);
+    rr1_buf = ldns_buffer_new(rr1_len);
+    rr2_buf = ldns_buffer_new(rr2_len);
 
     /* name, class and type should already be equal */
     status = ldns_rr2buffer_wire_canonical(rr1_buf, rr1, LDNS_SECTION_ANY);
@@ -164,9 +181,9 @@ util_dnssec_rrs_add_rr(ldns_dnssec_rrs *rrs, ldns_rr *rr)
     uint32_t rr_ttl = 0;
     uint32_t default_ttl = 0;
 
-    se_log_assert(rrs);
-    se_log_assert(rrs->rr);
-    se_log_assert(rr);
+    if (!rrs || !rrs->rr || !rr) {
+        return LDNS_STATUS_ERR;
+    }
 
     rr_ttl = ldns_rr_ttl(rr);
     status = util_dnssec_rrs_compare(rrs->rr, rr, &cmp);
@@ -210,8 +227,52 @@ util_dnssec_rrs_add_rr(ldns_dnssec_rrs *rrs, ldns_rr *rr)
         return LDNS_STATUS_OK;
     } else {
         /* should we error on equal? or free memory of rr */
-        se_log_warning("adding duplicate RR?");
+        ods_log_warning("[%s] adding duplicate RR?", util_str);
         return LDNS_STATUS_NO_DATA;
     }
     return LDNS_STATUS_OK;
+}
+
+
+/**
+ * Write process id to file.
+ *
+ */
+int
+util_write_pidfile(const char* pidfile, pid_t pid)
+{
+    FILE* fd;
+    char pidbuf[32];
+    size_t result = 0, size = 0;
+
+    ods_log_assert(pidfile);
+    ods_log_assert(pid);
+    ods_log_debug("[%s] writing pid %lu to pidfile %s", util_str,
+        (unsigned long) pid, pidfile);
+    snprintf(pidbuf, sizeof(pidbuf), "%lu\n", (unsigned long) pid);
+    fd = ods_fopen(pidfile, NULL, "w");
+    if (!fd) {
+        return -1;
+    }
+    size = strlen(pidbuf);
+    if (size == 0) {
+        result = 1;
+    } else {
+        result = fwrite((const void*) pidbuf, 1, size, fd);
+    }
+    if (result == 0) {
+        ods_log_error("[%s] write to pidfile %s failed: %s", util_str,
+            pidfile, strerror(errno));
+    } else if (result < size) {
+        ods_log_error("[%s] short write to pidfile %s: disk full?", util_str,
+            pidfile);
+        result = 0;
+    } else {
+        result = 1;
+    }
+    ods_fclose(fd);
+    if (!result) {
+        return -1;
+    }
+    return 0;
 }

@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 4294 2011-01-13 19:58:29Z jakob $
+# $Id: Makefile.am 4998 2011-04-21 12:29:27Z jakob $
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -122,6 +122,7 @@ DB_INCLUDES = @DB_INCLUDES@
 DB_LIBS = @DB_LIBS@
 DB_NAME = @DB_NAME@
 DB_PASS = @DB_PASS@
+DB_PORT = @DB_PORT@
 DB_TYPE = @DB_TYPE@
 DB_USER = @DB_USER@
 DEFS = @DEFS@

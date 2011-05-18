@@ -23,4 +23,4 @@ zcat "$tarball" | tar --wildcards --delete '*/trang/*' > "$tdir/${fname/.gz}"
 gzip -9 "$tdir/${fname/.gz}"
 
 #mv "$tarball" "$tarball.bkp"
-mv "$tdir/$fname" "${tarball/.tar.gz}.dfsg.tar.gz"
+mv "$tdir/$fname" "${tarball/orig.tar.gz}.dfsg.orig.tar.gz"

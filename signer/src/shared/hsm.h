@@ -1,5 +1,5 @@
 /*
- * $Id: util.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: hsm.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -27,64 +27,46 @@
  */
 
 /**
+ * Hardware Security Module support.
  *
- * Utility tools.
  */
 
-#ifndef UTIL_UTIL_H
-#define UTIL_UTIL_H
+#ifndef SHARED_HSM_H
+#define SHARED_HSM_H
 
 #include "config.h"
+#include "shared/status.h"
+#include "signer/keys.h"
 
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <ctype.h>
+#include <stdint.h>
 
 #include <ldns/ldns.h>
-
-#define SE_SOA_RDATA_SERIAL  2
-#define SE_SOA_RDATA_MINIMUM 6
-
-/* copycode: This define is taken from BIND9 */
-#define DNS_SERIAL_GT(a, b) ((int)(((a) - (b)) & 0xFFFFFFFF) > 0)
+#include <libhsm.h>
+#include <libhsmdns.h>
 
 /**
- * Check if a RR is a DNSSEC RR (RRSIG, NSEC, NSEC3 or NSEC3PARAMS).
- * \param[in] rr RR
- * \return int 1 on true, 0 on false
+ * Get key from one of the HSMs, store the DNSKEY and HSM key.
+ * \param[in] ctx HSM context
+ * \param[in] owner the zone owner name
+ * \param[in] key_id key credentials
+ * \return ods_status status
  *
  */
-int util_is_dnssec_rr(ldns_rr* rr);
+ods_status lhsm_get_key(hsm_ctx_t* ctx, ldns_rdf* owner, key_type* key_id);
 
 /**
- * Compare RRs, ignore SOA SERIAL.
- * \param[in] rr1 RR
- * \param[in] rr2 another RR
- * \return int 0 if equal SOA RRs, 1 otherwise
+ * Get RRSIG from one of the HSMs, given a RRset and a key.
+ * \param[in] ctx HSM context
+ * \param[in] rrset RRset to be signed
+ * \param[in] key_id key credentials
+ * \param[in] owner owner of the keys
+ * \param[in] inception signature inception
+ * \param[in] expiration signature expiration
+ * \return ldns_rr* RRSIG record
  *
  */
-int util_soa_compare(ldns_rr* rr1, ldns_rr* rr2);
+ldns_rr* lhsm_sign(hsm_ctx_t* ctx, ldns_rr_list* rrset, key_type* key_id,
+    ldns_rdf* owner, time_t inception, time_t expiration);
 
-/**
- * Compare RRs only on RDATA.
- * \param[in] rr1 RR
- * \param[in] rr2 another RR
- * \param[out] cmp compare value
- * \return status compare status
- *
- */
-ldns_status util_dnssec_rrs_compare(ldns_rr* rr1, ldns_rr* rr2, int* cmp);
-
-/**
- * A more efficient ldns_dnssec_rrs_add_rr(), get rid of ldns_rr_compare().
- * \param[in] rrs RRset
- * \param[in] rr to add
- * \return ldns_status status
- *
- */
-ldns_status util_dnssec_rrs_add_rr(ldns_dnssec_rrs *rrs, ldns_rr *rr);
-
-#endif /* UTIL_UTIL_H */
+#endif /* SHARED_HSM_H */

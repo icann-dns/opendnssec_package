@@ -1,5 +1,5 @@
 /*
- * $Id: adapter.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: adapter.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -34,8 +34,9 @@
 #ifndef ADAPTER_ADAPTER_H
 #define ADAPTER_ADAPTER_H
 
-#include "adapter/adfile.h"
 #include "config.h"
+#include "adapter/adfile.h"
+#include "shared/status.h"
 
 #include <stdio.h>
 
@@ -44,10 +45,16 @@ struct zone_struct;
 /** Adapter mode. */
 enum adapter_mode_enum
 {
-        ADAPTER_UNKNOWN = 0,
-        ADAPTER_FILE
+    ADAPTER_FILE = 1
 };
 typedef enum adapter_mode_enum adapter_mode;
+
+/** Adapter mode specific. */
+union adapter_data_union
+{
+    void* file;
+};
+typedef union adapter_data_union adapter_data;
 
 /**
  * Adapter.
@@ -55,21 +62,30 @@ typedef enum adapter_mode_enum adapter_mode;
  */
 typedef struct adapter_struct adapter_type;
 struct adapter_struct {
-    const char* filename;
+    const char* configstr;
     adapter_mode type;
     int inbound;
+    allocator_type* allocator;
+    adapter_data* data;
 };
 
 /**
- * Create a new adapter.
- * \param[in] filename filename
+ * Initialize adapter.
+ * \param[in] adapter adapter
+ * /return ods_status stats
+ *
+ */
+ods_status adapter_init(adapter_type* adapter);
+
+/**
+ * Create new adapter.
+ * \param[in] str configuration string
  * \param[in] type type of adapter
- * \param[in] inbound inbound adapter or outbound
+ * \param[in] inbound inbound or not (thus outbound)
  * \return adapter_type* created adapter
  *
  */
-adapter_type* adapter_create(const char* filename, adapter_mode type,
-    int inbound);
+adapter_type* adapter_create(const char* str, adapter_mode type, int inbound);
 
 /**
  * Compare adapters.
@@ -79,6 +95,22 @@ adapter_type* adapter_create(const char* filename, adapter_mode type,
  *
  */
 int adapter_compare(adapter_type* a1, adapter_type* a2);
+
+/**
+ * Read zone from input adapter.
+ * /param[in] zone zone
+ * /return ods_status stats
+ *
+ */
+ods_status adapter_read(struct zone_struct* zone);
+
+/**
+ * Write zone to output adapter.
+ * /param[in] zone zone
+ * /return ods_status stats
+ *
+ */
+ods_status adapter_write(struct zone_struct* zone);
 
 /**
  * Clean up adapter.

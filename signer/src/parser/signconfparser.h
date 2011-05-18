@@ -1,5 +1,5 @@
 /*
- * $Id: signconfparser.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: signconfparser.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -34,8 +34,10 @@
 #ifndef PARSER_SIGNCONFPARSER_H
 #define PARSER_SIGNCONFPARSER_H
 
-#include "signer/se_key.h"
-#include "util/duration.h"
+#include "parser/confparser.h"
+#include "shared/allocator.h"
+#include "shared/duration.h"
+#include "signer/keys.h"
 #include "config.h"
 
 #include <ldns/ldns.h>
@@ -46,7 +48,7 @@
  * \return keylist_type* key list
  *
  */
-keylist_type* parse_sc_keys(const char* cfgfile);
+keylist_type* parse_sc_keys(allocator_type* allocator, const char* cfgfile);
 
 /**
  * Parse elements from the configuration file.
@@ -99,7 +101,9 @@ int parse_sc_audit(const char* cfgfile);
  * \return const char* string
  *
  */
-const char* parse_sc_soa_serial(const char* cfgfile);
-const char* parse_sc_nsec3_salt(const char* cfgfile);
+const char* parse_sc_soa_serial(allocator_type* allocator,
+    const char* cfgfile);
+const char* parse_sc_nsec3_salt(allocator_type* allocator,
+    const char* cfgfile);
 
 #endif /* PARSER_SIGNCONFPARSER_H */
