@@ -6,6 +6,6 @@
  
 -regress: $(RNG)
 +check: $(RNG)
- 	@test -x ${XMLLINT} || \
+ 	@test -x "${XMLLINT}" || \
  		(echo "xmllint is required for regression tests"; false)
  	@for i in ${XML}; do \

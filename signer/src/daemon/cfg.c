@@ -1,5 +1,5 @@
 /*
- * $Id: cfg.c 5068 2011-05-06 10:07:08Z matthijs $
+ * $Id: cfg.c 5227 2011-06-12 08:51:24Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

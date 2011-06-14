@@ -55,6 +55,8 @@ override_dh_auto_build:
 override_dh_auto_install:
 	# Comment out example zone after regression testing
 	(cd build-sqlite3; patch -p1 -i $(CURDIR)/debian/signconf.xml.patch)
+	# Remove $Id tags + new line from xml file
+	(cd build-sqlite3; for xml in conf/*.xml; do sed -ie '/<!-- $$Id.*/ N; /<!-- $$Id.*\n/ d;' $$xml; done)
 	dh_auto_install -Bbuild-sqlite3 -- DESTDIR=$(CURDIR)/debian/tmp
 	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_sqlite3.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/opendnssec-enforcer-mysql

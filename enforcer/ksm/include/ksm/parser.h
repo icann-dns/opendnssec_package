@@ -1,5 +1,5 @@
 /*
- * $Id: parser.h 4998 2011-04-21 12:29:27Z jakob $
+ * $Id: parser.h 5227 2011-06-12 08:51:24Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

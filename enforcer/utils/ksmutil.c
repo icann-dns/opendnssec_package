@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.c 5010 2011-04-27 10:09:22Z sion $
+ * $Id: ksmutil.c 5227 2011-06-12 08:51:24Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
