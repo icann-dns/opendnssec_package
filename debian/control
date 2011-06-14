@@ -9,7 +9,7 @@ Build-Depends: quilt (>= 0.46-7~),
 	       automake,
 	       autoconf,
 	       libtool,
-	       libdns-ruby (>= 1.52~),
+	       ruby-dnsruby (>= 1.52~),
 	       rubygems,
 	       ruby-pkg-tools,
 	       ruby1.8,
@@ -29,6 +29,8 @@ Build-Depends: quilt (>= 0.46-7~),
 	       doxygen
 Standards-Version: 3.9.2
 Homepage: http://www.opendnssec.org/
+Vcs-Browser: http://git.debian.org/?p=pkg-nlnetlabs/opendnssec.git
+Vcs-Git: git://git.debian.org/pkg-nlnetlabs/opendnssec.git
 
 Package: opendnssec-auditor
 Section: admin

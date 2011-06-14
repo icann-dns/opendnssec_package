@@ -1,3 +1,15 @@
+opendnssec (1.3.0~rc3-1) experimental; urgency=low
+
+  * Imported Upstream version 1.3.0~rc3
+  * Fix spurious warning in AC_LANG_PROGRAM (caused by libtool)
+  * Update libdns-ruby -> ruby-dnsruby dependency
+  * Update Vcs-* links
+  * Remove $Id tags using sed magic in debian/rules
+  * Trang was removed from upstream tarball; update the patch
+  * Update patches to the new release
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 14 Jun 2011 12:32:07 +0200
+
 opendnssec (1.3.0~rc2.dfsg-1) experimental; urgency=low
 
   * Imported Upstream version 1.3.0~rc2.dfsg

@@ -1,5 +1,5 @@
 .TH "ods-hsmutil" "1" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-hsmutil"
-.\" $Id: ods-hsmutil.1.in 4998 2011-04-21 12:29:27Z jakob $
+.\" $Id: ods-hsmutil.1.in 5227 2011-06-12 08:51:24Z jakob $
 .SH "NAME"
 .LP
 .B ods\-hsmutil

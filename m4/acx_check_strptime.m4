@@ -1,4 +1,4 @@
-# $Id: acx_check_strptime.m4 4998 2011-04-21 12:29:27Z jakob $
+# $Id: acx_check_strptime.m4 5227 2011-06-12 08:51:24Z jakob $
 
 AC_DEFUN([AC_CHECK_STRPTIME],[
 	AC_REQUIRE([AC_PROG_CC])

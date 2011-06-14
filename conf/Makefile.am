@@ -1,4 +1,4 @@
-# $Id: Makefile.am 4998 2011-04-21 12:29:27Z jakob $
+# $Id: Makefile.am 5227 2011-06-12 08:51:24Z jakob $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
@@ -23,18 +23,18 @@ SUFFIXES = .rng .rnc .xml
 
 
 .rnc.rng:
-	@test -x ${JAVA} || \
+	@test -x "${JAVA}" || \
 		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)
 	${TRANG} $< $@
 
 check: $(RNG)
-	@test -x ${XMLLINT} || \
+	@test -x "${XMLLINT}" || \
 		(echo "xmllint is required for regression tests"; false)
 	@for i in ${XML}; do \
 		${XMLLINT} --noout --relaxng \
 			`basename $$i .xml`.rng $$i || exit 1; \
 	done
-	@test -x ${XSLTPROC} || \
+	@test -x "${XSLTPROC}" || \
 		(echo "xsltproc is required for regression tests"; false)
 	@${XSLTPROC} -o kasp.html $(srcdir)/kasp2html.xsl kasp.xml && \
 		(echo "kasp.xml built")

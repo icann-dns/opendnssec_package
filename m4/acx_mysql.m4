@@ -1,4 +1,4 @@
-# $Id: acx_mysql.m4 5071 2011-05-06 13:40:00Z rb $
+# $Id: acx_mysql.m4 5227 2011-06-12 08:51:24Z jakob $
 
 AC_DEFUN([ACX_MYSQL],[
 	AC_ARG_WITH(mysql,
