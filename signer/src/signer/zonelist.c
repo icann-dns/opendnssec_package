@@ -1,5 +1,5 @@
 /*
- * $Id: zonelist.c 5227 2011-06-12 08:51:24Z jakob $
+ * $Id: zonelist.c 5320 2011-07-12 10:42:26Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -256,7 +256,7 @@ zonelist_del_zone(zonelist_type* zlist, zone_type* zone)
     ldns_rbnode_t* old_node = LDNS_RBTREE_NULL;
 
     if (!zone) {
-        ods_log_warning("[%s] unable to delete zone %s: zone is null", zl_str);
+        ods_log_warning("[%s] unable to delete zone: zone is null", zl_str);
         return NULL;
     }
     ods_log_assert(zone);
