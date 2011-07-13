@@ -36,7 +36,7 @@ override_dh_auto_configure:
 	if test -f enforcer/common/config.h; then mv enforcer/common/config.h enforcer/common/config.h.orig; fi
 	if test -f signer/tools/config.h; then mv signer/tools/config.h signer/tools/config.h.orig; fi
 
-	dh_auto_configure -Bbuild-sqlite3 -- --with-ruby=/usr/bin/ruby1.8 --with-ldns=/usr --with-database-backend=sqlite3 --with-sqlite3=/usr --libexecdir=/usr/lib/opendnssec/ --with-pkcs11-opensc=/usr/lib/opensc-pkcs11.so
+	dh_auto_configure -Bbuild-sqlite3 -- --with-ruby=/usr/bin/ruby1.8 --with-ldns=/usr --with-database-backend=sqlite3 --with-sqlite3=/usr --libexecdir=/usr/lib/opendnssec/ --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so
 	mkdir build-mysql
 	ln -s ../build-sqlite3/libhsm build-mysql/libhsm
 	dh_auto_configure -Bbuild-mysql/enforcer -- --with-ldns=/usr --with-database-backend=mysql --with-mysql=/usr --libexecdir=/usr/lib/opendnssec/ --disable-auditor --disable-signer --disable-doxygen-doc

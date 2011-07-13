@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: ods-control.in 5227 2011-06-12 08:51:24Z jakob $
+# $Id: ods-control.in 5320 2011-07-12 10:42:26Z jakob $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation)
 # All rights reserved.
@@ -111,8 +111,15 @@ case "$1" in
 			kill -TERM `cat "$enforcer_pid_file"`
 			RETVAL=$?
 			if [ $RETVAL = 0 ]; then
+				i=0
 				while [ -r "$enforcer_pid_file" ]; do
 					sleep 1
+					i=`expr $i + 1`
+					if [ $i -ge 5 ]; then
+						RETVAL=1
+						echo "Could not stop enforcer"
+						break
+					fi
 				done
 			fi
 		else

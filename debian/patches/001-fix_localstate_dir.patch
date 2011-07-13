@@ -11,8 +11,8 @@
  AC_SUBST([OPENDNSSEC_BIN_DIR])
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -29,16 +29,6 @@ EXTRA_DIST =	$(srcdir)/KNOWN_ISSUES \
- 		$(srcdir)/MIGRATION
+@@ -30,16 +30,6 @@ EXTRA_DIST =	$(srcdir)/KNOWN_ISSUES \
+ 		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
  
  
 -install-data-hook:
