@@ -37,7 +37,7 @@ Section: admin
 Architecture: all
 Depends: ${misc:Depends},
 	 ruby1.8,
-	 ruby-dnssec (>= 1.52~),
+	 ruby-dnsruby (>= 1.52~),
 	 libopenssl-ruby
 Recommends: opendnssec-signer, opendnssec-enforcer
 Suggests: opendnssec, softhsm
