@@ -1,5 +1,5 @@
 /*
- * $Id: zone.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: zone.c 5611 2011-09-12 14:15:58Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -954,6 +954,7 @@ zone_recover(zone_type* zone)
 
         /* all ok */
         zone->zonedata->initialized = 1;
+        zone->prepared = 1;
         if (zone->stats) {
             lock_basic_lock(&zone->stats->stats_lock);
             stats_clear(zone->stats);
@@ -992,6 +993,7 @@ zone_recover(zone_type* zone)
             zone->zonedata->outbound_serial = outbound;
             /* all ok */
             zone->zonedata->initialized = 1;
+            zone->prepared = 1;
             if (zone->stats) {
                 lock_basic_lock(&zone->stats->stats_lock);
                 stats_clear(zone->stats);
@@ -1024,7 +1026,7 @@ recover_error:
 
     ldns_rr_free(nsec3params_rr);
     nsec3params_rr = NULL;
-
+    nsec3params->rr = NULL;
     nsec3params_cleanup(nsec3params);
     nsec3params = NULL;
 

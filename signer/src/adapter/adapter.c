@@ -1,5 +1,5 @@
 /*
- * $Id: adapter.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: adapter.c 5432 2011-08-22 12:55:04Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -117,7 +117,8 @@ adapter_read(struct zone_struct* zone)
     ods_status status = ODS_STATUS_OK;
 
     if (!adzone || !adzone->adinbound) {
-        ods_log_error("[%s] unable to read zone: no input adapter", adapter_str);
+        ods_log_error("[%s] unable to read zone: no input adapter",
+            adapter_str);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(adzone);
@@ -154,14 +155,16 @@ adapter_write(struct zone_struct* zone)
     ods_status status = ODS_STATUS_OK;
 
     if (!adzone || !adzone->adoutbound) {
-        ods_log_error("[%s] unable to write zone: no output adapter", adapter_str);
+        ods_log_error("[%s] unable to write zone: no output adapter",
+            adapter_str);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(adzone);
     ods_log_assert(adzone->adoutbound);
     ods_log_assert(adzone->adoutbound->configstr);
     if (!adzone->zonedata) {
-        ods_log_error("[%s] unable to write zone: no zone data", adapter_str);
+        ods_log_error("[%s] unable to write zone %s: no zone data",
+            adapter_str, adzone->name);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(adzone->zonedata);

@@ -1,5 +1,5 @@
 #
-# $Id: kasp_checker.rb 5320 2011-07-12 10:42:26Z jakob $
+# $Id: kasp_checker.rb 5159 2011-05-26 09:14:23Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #

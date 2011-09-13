@@ -1,5 +1,5 @@
 #
-# $Id: kasp_auditor.rb 5320 2011-07-12 10:42:26Z jakob $
+# $Id: kasp_auditor.rb 4448 2011-02-15 15:28:27Z rb $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #

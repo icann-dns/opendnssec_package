@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_time.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: ksm_time.c 613 2009-05-06 08:39:01Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

@@ -1,6 +1,6 @@
 #!@RUBY@ -I@OPENDNSSEC_LIB_DIR@
 #
-# $Id: ods-kaspcheck.in 5320 2011-07-12 10:42:26Z jakob $
+# $Id: ods-kaspcheck.in 3140 2010-04-06 14:52:57Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #

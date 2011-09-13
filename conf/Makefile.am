@@ -1,4 +1,4 @@
-# $Id: Makefile.am 5320 2011-07-12 10:42:26Z jakob $
+# $Id: Makefile.am 5142 2011-05-18 19:14:18Z jakob $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 

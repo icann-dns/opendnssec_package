@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: ods-control.in 5320 2011-07-12 10:42:26Z jakob $
+# $Id: ods-control.in 5340 2011-07-26 15:30:53Z matthijs $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation)
 # All rights reserved.
@@ -71,7 +71,8 @@ case "$1" in
 		exit $RETVAL
 		;;
 	*)
-		"$sbindir/ods-signer" $2
+		shift
+		"$sbindir/ods-signer" "$@"
 		exit $?
 		;;
 

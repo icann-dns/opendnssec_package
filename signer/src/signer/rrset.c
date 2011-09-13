@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: rrset.c 5432 2011-08-22 12:55:04Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -662,8 +662,8 @@ rrset_commit(rrset_type* rrset)
     while (rrs) {
         status = rrset_commit_del(rrset, rrs->rr);
         if (status != ODS_STATUS_OK) {
-            ods_log_alert("[%s] commit RRset (%i) failed", rrset_str,
-                rrset->rr_type);
+            ods_log_alert("[%s] commit RRset (%i) failed: %s", rrset_str,
+                rrset->rr_type, ods_status2str(status));
             return status;
         }
         rrs = rrs->next;
@@ -677,8 +677,8 @@ rrset_commit(rrset_type* rrset)
     while (rrs) {
         status = rrset_commit_add(rrset, rrs->rr);
         if (status != ODS_STATUS_OK) {
-            ods_log_alert("[%s] commit RRset (%i) failed", rrset_str,
-                rrset->rr_type);
+            ods_log_alert("[%s] commit RRset (%i) failed: %s", rrset_str,
+                rrset->rr_type, ods_status2str(status));
             return status;
         }
         rrs = rrs->next;
@@ -1125,7 +1125,7 @@ rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker)
     }
     ods_log_assert(q);
 
-    while (status == ODS_STATUS_UNCHANGED) {
+    while (status == ODS_STATUS_UNCHANGED && !worker->need_to_exit) {
         lock_basic_lock(&q->q_lock);
         status = fifoq_push(q, (void*) rrset, worker);
         lock_basic_unlock(&q->q_lock);

@@ -1,4 +1,4 @@
-# $Id: acx_libcurl.m4 5320 2011-07-12 10:42:26Z jakob $
+# $Id: acx_libcurl.m4 3210 2010-04-16 08:39:23Z rb $
 
 # COPYRIGHT AND PERMISSION NOTICE
 #

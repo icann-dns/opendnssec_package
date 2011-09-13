@@ -1,4 +1,4 @@
-# $Id: Makefile.am 5320 2011-07-12 10:42:26Z jakob $
+# $Id: Makefile.am 2233 2009-10-15 12:19:44Z jakob $
 
 MAINTAINERCLEANFILES = \
 	config.log config.status \

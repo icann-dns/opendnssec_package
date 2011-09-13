@@ -1,5 +1,5 @@
 /*
- * $Id: zonelistparser.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: zonelistparser.c 5409 2011-08-16 08:18:29Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -227,9 +227,13 @@ parse_zonelist_zones(struct zonelist_struct* zlist, const char* zlfile)
             if (doc == NULL || xpathCtx == NULL) {
                 ods_log_error("[%s] unable to read zone %s; skipping",
                    parser_str, zone_name);
-                free((void*) zone_name);
                 ret = xmlTextReaderRead(reader);
+                free((void*) zone_name);
                 free((void*) tag_name);
+                if (xpathCtx) {
+                    xmlXPathFreeContext(xpathCtx);
+                    xpathCtx = NULL;
+                }
                 continue;
             }
 

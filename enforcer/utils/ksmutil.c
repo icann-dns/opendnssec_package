@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: ksmutil.c 5500 2011-08-31 08:36:15Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -478,6 +478,9 @@ cmd_setup ()
     char *user = NULL;
     char *password = NULL;
 
+	char quoted_user[KSM_NAME_LENGTH];
+ 	char quoted_password[KSM_NAME_LENGTH];
+
     char* setup_command = NULL;
     char* lock_filename = NULL;
 
@@ -562,9 +565,37 @@ cmd_setup ()
     else {
         /* MySQL setup */
         /* will look like: <SQL_BIN> -u <USER> -h <HOST> -P <PORT> -p<PASSWORD> <DBSCHEMA> < <SQL_SETUP> */
+
+		/* Get a quoted version of the username */
+		status = ShellQuoteString(user, quoted_user, KSM_NAME_LENGTH);
+		if (status != 0) {
+			printf("Failed to connect to database, username too long.\n");
+			db_disconnect(lock_fd);
+			StrFree(host);
+			StrFree(port);
+			StrFree(dbschema);
+			StrFree(user);
+			StrFree(password);
+			return(1);
+		}
+
+		/* Get a quoted version of the password */
+		status = ShellQuoteString(password, quoted_password, KSM_NAME_LENGTH);
+		if (status != 0) {
+			printf("Failed to connect to database, password too long.\n");
+			db_disconnect(lock_fd);
+			StrFree(host);
+			StrFree(port);
+			StrFree(dbschema);
+			StrFree(user);
+			StrFree(password);
+			return(1);
+		}
+
         StrAppend(&setup_command, SQL_BIN);
-        StrAppend(&setup_command, " -u ");
-        StrAppend(&setup_command, user);
+        StrAppend(&setup_command, " -u '");
+        StrAppend(&setup_command, quoted_user);
+		StrAppend(&setup_command, "'");
         if (host != NULL) {
             StrAppend(&setup_command, " -h ");
             StrAppend(&setup_command, host);
@@ -574,8 +605,9 @@ cmd_setup ()
             }
         }
         if (password != NULL) {
-            StrAppend(&setup_command, " -p");
-            StrAppend(&setup_command, password);
+            StrAppend(&setup_command, " -p'");
+            StrAppend(&setup_command, quoted_password);
+			StrAppend(&setup_command, "'");
         }
         StrAppend(&setup_command, " ");
         StrAppend(&setup_command, dbschema);
@@ -1291,16 +1323,20 @@ cmd_listzone ()
     /* Read the file and list the zones as we go */
     list_zone_node(zonelist_filename, zone_ids);
 
-    /* Now see if there are any zones in the DB which are not in the file */
-    StrAppend(&sql, "select name from zones where id not in (");
-    for (j = 0; j < file_zone_count; ++j) {
-        if (j != 0) {
-            StrAppend(&sql, ",");
-        }
-        snprintf(buffer, sizeof(buffer), "%d", zone_ids[j]);
-        StrAppend(&sql, buffer);
-    }
-    StrAppend(&sql, ")");
+	/* Now see if there are any zones in the DB which are not in the file */
+	if (file_zone_count != 0) {
+		StrAppend(&sql, "select name from zones where id not in (");
+		for (j = 0; j < file_zone_count; ++j) {
+			if (j != 0) {
+				StrAppend(&sql, ",");
+			}
+			snprintf(buffer, sizeof(buffer), "%d", zone_ids[j]);
+			StrAppend(&sql, buffer);
+		}
+		StrAppend(&sql, ")");
+	} else {
+		StrAppend(&sql, "select name from zones");
+	}
 
     status = DbExecuteSql(DbHandle(), sql, &result);
     if (status == 0) {
@@ -1311,6 +1347,7 @@ cmd_listzone ()
 
             printf("Found zone %s in DB but not zonelist.\n", temp_name);
             status = DbFetchRow(result, &row);
+			file_zone_count++;
         }
 
         /* Convert EOF status to success */
@@ -1324,6 +1361,10 @@ cmd_listzone ()
 
     db_disconnect(lock_fd);
     DbDisconnect(dbhandle);
+
+	if (file_zone_count == 0) {
+		printf("No zones in DB or zonelist.\n");
+	}
 
     MemFree(zone_ids);
     StrFree(sql);
@@ -2715,12 +2756,21 @@ cmd_dsseen()
                     return status;
                 }
 
-                if (retired_count != 0) {
-                    printf("Error: retiring a key would leave no active keys on zone, skipping...\n");
-                }
+				/* Cleanup and print an error message... */
                 db_disconnect(lock_fd);
                 StrFree(datetime);
-                return -1;
+                if (retired_count != 0) {
+                    printf("Error: retiring a key would leave no active keys on zone, skipping...\n");
+					return -1;
+                } else {
+					/* ...Unless this looks like a new zone, in which case poke
+					   the enforcerd */
+					if (restart_enforcerd() != 0)
+					{
+						fprintf(stderr, "Could not HUP ods-enforcerd\n");
+					}
+					return 0;
+				}
             }
 
             status = RetireOldKey(zone_id, policy_id, datetime);
@@ -8245,3 +8295,25 @@ int append_zone(xmlDocPtr doc, KSM_ZONE *zone)
 
     return(0);
 }
+
+int ShellQuoteString(const char* string, char* buffer, size_t buflen)
+{
+	size_t i;           /* Loop counter */
+	size_t j = 0;       /* Counter for new string */
+
+	size_t len = strlen(string);
+
+	if (string) {
+		for (i = 0; i < len; ++i) {
+			if (string[i] == '\'') {
+				buffer[j++] = '\'';
+				buffer[j++] = '\\';
+				buffer[j++] = '\'';
+			}
+			buffer[j++] = string[i];
+		}
+	}
+	buffer[j] = '\0';
+	return ( (j <= buflen) ? 0 : 1);
+}
+

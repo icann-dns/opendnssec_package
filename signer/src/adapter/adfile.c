@@ -1,5 +1,5 @@
 /*
- * $Id: adfile.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: adfile.c 5485 2011-08-25 14:04:41Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -341,8 +341,8 @@ adfile_read(struct zone_struct* zone, const char* filename)
         status = ODS_STATUS_FOPEN_ERR;
     }
     if (status != ODS_STATUS_OK) {
-        ods_log_error("[%s] unable to read file: %s", adapter_str,
-            ods_status2str(status));
+        ods_log_error("[%s] unable to read file %s: %s", adapter_str,
+            filename, ods_status2str(status));
         return status;
     }
     /* [end] read zone */

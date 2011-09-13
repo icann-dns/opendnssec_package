@@ -1,4 +1,4 @@
-# $Id: acx_prefixhack.m4 5320 2011-07-12 10:42:26Z jakob $
+# $Id: acx_prefixhack.m4 1777 2009-09-08 07:54:25Z jakob $
 #
 # Special processing of paths depending on whether --prefix,
 # --sysconfdir or --localstatedir arguments were given.
