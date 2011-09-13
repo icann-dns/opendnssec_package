@@ -1,5 +1,5 @@
 #
-# $Id: time_shift.rb 5320 2011-07-12 10:42:26Z jakob $
+# $Id: time_shift.rb 2695 2010-01-22 10:17:01Z rb $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #

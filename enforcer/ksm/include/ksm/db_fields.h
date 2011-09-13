@@ -1,5 +1,5 @@
 /*
- * $Id: db_fields.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: db_fields.h 3838 2010-08-31 11:35:52Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

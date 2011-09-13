@@ -1,5 +1,5 @@
 /*
- * $Id: kmedef.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: kmedef.h 5267 2011-06-29 08:12:29Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

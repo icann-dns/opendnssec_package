@@ -1,5 +1,5 @@
 /*
- * $Id: hsmtest.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: hsmtest.c 3619 2010-07-27 07:26:35Z rb $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.

@@ -1,5 +1,5 @@
 .TH "ods-kaspcheck" "1" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-kaspcheck"
-.\" $Id: ods-kaspcheck.1.in 5320 2011-07-12 10:42:26Z jakob $
+.\" $Id: ods-kaspcheck.1.in 2880 2010-02-24 13:52:16Z jakob $
 .SH "NAME"
 .LP
 .B ods\-kaspcheck

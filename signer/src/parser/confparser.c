@@ -1,5 +1,5 @@
 /*
- * $Id: confparser.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: confparser.c 4979 2011-04-19 12:49:53Z rb $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

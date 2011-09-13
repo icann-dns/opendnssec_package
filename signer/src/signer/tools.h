@@ -1,5 +1,5 @@
 /*
- * $Id: tools.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: tools.h 4500 2011-02-17 15:42:12Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

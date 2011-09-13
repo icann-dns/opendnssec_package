@@ -1,5 +1,5 @@
 /*
- * $Id: cmdhandler.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: cmdhandler.h 4518 2011-02-24 15:39:09Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

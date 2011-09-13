@@ -1,5 +1,5 @@
 /*
- * $Id: tools.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: tools.c 5432 2011-08-22 12:55:04Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -204,7 +204,7 @@ tools_nsecify(zone_type* zone)
     }
 
     start = time(NULL);
-    /* determine NSEC(3) ttl */
+    /* determine denial ttl */
     ttl = zone->zonedata->default_ttl;
     if (zone->signconf->soa_min) {
         ttl = (uint32_t) duration2time(zone->signconf->soa_min);
@@ -216,8 +216,7 @@ tools_nsecify(zone_type* zone)
             "non-terminals", tools_str, zone->name);
         return status;
     }
-
-    /* NSEC or NSEC3? */
+    /* nsecify(3) */
     if (zone->signconf->nsec_type == LDNS_RR_TYPE_NSEC) {
         status = zonedata_nsecify(zone->zonedata, zone->klass, ttl,
             &num_added);
@@ -263,7 +262,6 @@ tools_audit(zone_type* zone, char* working_dir, char* cfg_filename)
     int error = 0;
     time_t start = 0;
     time_t end = 0;
-
     if (!zone) {
         ods_log_error("[%s] unable to audit zone: no zone", tools_str);
         return ODS_STATUS_ASSERT_ERR;

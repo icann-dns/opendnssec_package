@@ -1,5 +1,5 @@
 /*
- * $Id: locks.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: locks.h 4501 2011-02-21 09:02:16Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

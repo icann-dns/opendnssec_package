@@ -1,5 +1,5 @@
 /*
- * $Id: domain.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: domain.c 4975 2011-04-19 11:54:20Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: adapter.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: adapter.h 4686 2011-04-07 13:53:15Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

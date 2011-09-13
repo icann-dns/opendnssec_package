@@ -1,5 +1,5 @@
 /*
- * $Id: eppclient.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: eppclient.c 3211 2010-04-18 07:33:18Z rb $
  *
  * Copyright (c) 2010 .SE (The Internet Infrastructure Foundation).
  * All rights reserved.

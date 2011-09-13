@@ -1,5 +1,5 @@
 /*
- * $Id: epp.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: epp.h 2914 2010-03-02 10:54:12Z jakob $
  *
  * Copyright (c) 2010 .SE (The Internet Infrastructure Foundation).
  * All rights reserved.
