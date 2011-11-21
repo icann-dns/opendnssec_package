@@ -1,5 +1,5 @@
 /*
- * $Id: file.c 5558 2011-09-06 13:19:19Z rb $
+ * $Id: file.c 5805 2011-10-24 13:22:51Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -84,7 +84,10 @@ ods_fgetc(FILE* fd, unsigned int* line_nr)
     ods_log_assert(line_nr);
 
     c = fgetc(fd);
-	if (c == '\n') {
+    if (c == '\r') { /* carriage return */
+        c = ' ';
+    }
+    if (c == '\n') {
         (*line_nr)++;
     }
     return c;

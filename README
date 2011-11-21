@@ -1,4 +1,4 @@
-$Id: README 3597 2010-07-25 18:36:21Z jakob $
+$Id: README 5863 2011-11-17 09:12:12Z jerry $
 
 
 INTRODUCTION
@@ -11,8 +11,8 @@ INTRODUCTION
 MORE INFORMATION
 
   More informnation can be found at the project website available at
-  http://www.opendnssec.org/ and on the development WIKI/TRAC at
-  http://trac.opendnssec.org/.
+  http://www.opendnssec.org/ and on the development WIKI at
+  http://wiki.opendnssec.org/.
 
   Information about announcements, bug reporting and mailing lists can
   be found at http://www.opendnssec.org/support/.

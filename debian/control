@@ -9,7 +9,7 @@ Build-Depends: quilt (>= 0.46-7~),
 	       automake,
 	       autoconf,
 	       libtool,
-	       ruby-dnsruby (>= 1.52~),
+	       ruby-dnsruby (>= 1.53~),
 	       rubygems,
 	       ruby-pkg-tools,
 	       ruby1.8,
@@ -37,7 +37,7 @@ Section: admin
 Architecture: all
 Depends: ${misc:Depends},
 	 ruby1.8,
-	 ruby-dnsruby (>= 1.52~),
+	 ruby-dnsruby (>= 1.53~),
 	 libopenssl-ruby
 Recommends: opendnssec-signer, opendnssec-enforcer
 Suggests: opendnssec, softhsm
@@ -198,3 +198,39 @@ Description: library for interfacing PKCS#11 Hardware Security Modules
  in software), SCA6000, Aladdin eToken, OpenSC, nCipher or AEP Keyper.
  .
  This package contains command line tools.
+
+Package: opendnssec-dbg-mysql
+Depends: ${misc:Depends}, opendnssec-enforcer, opendnssec-signer, libhsm-bin, opendnssec-enforcer-mysql
+Recommends: gdb
+Section: debug
+Priority: extra
+Architecture: any
+Description: Debug symbols for OpenDNSSEC (Enforcer with MySQL support)
+ This package provides the debug symbols for OpenDNSSEC needed for properly
+ debugging errors in OpenDNSSEC with gdb.
+ .
+ OpenDNSSEC is a complete DNSSEC zone signing system which is very
+ easy to use with stability and security in mind.  There are a lot of
+ details in signing zone files with DNSSEC and OpenDNSSEC covers most
+ of it.
+ .
+ This package contains debugging symbols for MySQL variant of OpenDNSSEC
+ Enforcer.
+
+Package: opendnssec-dbg-sqlite3
+Depends: ${misc:Depends}, opendnssec-enforcer, opendnssec-signer, libhsm-bin, opendnssec-enforcer-sqlite3
+Recommends: gdb
+Section: debug
+Priority: extra
+Architecture: any
+Description: Debug symbols for OpenDNSSEC (Enforcer with SQLite3 support)
+ This package provides the debug symbols for OpenDNSSEC needed for properly
+ debugging errors in OpenDNSSEC with gdb.
+ .
+ OpenDNSSEC is a complete DNSSEC zone signing system which is very
+ easy to use with stability and security in mind.  There are a lot of
+ details in signing zone files with DNSSEC and OpenDNSSEC covers most
+ of it.
+ .
+ This package contains debugging symbols for SQLite3 variant of OpenDNSSEC
+ Enforcer.

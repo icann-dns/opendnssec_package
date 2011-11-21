@@ -1,3 +1,14 @@
+opendnssec (1.3.3-1) unstable; urgency=low
+
+  * Imported Upstream version 1.3.3
+  * Fix copy&paste unicode dashes in dpkg-maintscript-helper invocations
+    (Closes: #643660)
+  * Disable PIE hardening to make debug symbols work
+  * Build -dbg packages with symbols for better debugging
+  * Update dnsruby depend to 1.53
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 21 Nov 2011 19:37:41 +0100
+
 opendnssec (1.3.2-1) unstable; urgency=low
 
   * Imported Upstream version 1.3.2

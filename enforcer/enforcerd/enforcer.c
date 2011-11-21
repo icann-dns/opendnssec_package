@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 5490 2011-08-29 14:13:39Z rb $
+ * $Id: enforcer.c 5838 2011-11-08 14:28:05Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -286,6 +286,11 @@ server_main(DAEMONCONFIG *config)
             log_msg(config, LOG_INFO, "Received SIGINT, exiting...");
             break;
         }
+
+		/* Make sure that we can still talk to the HSM; this call exits if
+		   we can not (after trying to reconnect) */
+		check_hsm_connection(&ctx, config);
+
     }
 
     /*
@@ -1298,7 +1303,7 @@ int allocateKeysToZone(KSM_POLICY *policy, int key_type, int zone_id, uint16_t i
             }
         }
         if(key_pair_id > 0) {
-            status = KsmDnssecKeyCreate(zone_id, key_pair_id, key_type, KSM_STATE_GENERATE, datetime, &ignore);
+            status = KsmDnssecKeyCreate(zone_id, key_pair_id, key_type, KSM_STATE_GENERATE, datetime, NULL, &ignore);
             /* fprintf(stderr, "comm(%d) %s: allocated keypair id %d\n", key_type, zone_name, key_pair_id); */
         } else {
             /* This shouldn't happen */
@@ -1852,3 +1857,65 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
 
     return status;
 }
+
+void check_hsm_connection(hsm_ctx_t **ctx, DAEMONCONFIG *config)
+{
+	int result = 0;
+	char *hsm_error_message = NULL;
+
+	result = hsm_check_context(*ctx);
+
+	/* If we didn't get HSM_OK then close and reopen HSM */
+	if (result != HSM_OK) {
+
+		if (*ctx) {
+			hsm_destroy_context(*ctx);
+		}
+
+		result = hsm_close();
+
+		if (config->configfile != NULL) {
+			result = hsm_open(config->configfile, hsm_prompt_pin, NULL);
+		} else {
+			result = hsm_open(OPENDNSSEC_CONFIG_FILE, hsm_prompt_pin, NULL);
+		}
+		if (result) {
+			hsm_error_message = hsm_get_error(*ctx);
+			if (hsm_error_message) {
+				log_msg(config, LOG_ERR, hsm_error_message);
+				free(hsm_error_message);
+			} else {
+				/* decode the error code ourselves
+				   TODO find if there is a better way to do this (and can all
+				   of these be returned? are there others?) */
+				switch (result) {
+					case HSM_ERROR:
+						log_msg(config, LOG_ERR, "hsm_open() result: HSM error");
+						break;
+					case HSM_PIN_INCORRECT:
+						log_msg(config, LOG_ERR, "hsm_open() result: incorrect PIN");
+						break;
+					case HSM_CONFIG_FILE_ERROR:
+						log_msg(config, LOG_ERR, "hsm_open() result: config file error");
+						break;
+					case HSM_REPOSITORY_NOT_FOUND:
+						log_msg(config, LOG_ERR, "hsm_open() result: repository not found");
+						break;
+					case HSM_NO_REPOSITORIES:
+						log_msg(config, LOG_ERR, "hsm_open() result: no repositories");
+						break;
+					default:
+						log_msg(config, LOG_ERR, "hsm_open() result: %d", result);
+				}
+			}
+			unlink(config->pidfile);
+			exit(1);
+		}
+		log_msg(config, LOG_INFO, "HSM reopened successfully.");
+		*ctx = hsm_create_context();
+	} else {
+		log_msg(config, LOG_INFO, "HSM connection open.");
+	}
+
+}
+

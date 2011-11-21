@@ -1,5 +1,5 @@
 #
-# $Id: kasp_checker.rb 5159 2011-05-26 09:14:23Z alex $
+# $Id: kasp_checker.rb 5840 2011-11-09 09:33:47Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -362,7 +362,7 @@ module KASPChecker
             #   2. For all policies, check that the "Re-sign" interval is less than the "Refresh" interval.
             resign_secs = get_duration(policy,'Signatures/Resign', kasp_file)
             refresh_secs = get_duration(policy, 'Signatures/Refresh', kasp_file)
-            if (refresh_secs <= resign_secs)
+            if (refresh_secs != 0 && refresh_secs <= resign_secs)
               log(LOG_ERR, "The Refresh interval (#{refresh_secs} seconds) for " +
                   "#{name} Policy in #{kasp_file} is less than or equal to the Resign interval" +
                   " (#{resign_secs} seconds)")
@@ -411,7 +411,7 @@ module KASPChecker
             publish_safety_secs = get_duration(policy, 'Keys/PublishSafety', kasp_file)
             retire_safety_secs = get_duration(policy, 'Keys/RetireSafety', kasp_file)
             ttl_secs = get_duration(policy, 'Keys/TTL', kasp_file)
-            [{publish_safety_secs , "Keys/PublishSafety"}, {retire_safety_secs, "Keys/RetireSafety"}].each {|pair|
+            [{publish_safety_secs => "Keys/PublishSafety"}, {retire_safety_secs => "Keys/RetireSafety"}].each {|pair|
               pair.each {|time, label|
                 if (time < (0.1 * ttl_secs))
                   log(LOG_WARNING, "#{label} (#{time} seconds) in #{name} policy" +
