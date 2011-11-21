@@ -8,6 +8,7 @@ export DH_OPTIONS
 DEB_HOST_ARCH   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
 export DEB_BUILD_HARDENING=1
+export DEB_BUILD_HARDENING_PIE=0
 
 CFLAGS = -Wl,-z,defs -Wl,--as-needed
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -71,7 +72,7 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/etc/opendnssec
 
 override_dh_installdocs:
-	dh_installdocs -popendnssec-common -popendnssec --link-doc=opendnssec-common
+	dh_installdocs -popendnssec-common -popendnssec -popendnssec-dbg-mysql -popendnssec-dbg-sqlite3 --link-doc=opendnssec-common
 	dh_installdocs -popendnssec-enforcer -popendnssec-enforcer-sqlite3 -popendnssec-enforcer-mysql --link-doc=opendnssec-enforcer
 	dh_installdocs -plibhsm-bin -popendnssec-auditor -popendnssec-signer
 	# Remove extra and unnecessary jquery.js library from generated docs (See #622147)
@@ -81,3 +82,17 @@ override_dh_installdocs:
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS
+
+override_dh_strip:
+	dh_strip -s --keep-debug
+	install -d -m 755 $(CURDIR)/debian/opendnssec-dbg-sqlite3/usr/lib/debug
+	install -d -m 755 $(CURDIR)/debian/opendnssec-dbg-mysql/usr/lib/debug
+	for p in opendnssec-signer libhsm-bin; do \
+	    cp -a $(CURDIR)/debian/$$p/usr/lib/debug $(CURDIR)/debian/opendnssec-dbg-sqlite3/usr/lib/; \
+	    cp -a $(CURDIR)/debian/$$p/usr/lib/debug $(CURDIR)/debian/opendnssec-dbg-mysql/usr/lib/; \
+	    rm -rf $(CURDIR)/debian/$$p/usr/lib/debug; \
+	done
+	cp -a $(CURDIR)/debian/opendnssec-enforcer-sqlite3/usr/lib/debug $(CURDIR)/debian/opendnssec-dbg-sqlite3/usr/lib/
+	cp -a $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/lib/debug $(CURDIR)/debian/opendnssec-dbg-mysql/usr/lib/
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-sqlite3/usr/lib/debug
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/lib/debug

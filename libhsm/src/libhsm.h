@@ -1,4 +1,4 @@
-/* $Id: libhsm.h 4474 2011-02-16 10:43:54Z sion $ */
+/* $Id: libhsm.h 5651 2011-09-21 15:12:10Z sion $ */
 
 /*
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
@@ -160,6 +160,17 @@ can be freed with hsm_destroy_context()
 */
 hsm_ctx_t *
 hsm_create_context(void);
+
+/*! Check HSM context
+
+Check if the associated sessions are still alive.
+If they are not alive, then try re-open libhsm.
+
+\param context HSM context
+\return 0 if successful, !0 if failed
+*/
+int
+hsm_check_context(hsm_ctx_t *context);
 
 
 /*! Destroy HSM context

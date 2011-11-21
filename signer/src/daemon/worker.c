@@ -1,5 +1,5 @@
 /*
- * $Id: worker.c 5432 2011-08-22 12:55:04Z matthijs $
+ * $Id: worker.c 5637 2011-09-15 09:09:12Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -305,6 +305,11 @@ worker_perform_task(worker_type* worker)
                         "signatures completed", worker2str(worker->type),
                         worker->thread_num, task_who2str(task->who),
                         worker->jobs_completed, worker->jobs_appointed);
+                    status = ODS_STATUS_ERR;
+                } else if (worker->need_to_exit) {
+                    ods_log_debug("[%s[%i]] sign zone %s failed: worker "
+                        "needs to exit", worker2str(worker->type),
+                        worker->thread_num, task_who2str(task->who));
                     status = ODS_STATUS_ERR;
                 } else {
                     ods_log_debug("[%s[%i]] sign zone %s ok: %u of %u "

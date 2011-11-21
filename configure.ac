@@ -1,9 +1,9 @@
-# $Id: configure.ac 4569 2011-03-16 08:12:02Z matthijs $
+# $Id: configure.ac 5848 2011-11-11 15:50:28Z jakob $
 
 m4_sinclude([version.m4])
 
 AC_PREREQ(2.61)
-AC_INIT([opendnssec], OPENDNSSEC_VERSION, [http://trac.opendnssec.org/newticket])
+AC_INIT([opendnssec], OPENDNSSEC_VERSION, [http://bugs.opendnssec.org/])
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_MACRO_DIR([m4])

@@ -1,5 +1,5 @@
 /*
- * $Id: test_ksm_update.c 3811 2010-08-26 15:05:19Z jakob $
+ * $Id: test_ksm_update.c 5838 2011-11-08 14:28:05Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -67,7 +67,7 @@ static void TestKsmUpdateInternal(void)
     /* Create a new dnsseckeys entry (use our previously tested routines) 
      * keys 3 - 15 are unallocated */
 
-    status = KsmDnssecKeyCreate(zone_id, 3, KSM_TYPE_ZSK, KSM_STATE_GENERATE, datetime, &dnsseckey_id);
+    status = KsmDnssecKeyCreate(zone_id, 3, KSM_TYPE_ZSK, KSM_STATE_GENERATE, datetime, NULL, &dnsseckey_id);
 	CU_ASSERT_EQUAL(status, 0);
 
 	/* push a key into some state that update can operate on */

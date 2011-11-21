@@ -1,5 +1,5 @@
 /*
- * $Id: engine.c 5432 2011-08-22 12:55:04Z matthijs $
+ * $Id: engine.c 5656 2011-09-30 06:45:25Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -877,6 +877,7 @@ engine_update_zones(engine_type* engine)
                 ods_log_crit("[%s] failed to create task for zone %s",
                     engine_str, zone->name);
             } else {
+                zone->task = task;
                 lock_basic_lock(&engine->taskq->schedule_lock);
                 /* [LOCK] schedule */
                 status = schedule_task(engine->taskq, task, 0);
@@ -905,6 +906,7 @@ engine_update_zones(engine_type* engine)
                 task->what = TASK_SIGNCONF;
                 task->when = now;
                 status = schedule_task(engine->taskq, task, 0);
+                zone->task = task;
             } else {
                 /* task not queued, being worked on? */
                 ods_log_debug("[%s] worker busy with zone %s, will update "
@@ -920,7 +922,6 @@ engine_update_zones(engine_type* engine)
             wake_up = 1;
         }
 
-        zone->task = task;
         if (status != ODS_STATUS_OK) {
             ods_log_crit("[%s] failed to schedule task for zone %s: %s",
                 engine_str, zone->name, ods_status2str(status));

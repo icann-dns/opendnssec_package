@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 5432 2011-08-22 12:55:04Z matthijs $
+ * $Id: rrset.c 5822 2011-10-31 08:54:28Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -474,6 +474,11 @@ rrset_diff(rrset_type* rrset, keylist_type* kl)
 
             current = current->next;
         } else { /* equal RRs */
+            /* TTL is not compared in util_dnssec_rrs_compare() so we copy it */
+            if (ldns_rr_ttl(current->rr) != ldns_rr_ttl(pending->rr)) {
+                ldns_rr_set_ttl(current->rr, ldns_rr_ttl(pending->rr));
+                rrset->needs_signing = 1;
+            }
             /* remove pending RR */
             if (!prev) {
                 rrset->add = pending->next;
@@ -743,7 +748,7 @@ rrset_recycle(rrset_type* rrset, signconf_type* sc, time_t signtime)
 
     /* 1. If the RRset has changed, drop all signatures */
     /* 2. If Refresh is disabled, drop all signatures */
-    if (rrset->needs_signing || !refresh) {
+    if (rrset->needs_signing || refresh <= (uint32_t) signtime) {
         ods_log_debug("[%s] drop signatures for RRset[%i]", rrset_str,
             rrset->rr_type);
         if (rrset->rrsigs) {
@@ -1048,7 +1053,14 @@ rrset_sign(hsm_ctx_t* ctx, rrset_type* rrset, ldns_rdf* owner,
             rrset->rr_type);
         log_rr(rrsig, "+rrsig", 7);
         status = rrsigs_add_sig(new_rrsigs, rrsig, key->locator, key->flags);
-        if (status != ODS_STATUS_OK) {
+        if (status == ODS_STATUS_UNCHANGED) {
+            ods_log_warning("[%s] unable to add duplicate RRSIG: skipping",
+                rrset_str);
+            log_rr(rrsig, "~RRSIG", 2);
+            status = ODS_STATUS_OK;
+            ldns_rr_free(rrsig);
+            rrsig = NULL;
+        } else if (status != ODS_STATUS_OK) {
             ods_log_error("[%s] unable to sign RRset[%i]: error adding RRSIG",
                 rrset_str, rrset->rr_type);
                 log_rr(rrsig, "+RRSIG", 1);
@@ -1069,7 +1081,12 @@ rrset_sign(hsm_ctx_t* ctx, rrset_type* rrset, ldns_rdf* owner,
             status = rrsigs_add_sig(rrset->rrsigs,
                 ldns_rr_clone(walk_rrsigs->rr),
                 walk_rrsigs->key_locator, walk_rrsigs->key_flags);
-            if (status != ODS_STATUS_OK) {
+            if (status == ODS_STATUS_UNCHANGED) {
+                ods_log_warning("[%s] unable to add duplicate RRSIG to "
+                    "RRset[%i]: skipping", rrset_str, rrset->rr_type);
+                log_rr(walk_rrsigs->rr, "~RRSIG", 2);
+                status = ODS_STATUS_OK;
+            } else if (status != ODS_STATUS_OK) {
                 ods_log_error("[%s] unable to sign RRset[%i]: error adding "
                     "RRSIG to RRset[%i]", rrset_str, rrset->rr_type,
                     rrset->rr_type);
@@ -1108,6 +1125,7 @@ ods_status
 rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker)
 {
     ods_status status = ODS_STATUS_UNCHANGED;
+    int tries = 0;
 
     if (!rrset) {
         ods_log_error("[%s] unable to queue RRset: no RRset", rrset_str);
@@ -1127,8 +1145,9 @@ rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker)
 
     while (status == ODS_STATUS_UNCHANGED && !worker->need_to_exit) {
         lock_basic_lock(&q->q_lock);
-        status = fifoq_push(q, (void*) rrset, worker);
+        status = fifoq_push(q, (void*) rrset, worker, &tries);
         lock_basic_unlock(&q->q_lock);
+        tries++;
     }
     if (status == ODS_STATUS_OK) {
         lock_basic_lock(&worker->worker_lock);
