@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 5822 2011-10-31 08:54:28Z matthijs $
+ * $Id: rrset.c 5968 2011-12-09 13:13:52Z jerry $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -45,6 +45,7 @@
 
 #include <ldns/ldns.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 static const char* rrset_str = "rrset";
 
@@ -1144,10 +1145,17 @@ rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker)
     ods_log_assert(q);
 
     while (status == ODS_STATUS_UNCHANGED && !worker->need_to_exit) {
+        tries++;
         lock_basic_lock(&q->q_lock);
         status = fifoq_push(q, (void*) rrset, worker, &tries);
         lock_basic_unlock(&q->q_lock);
-        tries++;
+        /**
+         * If tries are 0 they we have tries FIFOQ_TRIES_COUNT times,
+         * lets take a small break to not hog CPU.
+         */
+        if (status == ODS_STATUS_UNCHANGED && !tries) {
+        	usleep(10000);
+        }
     }
     if (status == ODS_STATUS_OK) {
         lock_basic_lock(&worker->worker_lock);
