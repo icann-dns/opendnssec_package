@@ -1,4 +1,12 @@
-$Id: NEWS 5870 2011-11-17 12:07:45Z rb $
+$Id: NEWS 5968 2011-12-09 13:13:52Z jerry $
+
+OpenDNSSEC 1.3.4 - 2011-12-09
+
+Bugfixes:
+* Signer: Use debug instead of warning for drudgers queue being full, also
+  sleep 10ms if it is full to not hog CPU. This increased signing on
+  single core machines by a factor of 2.
+
 
 OpenDNSSEC 1.3.3 - 2011-11-17
 
