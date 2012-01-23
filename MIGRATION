@@ -1,7 +1,11 @@
-$Id: MIGRATION 4472 2011-02-16 10:18:10Z sion $
+$Id: MIGRATION 5989 2012-01-03 11:53:17Z sion $
 
 This file gives you instructions on how to migrate from one version of
 OpenDNSSEC to another.
+
+*** Migrating from v1.2 to v1.3 ***
+
+  There are no migration scripts to run to make this transition.
 
 
 *** Migrating from v1.1 to v1.2 ***

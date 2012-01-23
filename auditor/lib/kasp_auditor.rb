@@ -1,5 +1,5 @@
 #
-# $Id: kasp_auditor.rb 5830 2011-11-04 13:59:24Z alex $
+# $Id: kasp_auditor.rb 6048 2012-01-10 09:26:33Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -103,6 +103,7 @@ module KASPAuditor
     # Run the auditor.
     def run
       conf_file = @conf_file
+      @zone_name = "" if (!@zone_name)
       @zone_name.chomp(".")
       if (!conf_file)
         KASPAuditor.exit("No configuration file specified", 1)

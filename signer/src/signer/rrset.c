@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 5968 2011-12-09 13:13:52Z jerry $
+ * $Id: rrset.c 5984 2012-01-02 14:50:59Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -1154,7 +1154,7 @@ rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker)
          * lets take a small break to not hog CPU.
          */
         if (status == ODS_STATUS_UNCHANGED && !tries) {
-        	usleep(10000);
+            usleep(10000);
         }
     }
     if (status == ODS_STATUS_OK) {

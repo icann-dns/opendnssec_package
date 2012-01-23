@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signer.c 5204 2011-06-06 10:40:07Z matthijs $
+ * $Id: ods-signer.c 5874 2011-11-18 08:40:54Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -271,7 +271,7 @@ interface_start(char* cmd)
 
     /* new socket */
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd <= 0) {
+    if (sockfd < 0) {
         fprintf(stderr, "Unable to connect to engine. "
             "socket() failed: %s\n", strerror(errno));
         exit(1);

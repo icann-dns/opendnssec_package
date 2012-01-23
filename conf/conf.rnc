@@ -1,4 +1,4 @@
-# $Id: conf.rnc 4688 2011-04-07 13:58:21Z matthijs $
+# $Id: conf.rnc 6065 2012-01-16 09:45:47Z jerry $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -60,10 +60,12 @@ start = element Configuration {
 	element Common {
 		# Configuration parameters for logging
 		element Logging {
+			element Verbosity { xsd:nonNegativeInteger }?,
+			 
 			element Syslog {
 				# syslog facility
 				element Facility { syslogFacility }
-			}
+			}?
 		}?,
 
 		# Location to find the KASP file

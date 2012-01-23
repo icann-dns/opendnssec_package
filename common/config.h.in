@@ -505,6 +505,9 @@
 /* Shutdown message for the OpenDNSSEC signer client */
 #undef ODS_SE_STOP_RESPONSE
 
+/* Default verbosity */
+#undef ODS_SE_VERBOSITY
+
 /* Path to the OpenDNSSEC signer engine working directory */
 #undef ODS_SE_WORKDIR
 

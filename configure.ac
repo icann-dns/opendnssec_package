@@ -1,4 +1,4 @@
-# $Id: configure.ac 5848 2011-11-11 15:50:28Z jakob $
+# $Id: configure.ac 6075 2012-01-18 12:42:24Z rb $
 
 m4_sinclude([version.m4])
 
@@ -139,7 +139,7 @@ fi
 
 # common dependencies
 ACX_LIBXML2
-ACX_LDNS(1,6,9)
+ACX_LDNS(1,6,12)
 ACX_PKCS11_MODULES
 ACX_RT
 
