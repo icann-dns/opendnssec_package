@@ -21,7 +21,7 @@ Build-Depends: quilt (>= 0.46-7~),
 	       mysql-client,
 	       libsqlite3-dev,
 	       sqlite3,
-	       libldns-dev (>= 1.6.9~),
+	       libldns-dev (>= 1.6.12~),
 	       libcunit1-dev,
 	       opensc,
 	       rdoc,
@@ -163,7 +163,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 opendnssec-common (= ${source:Version}),
-	 libldns1 (>= 1.6.9~)
+	 libldns1 (>= 1.6.12~)
 Recommends: opendnssec-auditor, opendnssec-enforcer
 Suggests: opendnssec, softhsm
 Conflicts: opendnssec-signer-tools (<< 1.2.0~)

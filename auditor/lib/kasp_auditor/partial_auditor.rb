@@ -728,7 +728,7 @@ module KASPAuditor
       # Use the key_tracker to update and check key stores using
       # the key information in the SOA file.
       @key_tracker = KeyTracker.new(@working, @soa.name.to_s, self, @config, @enforcer_interval, @config.signatures.validity.default)
-      @key_tracker.process_key_data(@keys, @keys_used, @soa.serial, @config.soa.ttl)
+      @key_tracker.process_key_data(@keys, @keys_used, @soa.serial, @config.keys.ttl)
     end
 
     def do_basic_nsec_checks(line)
@@ -931,6 +931,7 @@ module KASPAuditor
       if (pri.to_i < @ret_val)
         @ret_val = pri.to_i
       end
+      msg = "#{@config.name} : #{msg}"
       return if (@num_output_lines >= 100)
       @num_output_lines += 1
       if (@num_output_lines == 100)

@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.c 5838 2011-11-08 14:28:05Z sion $
+ * $Id: ksmutil.c 5994 2012-01-03 16:14:24Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -1080,6 +1080,8 @@ cmd_delzone ()
 
     char* zonelist_filename = NULL;
     char* backup_filename = NULL;
+    char* signconf = NULL;
+    char* moved_signconf = NULL;
     /* The settings that we need for the zone */
     int zone_id = -1;
     int policy_id = -1;
@@ -1153,6 +1155,29 @@ cmd_delzone ()
             StrFree(zonelist_filename);
             return(1);
         }
+
+		/* Extract the Signconf path so we can move it */
+		status = extract_signconf(zonelist_filename, o_zone, &signconf);
+		if (status != 0) {
+            StrFree(zonelist_filename);
+            db_disconnect(lock_fd);
+            return(status);
+        }
+		StrAppend(&moved_signconf, signconf);
+		StrAppend(&moved_signconf, ".ZONE_DELETED");
+		/* Do the move */
+		status = rename(signconf, moved_signconf);
+        if (status != 0 && status != -1)
+        {
+            /* cope with initial condition of files not existing */
+            printf("Could not rename: %s -> %s", signconf, moved_signconf);
+            StrFree(zonelist_filename);
+            StrFree(signconf);
+            StrFree(moved_signconf);
+            return(1);
+        }
+		StrFree(signconf);
+		StrFree(moved_signconf);
 
         /* Backup the current zonelist */
         StrAppend(&backup_filename, zonelist_filename);
@@ -5378,7 +5403,9 @@ get_db_details(char** dbschema, char** host, char** port, char** user, char** pa
         temp_char = (char *)xmlXPathCastToString(xpathObj);
         StrAppend(dbschema, temp_char);
         StrFree(temp_char);
-        fprintf(stderr, "SQLite database set to: %s\n", *dbschema);
+		if (verbose_flag) {
+			fprintf(stderr, "SQLite database set to: %s\n", *dbschema);
+		}
     }
     xmlXPathFreeObject(xpathObj);
 
@@ -5398,8 +5425,10 @@ get_db_details(char** dbschema, char** host, char** port, char** user, char** pa
             temp_char = (char *)xmlXPathCastToString(xpathObj);
             StrAppend(host, temp_char);
             StrFree(temp_char);
-            fprintf(stderr, "MySQL database host set to: %s\n", *host);
-        }
+			if (verbose_flag) {
+				fprintf(stderr, "MySQL database host set to: %s\n", *host);
+			}
+		}
         xmlXPathFreeObject(xpathObj);
 
         /* PORT, optional */
@@ -5414,7 +5443,9 @@ get_db_details(char** dbschema, char** host, char** port, char** user, char** pa
             temp_char = (char *)xmlXPathCastToString(xpathObj);
             StrAppend(port, temp_char);
             StrFree(temp_char);
-            fprintf(stderr, "MySQL database port set to: %s\n", *port);
+			if (verbose_flag) {
+				fprintf(stderr, "MySQL database port set to: %s\n", *port);
+			}
         }
         xmlXPathFreeObject(xpathObj);
 
@@ -5430,7 +5461,9 @@ get_db_details(char** dbschema, char** host, char** port, char** user, char** pa
             temp_char = (char *)xmlXPathCastToString(xpathObj);
             StrAppend(dbschema, temp_char);
             StrFree(temp_char);
-            fprintf(stderr, "MySQL database schema set to: %s\n", *dbschema);
+			if (verbose_flag) {
+				fprintf(stderr, "MySQL database schema set to: %s\n", *dbschema);
+			}
         } else {
             db_found = 0;
         }
@@ -5448,7 +5481,9 @@ get_db_details(char** dbschema, char** host, char** port, char** user, char** pa
             temp_char = (char *)xmlXPathCastToString(xpathObj);
             StrAppend(user, temp_char);
             StrFree(temp_char);
-            fprintf(stderr, "MySQL database user set to: %s\n", *user);
+			if (verbose_flag) {
+				fprintf(stderr, "MySQL database user set to: %s\n", *user);
+			}
         } else {
             db_found = 0;
         }
@@ -5468,7 +5503,9 @@ get_db_details(char** dbschema, char** host, char** port, char** user, char** pa
         StrFree(temp_char);
         xmlXPathFreeObject(xpathObj);
 
-        fprintf(stderr, "MySQL database password set\n");
+		if (verbose_flag) {
+			fprintf(stderr, "MySQL database password set\n");
+		}
 
     }
 
@@ -8318,5 +8355,65 @@ int ShellQuoteString(const char* string, char* buffer, size_t buflen)
 	}
 	buffer[j] = '\0';
 	return ( (j <= buflen) ? 0 : 1);
+}
+
+int extract_signconf(const char* zonelist_filename, const char* o_zone, char** signconf) {
+	int status = 0;
+	char* zone_name = NULL;
+	int i = 0;
+	
+	/* All of the XML stuff */
+    xmlDocPtr doc = NULL;
+    xmlNode *curNode;
+    xmlXPathContextPtr xpathCtx = NULL;
+    xmlXPathObjectPtr xpathObj = NULL;
+
+	xmlChar *node_expr = (unsigned char*) "//Zone";
+/* Load XML document */
+    doc = xmlParseFile(zonelist_filename);
+    if (doc == NULL) {
+        printf("Error: unable to parse file \"%s\"\n", zonelist_filename);
+        return(-1);
+    }
+/* Create xpath evaluation context */
+    xpathCtx = xmlXPathNewContext(doc);
+    if(xpathCtx == NULL) {
+        xmlFreeDoc(doc);
+        return(1);
+    }
+
+	/* Evaluate xpath expression */
+    xpathObj = xmlXPathEvalExpression(node_expr, xpathCtx);
+    if(xpathObj == NULL) {
+        xmlXPathFreeContext(xpathCtx);
+        xmlFreeDoc(doc);
+        return(1);
+    }
+
+	if (xpathObj->nodesetval) {
+        for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) {
+
+            curNode = xpathObj->nodesetval->nodeTab[i]->xmlChildrenNode;
+            zone_name = (char *) xmlGetProp(xpathObj->nodesetval->nodeTab[i], (const xmlChar *)"name");
+
+			if (strlen(zone_name) == strlen(o_zone) &&
+					strncmp(zone_name, o_zone, strlen(zone_name)) == 0) {
+				
+				while (curNode) {
+
+					if (xmlStrEqual(curNode->name, (const xmlChar *)"SignerConfiguration")) {
+						StrAppend(signconf, (char *) xmlNodeGetContent(curNode));
+						break;
+					}
+
+					curNode = curNode->next;
+				}
+
+				break;
+			}
+		}
+	}
+	
+	return status;
 }
 

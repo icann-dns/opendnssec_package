@@ -1,5 +1,5 @@
 #
-# $Id: auditor.rb 5411 2011-08-16 08:44:04Z alex $
+# $Id: auditor.rb 6048 2012-01-10 09:26:33Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -920,7 +920,10 @@ module KASPAuditor
       if (!is_glue && empty_nonterminals.length > 0)
         # If so, add the appropriate NSEC3 record to the "expected NSEC3s" file
         empty_nonterminals.each {|empty_nonterminal|
-          add_domain_to_types_file(empty_nonterminal, iterations, salt, hash_alg, "")
+          # Should really check to see if file already includes this name
+          if (File.open(@working + "#{File::SEPARATOR}audit.types.#{Process.pid}", "r").grep(/\s#{empty_nonterminal}/).length == 0)
+            add_domain_to_types_file(empty_nonterminal, iterations, salt, hash_alg, "")
+          end
         }
       end
       add_domain_to_types_file(domain, iterations, salt, hash_alg, types_string)
@@ -1119,6 +1122,7 @@ module KASPAuditor
       if (pri.to_i < @ret_val)
         @ret_val = pri.to_i
       end
+      msg = "#{@zone_name} : #{msg}"
       return if (@num_output_lines >= 100)
       @num_output_lines += 1
       if (@num_output_lines == 100)

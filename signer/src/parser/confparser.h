@@ -1,5 +1,5 @@
 /*
- * $Id: confparser.h 4685 2011-04-07 13:52:32Z matthijs $
+ * $Id: confparser.h 6065 2012-01-16 09:45:47Z jerry $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -113,6 +113,7 @@ const char* parse_conf_chroot(allocator_type* allocator,
 
 /** Common */
 int parse_conf_use_syslog(const char* cfgfile);
+int parse_conf_verbosity(const char* cfgfile);
 
 /** Signer specific */
 int parse_conf_worker_threads(const char* cfgfile);
