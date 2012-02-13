@@ -1,7 +1,8 @@
 Source: opendnssec
 Section: admin
 Priority: extra
-Maintainer: Ondřej Surý <ondrej@debian.org>
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Ondřej Surý <ondrej@debian.org>
 Build-Depends: quilt (>= 0.46-7~),
 	       debhelper (>= 7.0.50~),
 	       hardening-wrapper,

@@ -20,7 +20,7 @@ set -e
 
 for conffile in conf kasp zonefetch zonelist; do
     for ext in xml xml.sample; do
-	dpkg−maintscript−helper rm_conffile ${conffile}.${ext} 1.2.1.dfsg-1 -- "$@"
+	dpkg-maintscript-helper rm_conffile ${conffile}.${ext} 1.2.1.dfsg-1 -- "$@"
     done
 done
 
