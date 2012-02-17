@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.c 5994 2012-01-03 16:14:24Z sion $
+ * $Id: ksmutil.c 6107 2012-01-27 14:41:07Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -189,7 +189,7 @@ usage_zonelist ()
 usage_zone ()
 {
     fprintf(stderr,
-            "usage: %s [-f config] zone \n\n",
+            "usage: %s [-c <config> | --config <config>] zone \n\n",
 	    progname);
     usage_zoneadd ();
     usage_zonedel ();
@@ -236,7 +236,7 @@ usage_policypurge ()
 usage_policy ()
 {
     fprintf(stderr,
-            "usage: %s [-f config] \n\n",
+            "usage: %s [-c <config> | --config <config>] \n\n",
 	    progname);
     usage_policyexport ();
     usage_policyimport ();
@@ -340,7 +340,7 @@ usage_keydsseen ()
 usage_key ()
 {
     fprintf(stderr,
-            "usage: %s [-f config] \n\n",
+            "usage: %s [-c <config> | --config <config>] \n\n",
 	    progname);
     usage_keylist ();
     usage_keyexport ();
@@ -396,7 +396,7 @@ usage_zonelist2 ()
 usage ()
 {
     fprintf(stderr,
-            "usage: %s [-f config] command [options]\n\n",
+            "usage: %s [-c <config> | --config <config>] command [options]\n\n",
 	    progname);
 
     usage_general ();
@@ -4237,8 +4237,8 @@ int update_policies(char* kasp_filename)
     char* kaspcheck_cmd_version = NULL;
     
     StrAppend(&kaspcheck_cmd, ODS_AU_KASPCHECK);
-    StrAppend(&kaspcheck_cmd, " -k ");
-    StrAppend(&kaspcheck_cmd, kasp_filename);
+    StrAppend(&kaspcheck_cmd, " -c ");
+    StrAppend(&kaspcheck_cmd, config);
 
     StrAppend(&kaspcheck_cmd_version, ODS_AU_KASPCHECK);
     StrAppend(&kaspcheck_cmd_version, " -v > /dev/null");

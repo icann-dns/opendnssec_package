@@ -1,5 +1,5 @@
 /*
- * $Id: hsm.h 4355 2011-02-01 11:58:15Z matthijs $
+ * $Id: hsm.h 6111 2012-01-30 15:11:45Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -44,6 +44,29 @@
 #include <ldns/ldns.h>
 #include <libhsm.h>
 #include <libhsmdns.h>
+
+/**
+ * Open HSM.
+ * \param[in] filename the configuration filename
+ * \return int hsm status
+ *
+ */
+int lhsm_open(const char* filename);
+
+/**
+ * Reopen HSM.
+ * \param[in] filename the configuration filename
+ * \return int hsm status
+ *
+ */
+int lhsm_reopen(const char* filename);
+
+/**
+ * Check the HSM connection, reload engine if necessary.
+ * \param[in] engine signer engine.
+ *
+ */
+void lhsm_check_connection(void* engine);
 
 /**
  * Get key from one of the HSMs, store the DNSKEY and HSM key.

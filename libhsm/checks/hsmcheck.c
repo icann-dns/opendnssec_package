@@ -1,5 +1,5 @@
 /*
- * $Id: hsmcheck.c 4665 2011-03-28 09:16:48Z rb $
+ * $Id: hsmcheck.c 6123 2012-02-02 09:04:39Z rb $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.
@@ -229,7 +229,7 @@ main (int argc, char *argv[])
         r32 = hsm_random32(ctx);
         printf("random 32: %u\n", r32);
         r64 = hsm_random64(ctx);
-        printf("random 64: %llu\n", r64);
+        printf("random 64: %llu\n", (long long unsigned int)r64);
     }
 
     /*

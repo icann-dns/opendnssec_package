@@ -115,6 +115,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
 	 mysql-client,
 	 opendnssec-enforcer,
 	 libdbd-mysql-perl
+Pre-Depends: dpkg (>= 1.15.7.2~) | dpkg-maintscript-helper
 Provides: opendnssec-enforcer-backend
 Conflicts: opendnssec-enforcer-backend
 Replaces: opendnssec-enforcer-backend

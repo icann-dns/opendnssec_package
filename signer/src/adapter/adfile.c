@@ -1,5 +1,5 @@
 /*
- * $Id: adfile.c 5485 2011-08-25 14:04:41Z matthijs $
+ * $Id: adfile.c 6125 2012-02-02 09:30:21Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -430,6 +430,7 @@ ods_status
 adfile_write(struct zone_struct* zone, const char* filename)
 {
     FILE* fd = NULL;
+    char* tmpname = NULL;
     zone_type* adzone = (zone_type*) zone;
     ods_status status = ODS_STATUS_OK;
 
@@ -449,13 +450,22 @@ adfile_write(struct zone_struct* zone, const char* filename)
     /* [end] sanity parameter checking */
 
     /* [start] write zone */
-    fd = ods_fopen(filename, NULL, "w");
+    tmpname = ods_build_path(filename, ".tmp", 0);
+    fd = ods_fopen(tmpname, NULL, "w");
     if (fd) {
         status = zone_print(fd, adzone);
         ods_fclose(fd);
     } else {
         status = ODS_STATUS_FOPEN_ERR;
     }
+    if (status == ODS_STATUS_OK) {
+        if (rename((const char*) tmpname, filename) != 0) {
+            ods_log_error("[%s] unable to write file: failed to rename %s "
+                "to %s (%s)", adapter_str, tmpname, filename, strerror(errno));
+            status = ODS_STATUS_RENAME_ERR;
+        }
+    }
+    free(tmpname);
     /* [end] write zone */
 
     return status;

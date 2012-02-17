@@ -1,5 +1,5 @@
 /*
- * $Id: worker.h 5432 2011-08-22 12:55:04Z matthijs $
+ * $Id: worker.h 6162 2012-02-13 12:33:26Z jerry $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -120,6 +120,26 @@ void worker_wakeup(worker_type* worker);
  *
  */
 void worker_wait(lock_basic_type* lock, cond_basic_type* condition);
+
+/**
+ * Let worker wait.
+ * \param[in] lock lock to use
+ * \param[in] condition condition to be met
+ * \param[in] timeout maximum waiting time in seconds
+ *
+ */
+void worker_wait_timeout(lock_basic_type* lock, cond_basic_type* condition,
+    time_t timeout);
+
+/**
+ * Let worker wait on an already locked cond
+ * \param[in] lock lock to use
+ * \param[in] condition condition to be met
+ * \param[in] timeout maximum waiting time in seconds
+ *
+ */
+void worker_wait_timeout_locked(lock_basic_type* lock, cond_basic_type*
+    condition, time_t timeout);
 
 /**
  * Notify a worker.

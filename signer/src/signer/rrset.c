@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 5984 2012-01-02 14:50:59Z matthijs $
+ * $Id: rrset.c 6162 2012-02-13 12:33:26Z jerry $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -765,7 +765,7 @@ rrset_recycle(rrset_type* rrset, signconf_type* sc, time_t signtime)
     rrsigs = rrset->rrsigs;
     while (rrsigs) {
         if (!rrsigs->rr) {
-            ods_log_warning("[%s] signature set has no RRSIG record: "
+            ods_log_debug("[%s] signature set has no RRSIG record: "
                 "drop signatures for RRset[%i]", rrset_str, rrset->rr_type);
             rrsigs_cleanup(rrset->rrsigs);
             rrset->rrsigs = NULL;
@@ -1027,8 +1027,9 @@ rrset_sign(hsm_ctx_t* ctx, rrset_type* rrset, ldns_rdf* owner,
 
         /* is there a signature with this algorithm already? */
         if (rrset_signed_with_algorithm(rrset, key->algorithm)) {
-            ods_log_deeebug("skipping key %s for signing: RRset[%i] "
-                "already has signature with same algorithm", key->locator);
+            ods_log_deeebug("[%s] skipping key %s for signing: RRset[%i] "
+                "already has signature with same algorithm", rrset_str,
+                key->locator, rrset->rr_type);
             key = key->next;
             continue;
         }
@@ -1148,14 +1149,14 @@ rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker)
         tries++;
         lock_basic_lock(&q->q_lock);
         status = fifoq_push(q, (void*) rrset, worker, &tries);
-        lock_basic_unlock(&q->q_lock);
         /**
          * If tries are 0 they we have tries FIFOQ_TRIES_COUNT times,
          * lets take a small break to not hog CPU.
          */
-        if (status == ODS_STATUS_UNCHANGED && !tries) {
-            usleep(10000);
+        if (status == ODS_STATUS_UNCHANGED) {
+            worker_wait_timeout_locked(&q->q_lock, &q->q_nonfull, 60);
         }
+        lock_basic_unlock(&q->q_lock);
     }
     if (status == ODS_STATUS_OK) {
         lock_basic_lock(&worker->worker_lock);
