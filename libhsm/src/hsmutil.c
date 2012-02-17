@@ -1,5 +1,5 @@
 /*
- * $Id: hsmutil.c 4191 2010-11-16 08:51:56Z jakob $
+ * $Id: hsmutil.c 6123 2012-02-02 09:04:39Z rb $
  *
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
  * Copyright (c) 2009 NLNet Labs.
@@ -149,8 +149,8 @@ cmd_list (int argc, char *argv[])
         size_t invalid_keys;
         invalid_keys = key_count - key_count_valid;
         printf("\n");
-        fprintf(stderr, "Warning: %u %s not usable by OpenDNSSEC was found.\n",
-            invalid_keys, invalid_keys > 1 ? "keys" : "key");
+        fprintf(stderr, "Warning: %lu %s not usable by OpenDNSSEC was found.\n",
+            (unsigned long)invalid_keys, invalid_keys > 1 ? "keys" : "key");
     }
 
     return 0;

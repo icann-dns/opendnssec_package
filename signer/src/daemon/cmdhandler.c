@@ -1,5 +1,5 @@
 /*
- * $Id: cmdhandler.c 5657 2011-09-30 06:47:41Z matthijs $
+ * $Id: cmdhandler.c 6112 2012-01-30 15:12:33Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -37,6 +37,7 @@
 #include "scheduler/task.h"
 #include "shared/allocator.h"
 #include "shared/file.h"
+#include "shared/hsm.h"
 #include "shared/locks.h"
 #include "shared/log.h"
 #include "shared/status.h"
@@ -425,6 +426,11 @@ cmdhandler_handle_cmd_clear(int sockfd, cmdhandler_type* cmdc, const char* tbd)
         zone->zonedata->internal_serial = internal_serial;
         zone->zonedata->outbound_serial = outbound_serial;
 
+        /**
+         * The function zone_publish_dnskeys() uses hsm_create_context().
+         * We should check the hsm connection here.
+         */
+        lhsm_check_connection((void*)cmdc->engine);
         status = zone_publish_dnskeys(zone, 1);
         if (status == ODS_STATUS_OK) {
             status = zone_prepare_nsec3(zone, 1);
@@ -436,14 +442,14 @@ cmdhandler_handle_cmd_clear(int sockfd, cmdhandler_type* cmdc, const char* tbd)
             status = zonedata_commit(zone->zonedata);
         } else {
             ods_log_warning("[%s] unable to restore NSEC3PARAM RRset for "
-                " zone %s d1reloading signconf", cmdh_str, zone->name);
+                " zone %s, reloading signconf", cmdh_str, zone->name);
         }
 
         task = (task_type*) zone->task;
         task->what = TASK_READ;
         if (status != ODS_STATUS_OK) {
             ods_log_warning("[%s] unable to restore DNSKEY/NSEC3PARAM RRset "
-                " for zone %s d1reloading signconf", cmdh_str, zone->name);
+                " for zone %s, reloading signconf", cmdh_str, zone->name);
             task->what = TASK_SIGNCONF;
         }
         /* [UNLOCK] zone */

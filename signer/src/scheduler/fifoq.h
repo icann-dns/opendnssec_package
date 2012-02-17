@@ -66,6 +66,7 @@ struct fifoq_struct {
     size_t count;
     lock_basic_type q_lock;
     cond_basic_type q_threshold;
+    cond_basic_type q_nonfull;
 };
 
 /**

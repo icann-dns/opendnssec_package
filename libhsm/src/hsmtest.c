@@ -1,5 +1,5 @@
 /*
- * $Id: hsmtest.c 3619 2010-07-27 07:26:35Z rb $
+ * $Id: hsmtest.c 6123 2012-02-02 09:04:39Z rb $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.
@@ -103,7 +103,7 @@ hsm_test_random()
 
     printf("Generating 64-bit random data... ");
     r64 = hsm_random64(ctx);
-    printf("%llu\n", r64);
+    printf("%llu\n", (long long unsigned int)r64);
 
     return 0;
 }
