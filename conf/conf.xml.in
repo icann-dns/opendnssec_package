@@ -44,12 +44,10 @@
 	</Common>
 
 	<Enforcer>
-<!--
 		<Privileges>
 			<User>opendnssec</User>
 			<Group>opendnssec</Group>
 		</Privileges>
--->
 
 		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/db/kasp.db</SQLite></Datastore>
 		<Interval>PT3600S</Interval>
