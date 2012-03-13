@@ -1,3 +1,11 @@
+opendnssec (1.3.7-1) unstable; urgency=low
+
+  * Imported Upstream version 1.3.7
+  * Add warning about HSM SCA 6000 returning invalid key material with
+    leading zeroes
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 13 Mar 2012 15:24:26 +0100
+
 opendnssec (1.3.6-2) unstable; urgency=low
 
   * Run enforcer under opendnssec:opendnssec (Closes: #662601)
