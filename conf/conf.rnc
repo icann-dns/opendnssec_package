@@ -1,4 +1,4 @@
-# $Id: conf.rnc 6065 2012-01-16 09:45:47Z jerry $
+# $Id: conf.rnc 6204 2012-03-12 10:30:26Z matthijs $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -72,10 +72,7 @@ start = element Configuration {
 		element PolicyFile { xsd:string },
 
 		# Location to store the zonelist XML file
-		element ZoneListFile { xsd:string },
-
-		# Location to store the zonefetch XML file (optional)
-		element ZoneFetchFile { xsd:string }?
+		element ZoneListFile { xsd:string }
 	},
 
 	# Configuration parameters for the KASP Enforcer
@@ -109,10 +106,6 @@ start = element Configuration {
 		# DEFAULT: $(localstatedir)/opendnssec/tmp
 		element WorkingDirectory { xsd:string }?,
 
-		# Location of the signer tools
-		# DEFAULT: $(libexecdir)/opendnssec
-		element ToolsDirectory { xsd:string }?,
-
 		# Number of Worker Threads
 		# DEFAULT: 4
 		element WorkerThreads { xsd:positiveInteger }?,
@@ -120,20 +113,16 @@ start = element Configuration {
 		# DEFAULT: 4
 		element SignerThreads { xsd:positiveInteger }?,
 
+		# Listener
+		element Listener {
+			interface*
+		}?,
+
 		# System command to call after a zone has been (re)signed
 		#
 		# '%zone' in the string will be replaced by the zone name
 		# '%zonefile' in the string will be replaced by the zone file
 		element NotifyCommand { xsd:string }?
-	}?,
-
-	element Auditor {
-		# User & group to drop privs to
-		privs?,
-
-		# Location to store intermediate audit information
-		# DEFAULT: $(localstatedir)/opendnssec/tmp
-		element WorkingDirectory { xsd:string }?
 	}?
 }
 
@@ -169,3 +158,13 @@ mysql = element MySQL {
 }
 
 sqlite = element SQLite { xsd:string }
+
+interface = element Interface {
+	localAddress
+}
+
+ipv4 = element IPv4 { xsd:string }
+ipv6 = element IPv6 { xsd:string }
+port = element Port { xsd:positiveInteger { maxInclusive = "65535" } }
+
+localAddress = (ipv4 | ipv6)?, port?

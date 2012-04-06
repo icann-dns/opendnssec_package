@@ -1,5 +1,5 @@
 /*
- * $Id: engine.h 6111 2012-01-30 15:11:45Z matthijs $
+ * $Id: engine.h 6128 2012-02-02 10:39:28Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -37,10 +37,11 @@
 #include "config.h"
 #include "daemon/cfg.h"
 #include "daemon/cmdhandler.h"
+#include "daemon/dnshandler.h"
+#include "daemon/xfrhandler.h"
 #include "daemon/worker.h"
 #include "scheduler/fifoq.h"
 #include "scheduler/schedule.h"
-#include "scheduler/task.h"
 #include "shared/allocator.h"
 #include "shared/locks.h"
 #include "signer/zonelist.h"
@@ -61,6 +62,8 @@ struct engine_struct {
     schedule_type* taskq;
     fifoq_type* signq;
     cmdhandler_type* cmdhandler;
+    dnshandler_type* dnshandler;
+    xfrhandler_type* xfrhandler;
     int cmdhandler_done;
 
     pid_t pid;

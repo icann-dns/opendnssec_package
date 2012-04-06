@@ -33,25 +33,41 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 sbin_PROGRAMS = eppclient$(EXEEXT) eppclientd$(EXEEXT)
-subdir = src
+subdir = plugins/eppclient/src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/eppclient.8.in $(srcdir)/eppclientd.8.in \
 	$(srcdir)/eppclientd.conf.5.in $(srcdir)/eppclientd.conf.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/acx_ldns.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
+	$(top_srcdir)/m4/acx_check_strptime.m4 \
+	$(top_srcdir)/m4/acx_cunit.m4 \
+	$(top_srcdir)/m4/acx_database_backend.m4 \
+	$(top_srcdir)/m4/acx_dbparams.m4 \
+	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
 	$(top_srcdir)/m4/acx_libcurl.m4 \
 	$(top_srcdir)/m4/acx_libsqlite3.m4 \
-	$(top_srcdir)/m4/acx_libxml2.m4 \
+	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
 	$(top_srcdir)/m4/acx_pedantic.m4 \
+	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
-	$(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/acx_pthread.m4 $(top_srcdir)/m4/acx_rpath.m4 \
+	$(top_srcdir)/m4/acx_rt.m4 $(top_srcdir)/m4/acx_sqlite3.m4 \
+	$(top_srcdir)/m4/acx_ssl.m4 $(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
+	$(top_srcdir)/m4/check_compiler_flag.m4 \
+	$(top_srcdir)/m4/check_compiler_flag_needed.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/opendnssec_common.m4 $(top_srcdir)/version.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config.h
+CONFIG_HEADER = $(top_builddir)/common/config.h
 CONFIG_CLEAN_FILES = eppclient.8 eppclientd.8 eppclientd.conf \
 	eppclientd.conf.5
 am__installdirs = "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(man5dir)" \
@@ -67,13 +83,18 @@ am_eppclientd_OBJECTS = eppclientd.$(OBJEXT) eppconfig.$(OBJEXT) \
 	epp.$(OBJEXT) $(am__objects_1)
 eppclientd_OBJECTS = $(am_eppclientd_OBJECTS)
 eppclientd_DEPENDENCIES =
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 SOURCES = $(eppclient_SOURCES) $(eppclientd_SOURCES)
 DIST_SOURCES = $(eppclient_SOURCES) $(eppclientd_SOURCES)
 man5dir = $(mandir)/man5
@@ -85,6 +106,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -92,11 +114,49 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CP = @CP@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CUCUMBER = @CUCUMBER@
+CUNIT_INCLUDES = @CUNIT_INCLUDES@
+CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
+DB_HOST = @DB_HOST@
+DB_INCLUDES = @DB_INCLUDES@
+DB_LIBS = @DB_LIBS@
+DB_NAME = @DB_NAME@
+DB_PASS = @DB_PASS@
+DB_PORT = @DB_PORT@
+DB_TYPE = @DB_TYPE@
+DB_USER = @DB_USER@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DOXYGEN_PAPER_SIZE = @DOXYGEN_PAPER_SIZE@
+DSYMUTIL = @DSYMUTIL@
+DUMPBIN = @DUMPBIN@
+DX_CONFIG = @DX_CONFIG@
+DX_DOCDIR = @DX_DOCDIR@
+DX_DOT = @DX_DOT@
+DX_DOXYGEN = @DX_DOXYGEN@
+DX_DVIPS = @DX_DVIPS@
+DX_EGREP = @DX_EGREP@
+DX_ENV = @DX_ENV@
+DX_FLAG_chi = @DX_FLAG_chi@
+DX_FLAG_chm = @DX_FLAG_chm@
+DX_FLAG_doc = @DX_FLAG_doc@
+DX_FLAG_dot = @DX_FLAG_dot@
+DX_FLAG_html = @DX_FLAG_html@
+DX_FLAG_man = @DX_FLAG_man@
+DX_FLAG_pdf = @DX_FLAG_pdf@
+DX_FLAG_ps = @DX_FLAG_ps@
+DX_FLAG_rtf = @DX_FLAG_rtf@
+DX_FLAG_xml = @DX_FLAG_xml@
+DX_HHC = @DX_HHC@
+DX_LATEX = @DX_LATEX@
+DX_MAKEINDEX = @DX_MAKEINDEX@
+DX_PDFLATEX = @DX_PDFLATEX@
+DX_PERL = @DX_PERL@
+DX_PROJECT = @DX_PROJECT@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -106,12 +166,17 @@ EPPCLIENTD_DB = @EPPCLIENTD_DB@
 EPPCLIENTD_PID = @EPPCLIENTD_PID@
 EPPCLIENTD_PIPE = @EPPCLIENTD_PIPE@
 EXEEXT = @EXEEXT@
+FGREP = @FGREP@
 GREP = @GREP@
+HAVE_SSL = @HAVE_SSL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JAVA = @JAVA@
+KILLALL = @KILLALL@
+LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
@@ -120,9 +185,19 @@ LIBCURL = @LIBCURL@
 LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBTOOL = @LIBTOOL@
+LIPO = @LIPO@
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+MYSQL = @MYSQL@
+MYSQL_CONFIG = @MYSQL_CONFIG@
+MYSQL_INCLUDES = @MYSQL_INCLUDES@
+MYSQL_LIBS = @MYSQL_LIBS@
+NM = @NM@
+NMEDIT = @NMEDIT@
+OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OPENDNSSEC_BIN_DIR = @OPENDNSSEC_BIN_DIR@
 OPENDNSSEC_CONFIG_DIR = @OPENDNSSEC_CONFIG_DIR@
@@ -142,6 +217,8 @@ OPENDNSSEC_SIGNER_PIDFILE = @OPENDNSSEC_SIGNER_PIDFILE@
 OPENDNSSEC_SIGNER_SOCKET = @OPENDNSSEC_SIGNER_SOCKET@
 OPENDNSSEC_STATE_DIR = @OPENDNSSEC_STATE_DIR@
 OPENDNSSEC_SYSCONF_DIR = @OPENDNSSEC_SYSCONF_DIR@
+OTOOL = @OTOOL@
+OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -150,35 +227,58 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PERL = @PERL@
+PKILL = @PKILL@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_LIBS = @PTHREAD_LIBS@
+RANLIB = @RANLIB@
+RT_LIBS = @RT_LIBS@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SQLITE3 = @SQLITE3@
 SQLITE3_INCLUDES = @SQLITE3_INCLUDES@
 SQLITE3_LIBS = @SQLITE3_LIBS@
+SSL_INCLUDES = @SSL_INCLUDES@
+SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
 XML2_INCLUDES = @XML2_INCLUDES@
 XML2_LIBS = @XML2_LIBS@
+XMLLINT = @XMLLINT@
+XSLTPROC = @XSLTPROC@
 _libcurl_config = @_libcurl_config@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
+acx_pthread_config = @acx_pthread_config@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -187,10 +287,17 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
+lt_ECHO = @lt_ECHO@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+pkcs11_aepkeyper_module = @pkcs11_aepkeyper_module@
+pkcs11_etoken_module = @pkcs11_etoken_module@
+pkcs11_ncipher_module = @pkcs11_ncipher_module@
+pkcs11_opensc_module = @pkcs11_opensc_module@
+pkcs11_sca6000_module = @pkcs11_sca6000_module@
+pkcs11_softhsm_module = @pkcs11_softhsm_module@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
@@ -215,12 +322,12 @@ eppclient_SOURCES = eppclient.c eppconfig.c $(COMPAT)
 eppclient_LDADD = @LDNS_LIBS@ @XML2_LIBS@ @SQLITE3_LIBS@
 eppclientd_SOURCES = eppclientd.c eppconfig.c epp.c $(COMPAT)
 eppclientd_LDADD = @LDNS_LIBS@ @XML2_LIBS@ @LIBCURL@ @SQLITE3_LIBS@
-EXTRA_DIST = $(srcdir)/eppclientd.conf.in $(srcdir)/*.h \
+EXTRA_DIST = $(srcdir)/eppclientd.conf.in $(srcdir)/*.h $(srcdir)/*.c \
 	$(srcdir)/compat/*.c $(srcdir)/compat/*.h
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .o .obj
+.SUFFIXES: .c .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -230,9 +337,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  plugins/eppclient/src/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/Makefile
+	  $(AUTOMAKE) --foreign  plugins/eppclient/src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -264,10 +371,11 @@ install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@list='$(sbin_PROGRAMS)'; for p in $$list; do \
 	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
 	  if test -f $$p \
+	     || test -f $$p1 \
 	  ; then \
 	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(sbinPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(sbindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(sbinPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(sbindir)/$$f" || exit 1; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(sbinPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(sbindir)/$$f'"; \
+	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(sbinPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(sbindir)/$$f" || exit 1; \
 	  else :; fi; \
 	done
 
@@ -280,7 +388,11 @@ uninstall-sbinPROGRAMS:
 	done
 
 clean-sbinPROGRAMS:
-	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
+	@list='$(sbin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
+	done
 eppclient$(EXEEXT): $(eppclient_OBJECTS) $(eppclient_DEPENDENCIES) 
 	@rm -f eppclient$(EXEEXT)
 	$(LINK) $(eppclient_OBJECTS) $(eppclient_LDADD) $(LIBS)
@@ -314,6 +426,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
+.c.lo:
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
 strlcpy.o: compat/strlcpy.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlcpy.o -MD -MP -MF $(DEPDIR)/strlcpy.Tpo -c -o strlcpy.o `test -f 'compat/strlcpy.c' || echo '$(srcdir)/'`compat/strlcpy.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/strlcpy.Tpo $(DEPDIR)/strlcpy.Po
@@ -327,6 +446,12 @@ strlcpy.obj: compat/strlcpy.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='compat/strlcpy.c' object='strlcpy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlcpy.obj `if test -f 'compat/strlcpy.c'; then $(CYGPATH_W) 'compat/strlcpy.c'; else $(CYGPATH_W) '$(srcdir)/compat/strlcpy.c'; fi`
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
 install-man5: $(man5_MANS) $(man_MANS)
 	@$(NORMAL_INSTALL)
 	test -z "$(man5dir)" || $(MKDIR_P) "$(DESTDIR)$(man5dir)"
@@ -538,7 +663,8 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-generic clean-sbinPROGRAMS mostlyclean-am
+clean-am: clean-generic clean-libtool clean-sbinPROGRAMS \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -595,7 +721,8 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
 pdf: pdf-am
 
@@ -612,19 +739,20 @@ uninstall-man: uninstall-man5 uninstall-man8
 .MAKE: install-am install-data-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-sbinPROGRAMS ctags distclean distclean-compile \
-	distclean-generic distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-data-hook install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-man5 \
-	install-man8 install-pdf install-pdf-am install-ps \
-	install-ps-am install-sbinPROGRAMS install-strip installcheck \
+	clean-libtool clean-sbinPROGRAMS ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am \
+	install-data-hook install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-man5 install-man8 \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-sbinPROGRAMS install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-man uninstall-man5 uninstall-man8 \
-	uninstall-sbinPROGRAMS
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-man uninstall-man5 \
+	uninstall-man8 uninstall-sbinPROGRAMS
 
 
 install-data-hook:

@@ -1,5 +1,5 @@
 /*
- * $Id: database.h 3776 2010-08-24 14:55:39Z sion $
+ * $Id: database.h 6138 2012-02-03 14:58:00Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -42,7 +42,7 @@ extern "C" {
 
 #include <stdlib.h>
 
-#define KSM_DB_VERSION 2    /* This needs to match that given in the dbadmin table */
+#define KSM_DB_VERSION 3    /* This needs to match that given in the dbadmin table */
 
 #define MYSQL_DB 1
 #define SQLITE_DB 2
@@ -144,6 +144,12 @@ int DbLastRowId(DB_HANDLE handle, DB_ID* id);
 int DbBeginTransaction(void);
 int DbCommit(void);
 int DbRollback(void);
+
+/* Utility "quote" function */
+int DbQuoteString(DB_HANDLE handle, const char* in, char* buffer, size_t buflen);
+
+/* Create the SQL for a date difference */
+int DbDateDiff(const char* start, int delta, int sign, char* buffer, size_t buflen);
 
 /* What sort of DB are we running */
 

@@ -1,5 +1,5 @@
 /*
- * $Id: zonelistparser.h 4685 2011-04-07 13:52:32Z matthijs $
+ * $Id: zonelistparser.h 5557 2011-09-06 12:52:44Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -27,8 +27,8 @@
  */
 
 /**
- *
  * Parsing zonelist files.
+ *
  */
 
 #ifndef PARSER_ZONELISTPARSER_H
@@ -40,8 +40,6 @@
 
 #include <libxml/xpath.h>
 #include <libxml/xmlreader.h>
-
-struct zonelist_struct;
 
 /**
  * Parse adapter.
@@ -60,7 +58,6 @@ adapter_type* parse_zonelist_adapter(xmlXPathContextPtr xpathCtx,
  * \return ods_status status
  *
  */
-ods_status parse_zonelist_zones(struct zonelist_struct* zlist,
-    const char* zlfile);
+ods_status parse_zonelist_zones(void* zlist, const char* zlfile);
 
 #endif /* PARSER_ZONELISTPARSER_H */

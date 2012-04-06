@@ -1,4 +1,4 @@
-# $Id: configure.ac 6075 2012-01-18 12:42:24Z rb $
+# $Id: configure.ac 6102 2012-01-26 21:57:19Z jakob $
 
 m4_sinclude([version.m4])
 
@@ -99,6 +99,8 @@ AC_FUNC_VPRINTF
 
 AC_REPLACE_FUNCS(strlcat)
 AC_REPLACE_FUNCS(strlcpy)
+AC_REPLACE_FUNCS(b64_pton)
+AC_REPLACE_FUNCS(b64_ntop)
 
 ACX_BROKEN_SETRES
 AC_CHECK_STRPTIME
@@ -142,6 +144,7 @@ ACX_LIBXML2
 ACX_LDNS(1,6,12)
 ACX_PKCS11_MODULES
 ACX_RT
+ACX_SSL
 
 # pthread
 ACX_PTHREAD
@@ -200,18 +203,6 @@ AH_BOTTOM([
 ])
 AM_CONDITIONAL([ENABLE_SIGNER], [test "${enable_signer}" = "yes"])
 
-# auditor
-AC_ARG_ENABLE(auditor,
-	AC_HELP_STRING([--disable-auditor],
-		[Disable auditor build (default enabled)]),
-		[enable_auditor="${enableval}"],
-		[enable_auditor="yes"])
-if test "x${enable_auditor}" = "xyes"; then
-	AM_PROG_RUBY
-	AC_CONFIG_SUBDIRS([ auditor ])
-fi
-AM_CONDITIONAL([ENABLE_AUDITOR], [test "${enable_auditor}" = "yes"])
-
 # plugins/eppclient
 AC_ARG_ENABLE(eppclient,
 	AC_HELP_STRING([--enable-eppclient],
@@ -219,8 +210,25 @@ AC_ARG_ENABLE(eppclient,
 		[enable_eppclient="${enableval}"],
 		[enable_eppclient="no"])
 if test "x${enable_eppclient}" = "xyes"; then
+	AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP, 1,
+		[Define if you have nanosleep]))
+
+	# ACX_LIBXML2
+	# ACX_LDNS(1,6,6)
+	ACX_LIBSQLITE3
 	LIBCURL_CHECK_CONFIG([yes], [7.18.2], [], [AC_MSG_ERROR(["libcurl not found"])])
-	AC_CONFIG_SUBDIRS([ plugins/eppclient ])
+
+	EPPCLIENTD_CONF=$OPENDNSSEC_SYSCONF_DIR/eppclientd.conf
+	EPPCLIENTD_DB=$OPENDNSSEC_LOCALSTATE_DIR/eppclientd.sqlite
+	EPPCLIENTD_PID=$OPENDNSSEC_PID_DIR/eppclientd.pid
+	EPPCLIENTD_PIPE=$OPENDNSSEC_PID_DIR/eppclientd.pipe
+
+	AC_SUBST([EPPCLIENTD_CONF])
+	AC_SUBST([EPPCLIENTD_DB])
+	AC_SUBST([EPPCLIENTD_PID])
+	AC_SUBST([EPPCLIENTD_PIPE])
+
+	AC_DEFINE_UNQUOTED(EPPCLIENTD_CONF, "$EPPCLIENTD_CONF", [Path to the eppclientd.conf])
 fi
 AM_CONDITIONAL([ENABLE_EPPCLIENT], [test "${enable_eppclient}" = "yes"])
 
@@ -243,20 +251,20 @@ AC_CONFIG_FILES([
 	Doxyfile
 	common/Makefile
 	conf/Makefile
+	conf/addns.xml
 	conf/conf.xml
+	conf/enforcerstate.xml
 	conf/kasp.xml
 	conf/signconf.xml
 	conf/zonelist.xml
-	conf/zonefetch.xml
+	contrib/Makefile
 	enforcer/Makefile
-	enforcer/ksm/Makefile
-	enforcer/ksm/include/Makefile
-	enforcer/ksm/include/ksm/Makefile
 	enforcer/common/Makefile
 	enforcer/enforcerd/Makefile
 	enforcer/enforcerd/ods-enforcerd.8
-	enforcer/utils/Makefile
-	enforcer/utils/ods-ksmutil.1
+	enforcer/ksm/Makefile
+	enforcer/ksm/include/Makefile
+	enforcer/ksm/include/ksm/Makefile
 	enforcer/test/Makefile
 	enforcer/test/cucumber/Makefile
 	enforcer/test/cucumber/c_conf.xml
@@ -265,10 +273,15 @@ AC_CONFIG_FILES([
 	enforcer/test/cunit/Makefile
 	enforcer/test/cunit/database_setup_mysql.sh
 	enforcer/test/cunit/database_setup_sqlite3.sh
+	enforcer/utils/Makefile
+	enforcer/utils/ods-kaspcheck.1
+	enforcer/utils/ods-ksmutil.1
 	libhsm/Makefile
 	libhsm/src/Makefile
-	libhsm/src/ods-hsmspeed.1
-	libhsm/src/ods-hsmutil.1
+	libhsm/src/bin/Makefile
+	libhsm/src/bin/ods-hsmspeed.1
+	libhsm/src/bin/ods-hsmutil.1
+	libhsm/src/lib/Makefile
 	libhsm/checks/Makefile
 	libhsm/checks/conf-softhsm.xml
 	libhsm/checks/conf-sca6000.xml
@@ -277,11 +290,18 @@ AC_CONFIG_FILES([
 	libhsm/checks/conf-opensc.xml
 	libhsm/checks/conf-ncipher.xml
 	libhsm/checks/conf-aepkeyper.xml
+	plugins/eppclient/Makefile
+	plugins/eppclient/src/Makefile
+	plugins/eppclient/src/eppclient.8
+	plugins/eppclient/src/eppclientd.8
+	plugins/eppclient/src/eppclientd.conf
+	plugins/eppclient/src/eppclientd.conf.5
 	signer/Makefile
-	signer/src/Makefile
 	signer/man/Makefile
 	signer/man/ods-signer.8
 	signer/man/ods-signerd.8
+	signer/src/Makefile
+	test/conf/softhsm.conf
 	tools/Makefile
 	tools/ods-control
 	tools/solaris/Makefile
@@ -291,8 +311,6 @@ AC_CONFIG_FILES([
 	tools/opendnssec.7
 	tools/ods-control.8
 	tools/ods-kasp2html
-	contrib/Makefile
-	test/conf/softhsm.conf
 ])
 
 AC_OUTPUT

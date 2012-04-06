@@ -1,5 +1,5 @@
 .TH "ods-enforcerd" "8" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-enforcerd"
-.\" $Id: ods-enforcerd.8.in 2888 2010-02-24 22:55:16Z jakob $
+.\" $Id: ods-enforcerd.8.in 6013 2012-01-04 15:57:01Z sion $
 .SH "NAME"
 .LP
 .B ods\-enforcerd
@@ -75,7 +75,7 @@ default process-id file.
 .P
 .SH "SEE ALSO"
 .LP
-ods\-auditor(1), ods\-control(8), ods\-hsmspeed(1),
+ods\-control(8), ods\-hsmspeed(1),
 ods\-hsmutil(1), ods\-kaspcheck(1), ods\-ksmutil(1), ods\-signer(8),
 ods\-signerd(8), ods\-timing(5), opendnssec(7),
 .B http://www.opendnssec.org/

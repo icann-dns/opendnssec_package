@@ -1,4 +1,4 @@
-# $Id: zonelist.rnc 1897 2009-09-29 12:40:20Z jakob $
+# $Id: zonelist.rnc 5937 2011-11-30 08:53:15Z matthijs $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -49,5 +49,17 @@ start = element ZoneList {
 	}*
 }
 
-# for now, only the file adapter is defined
-adapter = element File { xsd:string }
+# adapters
+adapter = adfile | adother
+
+# file adapter
+adfile = element File { xsd:string }
+
+# other adapters
+adother = element Adapter {
+	# Adapter type
+	attribute type { xsd:string },
+
+	# Configuration file
+	xsd:string
+}
