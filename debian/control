@@ -9,11 +9,6 @@ Build-Depends: quilt (>= 0.46-7~),
 	       automake,
 	       autoconf,
 	       libtool,
-	       ruby-dnsruby (>= 1.53~),
-	       rubygems,
-	       ruby-pkg-tools,
-	       ruby1.8,
-	       libopenssl-ruby,
 	       libxml2-utils,
 	       xsltproc,
 	       libxml2-dev,
@@ -24,34 +19,13 @@ Build-Depends: quilt (>= 0.46-7~),
 	       libldns-dev (>= 1.6.12~),
 	       libcunit1-dev,
 	       opensc,
-	       rdoc,
 	       graphviz,
-	       doxygen
+	       doxygen,
+	       libcurl4-openssl-dev
 Standards-Version: 3.9.2
 Homepage: http://www.opendnssec.org/
 Vcs-Browser: http://git.debian.org/?p=pkg-nlnetlabs/opendnssec.git
 Vcs-Git: git://git.debian.org/pkg-nlnetlabs/opendnssec.git
-
-Package: opendnssec-auditor
-Section: admin
-Architecture: all
-Depends: ${misc:Depends},
-	 ruby1.8,
-	 ruby-dnsruby (>= 1.53~),
-	 libopenssl-ruby
-Recommends: opendnssec-signer, opendnssec-enforcer
-Suggests: opendnssec, softhsm
-Description: tool to audit DNS signed zones according to local policy
- OpenDNSSEC is a complete DNSSEC zone signing system which is very
- easy to use with stability and security in mind.  There are a lot of
- details in signing zone files with DNSSEC and OpenDNSSEC covers most
- of it.
- .
- This package contains OpenDNSSEC Auditor, which is a tool to check
- whether a DNSSEC signed zone complies to a local policy.  It is issued
- automatically (unless disabled) after each resigning of a zone
- and will stop the signed zone file from being distributed if any
- error is found.
 
 Package: opendnssec-common
 Section: misc
@@ -60,6 +34,8 @@ Depends: ${misc:Depends},
 	 ucf,
 	 adduser
 Suggests: opendnssec, softhsm
+Conflicts: opendnssec-auditor (<= 1.3.7-2)
+Replaces: opendnssec-auditor (<= 1.3.7-2)
 Description: common configuration files for OpenDNSSEC suite
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -76,7 +52,6 @@ Depends: ${misc:Depends},
 	 opendnssec-enforcer-sqlite3 | opendnssec-enforcer,
 	 opendnssec-signer,
 	 libhsm-bin
-Recommends: opendnssec-auditor
 Suggests: softhsm
 Description: dependency package to install full OpenDNSSEC suite
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
@@ -91,7 +66,7 @@ Section: admin
 Architecture: all
 Depends: ${misc:Depends},
 	 opendnssec-enforcer-backend
-Recommends: opendnssec-signer, opendnssec-auditor
+Recommends: opendnssec-signer
 Suggests: opendnssec, softhsm
 Description: tool to prepare DNSSEC keys (common package)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
@@ -165,7 +140,7 @@ Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 opendnssec-common (= ${source:Version}),
 	 libldns1 (>= 1.6.12~)
-Recommends: opendnssec-auditor, opendnssec-enforcer
+Recommends: opendnssec-enforcer
 Suggests: opendnssec, softhsm
 Conflicts: opendnssec-signer-tools (<< 1.2.0~)
 Description: daemon to sign DNS zone files periodically

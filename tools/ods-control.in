@@ -118,7 +118,7 @@ case "$1" in
 					i=`expr $i + 1`
 					if [ $i -ge 5 ]; then
 						RETVAL=1
-						echo "Could not stop enforcer"
+						echo "Could not start enforcer"
 						break
 					fi
 				done

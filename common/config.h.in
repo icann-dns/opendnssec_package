@@ -18,6 +18,9 @@
 /* timeshift debug */
 #undef ENFORCER_TIMESHIFT
 
+/* Path to the eppclientd.conf */
+#undef EPPCLIENTD_CONF
+
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
@@ -29,6 +32,12 @@
 
 /* Define to 1 if you have the `atoi' function. */
 #undef HAVE_ATOI
+
+/* Define to 1 if you have the `b64_ntop' function. */
+#undef HAVE_B64_NTOP
+
+/* Define to 1 if you have the `b64_pton' function. */
+#undef HAVE_B64_PTON
 
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
@@ -68,6 +77,12 @@
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
+
+/* Define to 1 if you have the `EVP_sha1' function. */
+#undef HAVE_EVP_SHA1
+
+/* Define to 1 if you have the `EVP_sha256' function. */
+#undef HAVE_EVP_SHA256
 
 /* Define to 1 if you have the `exit' function. */
 #undef HAVE_EXIT
@@ -123,6 +138,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `crypto' library (-lcrypto). */
+#undef HAVE_LIBCRYPTO
+
 /* Define to 1 if you have the `cunit' library (-lcunit). */
 #undef HAVE_LIBCUNIT
 
@@ -153,7 +171,7 @@
 /* Define to 1 if you have the `listen' function. */
 #undef HAVE_LISTEN
 
-/* Whether LoadLibrary is available */
+/* Define if you have LoadLibrary */
 #undef HAVE_LOADLIBRARY
 
 /* Define to 1 if you have the `localtime_r' function. */
@@ -171,6 +189,9 @@
 
 /* Define to 1 if you have the <mysql.h> header file. */
 #undef HAVE_MYSQL_H
+
+/* Define if you have nanosleep */
+#undef HAVE_NANOSLEEP
 
 /* Define to 1 if you have the `openlog' function. */
 #undef HAVE_OPENLOG
@@ -256,6 +277,9 @@
 
 /* Define to 1 if you have the <sqlite3.h> header file. */
 #undef HAVE_SQLITE3_H
+
+/* Define if you have the SSL libraries installed. */
+#undef HAVE_SSL
 
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT
@@ -462,14 +486,11 @@
    */
 #undef LT_OBJDIR
 
-/* Path to the OpenDNSSEC kaspcheck binary */
-#undef ODS_AU_KASPCHECK
-
 /* Path to the OpenDNSSEC ods-control binary */
 #undef ODS_EN_CONTROL
 
-/* Path to the OpenDNSSEC auditor binary */
-#undef ODS_SE_AUDITOR
+/* Path to the OpenDNSSEC kaspcheck binary */
+#undef ODS_EN_KASPCHECK
 
 /* Path to the OpenDNSSEC config file */
 #undef ODS_SE_CFGFILE
@@ -481,10 +502,13 @@
 #undef ODS_SE_ENGINE
 
 /* File magic for storing backups from the OpenDNSSEC signer engine */
-#undef ODS_SE_FILE_MAGIC
+#undef ODS_SE_FILE_MAGIC_V1
 
 /* File magic for storing backups from the OpenDNSSEC signer engine */
-#undef ODS_SE_FILE_MAGIC_V1
+#undef ODS_SE_FILE_MAGIC_V2
+
+/* File magic for storing backups from the OpenDNSSEC signer engine */
+#undef ODS_SE_FILE_MAGIC_V3
 
 /* Maximum line length that the OpenDNSSEC signer client can handle */
 #undef ODS_SE_MAXLINE

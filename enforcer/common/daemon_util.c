@@ -1,5 +1,5 @@
 /*
- * $Id: daemon_util.c 6199 2012-03-07 10:26:59Z matthijs $
+ * $Id: daemon_util.c 6200 2012-03-07 10:35:57Z matthijs $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -417,7 +417,7 @@ writepid (DAEMONCONFIG *config)
     } else {
         if (S_ISREG(stat_ret.st_mode)) {
             /* The file exists already */
-	    if ((oldpid = readpid(config->pidfile)) == -1) {
+            if ((oldpid = readpid(config->pidfile)) == -1) {
                 /* consider stale pidfile */
                 if (errno != ENOENT) {
                     log_msg(config, LOG_ERR, "cannot read pidfile %s: %s",
@@ -991,7 +991,7 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
 
     /* Check that we found the right database type */
     if (db_found != DbFlavour()) {
-        log_msg(config, LOG_ERR, "Error: database in config file %s does not match libksm", filename);
+        log_msg(config, LOG_ERR, "Error: Config file %s specifies database type %s but system is compiled to use %s", filename, (db_found==1) ? "MySQL" : "sqlite3", (db_found==2) ? "MySQL" : "sqlite3");
         xmlXPathFreeContext(xpathCtx);
         xmlFreeDoc(doc);
         return(-1);

@@ -37,10 +37,6 @@
 		
 		<PolicyFile>@OPENDNSSEC_CONFIG_DIR@/kasp.xml</PolicyFile>
 		<ZoneListFile>@OPENDNSSEC_CONFIG_DIR@/zonelist.xml</ZoneListFile>
-
-	<!--
-		<ZoneFetchFile>@OPENDNSSEC_CONFIG_DIR@/zonefetch.xml</ZoneFetchFile>
-	-->
 	</Common>
 
 	<Enforcer>
@@ -72,6 +68,12 @@
 		<SignerThreads>4</SignerThreads>
 -->
 
+<!--
+		<Listener>
+			<Interface><Port>53</Port></Interface>
+		</Listener>
+-->
+
 		<!-- the <NotifyCommmand> will expand the following variables:
 
 		     %zone      the name of the zone that was signed
@@ -84,14 +86,5 @@
 		<NotifyCommand>/usr/sbin/rndc reload %zone</NotifyCommand>
 -->
 	</Signer>
-
-	<Auditor>
-		<Privileges>
-			<User>opendnssec</User>
-			<Group>opendnssec</Group>
-		</Privileges>
-
-		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
-	</Auditor>
 
 </Configuration>

@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_zone.c 3838 2010-08-31 11:35:52Z sion $
+ * $Id: ksm_zone.c 5914 2011-11-25 13:33:33Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -170,6 +170,10 @@ int KsmZone(DB_RESULT result, KSM_ZONE *data)
             KSM_PATH_LENGTH*sizeof(char));
         DbStringBuffer(row, DB_ZONE_OUTPUT, data->output,
             KSM_PATH_LENGTH*sizeof(char));
+        DbStringBuffer(row, DB_ZONE_IN_TYPE, data->in_type,
+            KSM_ADAPTER_NAME_LENGTH*sizeof(char));
+        DbStringBuffer(row, DB_ZONE_OUT_TYPE, data->out_type,
+            KSM_ADAPTER_NAME_LENGTH*sizeof(char));
     }
     else if (status == -1) {}
         /* No rows to return (but no error) */

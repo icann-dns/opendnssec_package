@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signer.c 6134 2012-02-02 14:15:32Z matthijs $
+ * $Id: ods-signer.c 6136 2012-02-02 14:22:11Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -170,7 +170,6 @@ interface_run(FILE* fp, int sockfd, char* cmd)
                             "from daemon.\n");
                     exit(1);
                 }
-
                 /* n >= SE_CLI_CMDLEN : and so it is safe to do buffer
                     manipulations below. */
                 if (strncmp(buf+n-SE_CLI_CMDLEN,"\ncmd> ",SE_CLI_CMDLEN) == 0) {
@@ -251,8 +250,6 @@ interface_run(FILE* fp, int sockfd, char* cmd)
                 strncmp(buf, "quit", 4) == 0) {
                 return;
             }
-            ods_str_trim(buf);
-            n = strlen(buf);
             ods_writen(sockfd, buf, n);
         }
     }
@@ -274,7 +271,7 @@ interface_start(char* cmd)
 
     /* new socket */
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd < 0) {
+    if (sockfd <= 0) {
         fprintf(stderr, "Unable to connect to engine. "
             "socket() failed: %s\n", strerror(errno));
         exit(1);

@@ -1,5 +1,5 @@
 /*
- * $Id: file.c 5805 2011-10-24 13:22:51Z matthijs $
+ * $Id: file.c 6166 2012-02-14 15:36:44Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,6 +35,7 @@
 #include "shared/file.h"
 #include "shared/log.h"
 
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -84,10 +85,7 @@ ods_fgetc(FILE* fd, unsigned int* line_nr)
     ods_log_assert(line_nr);
 
     c = fgetc(fd);
-    if (c == '\r') { /* carriage return */
-        c = ' ';
-    }
-    if (c == '\n') {
+	if (c == '\n') {
         (*line_nr)++;
     }
     return c;
@@ -267,11 +265,13 @@ ods_file_lastmodified(const char* file)
     int ret;
     struct stat buf;
     FILE* fd;
-
     ods_log_assert(file);
-
     if ((fd = ods_fopen(file, NULL, "r")) != NULL) {
         ret = stat(file, &buf);
+        if (ret == -1) {
+            ods_log_error("[%s] unable to stat file %s: %s", file_str,
+                file, strerror(errno));
+        }
         ods_fclose(fd);
         return buf.st_mtime;
     }
@@ -298,6 +298,38 @@ ods_strcmp(const char* s1, const char* s2)
         }
     }
     return strncmp(s1, s2, strlen(s1));
+}
+
+
+/**
+ * Compare a string lowercased
+ *
+ */
+int
+ods_strlowercmp(const char* str1, const char* str2)
+{
+    while (str1 && str2 && *str1 != '\0' && *str2 != '\0') {
+        if (tolower((int)*str1) != tolower((int)*str2)) {
+            if (tolower((int)*str1) < tolower((int)*str2)) {
+                return -1;
+            }
+            return 1;
+        }
+        str1++;
+        str2++;
+    }
+    if (str1 && str2) {
+        if (*str1 == *str2) {
+            return 0;
+        } else if (*str1 == '\0') {
+            return -1;
+        }
+    } else if (!str1 && !str2) {
+        return 0;
+    } else if (!str1 && str2) {
+        return -1;
+    }
+    return 1;
 }
 
 

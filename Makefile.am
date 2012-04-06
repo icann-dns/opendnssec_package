@@ -1,4 +1,4 @@
-# $Id: Makefile.am 5246 2011-06-26 07:43:30Z rb $
+# $Id: Makefile.am 6001 2012-01-04 14:47:36Z jakob $
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -17,10 +17,6 @@ if ENABLE_SIGNER
 SUBDIRS += signer
 endif
 
-if ENABLE_AUDITOR
-SUBDIRS += auditor
-endif
-
 if ENABLE_EPPCLIENT
 SUBDIRS += plugins/eppclient
 endif
@@ -34,6 +30,3 @@ docs:
 	(cd libhsm; $(MAKE) doxygen)
 	(cd enforcer; $(MAKE) doxygen)
 	(cd signer; $(MAKE) doxygen)
-if ENABLE_AUDITOR
-	(cd auditor; $(MAKE) rdoc)
-endif
