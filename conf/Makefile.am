@@ -7,7 +7,7 @@ RNG =	addns.rng conf.rng kasp.rng zonelist.rng signconf.rng enforcerstate.rng
 XML =	addns.xml conf.xml kasp.xml zonelist.xml signconf.xml enforcerstate.xml
 XSL=	kasp2html.xsl
 
-TRANG=		$(srcdir)/trang/trang.jar
+TRANG=		/usr/bin/trang
 TRANG_URL	"https://code.google.com/p/jing-trang/"
 
 sysconfdir = @sysconfdir@/opendnssec
@@ -31,7 +31,7 @@ $(TRANG):
 .rnc.rng:
 	@test -x "${JAVA}" || \
 		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)
-	${JAVA} -jar ${TRANG} $< $@
+	${TRANG} $< $@
 
 regress: $(RNG)
 	@test -x "${XMLLINT}" || \
