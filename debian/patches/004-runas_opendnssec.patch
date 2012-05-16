@@ -15,7 +15,7 @@
  
  <!--
  		<Repository name="sca6000">
-@@ -38,14 +40,12 @@
+@@ -42,14 +44,12 @@
  	</Common>
  
  	<Enforcer>
@@ -31,7 +31,7 @@
  		<Interval>PT3600S</Interval>
  		<!-- <ManualKeyGeneration/> -->
  		<!-- <RolloverNotification>P14D</RolloverNotification> -->
-@@ -57,12 +57,10 @@
+@@ -61,12 +61,10 @@
  	</Enforcer>
  
  	<Signer>
@@ -44,3 +44,16 @@
  
  		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
  		<WorkerThreads>4</WorkerThreads>
+@@ -88,12 +86,10 @@
+ 	</Signer>
+ 
+ 	<Auditor>
+-<!--
+ 		<Privileges>
+ 			<User>opendnssec</User>
+ 			<Group>opendnssec</Group>
+ 		</Privileges>
+--->
+ 
+ 		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
+ 	</Auditor>

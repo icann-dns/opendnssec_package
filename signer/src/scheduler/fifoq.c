@@ -32,7 +32,9 @@
  */
 
 #include "config.h"
+#include "daemon/worker.h"
 #include "scheduler/fifoq.h"
+#include "shared/allocator.h"
 #include "shared/log.h"
 
 #include <ldns/ldns.h>
@@ -49,14 +51,19 @@ fifoq_create(allocator_type* allocator)
 {
     fifoq_type* fifoq;
     if (!allocator) {
-        return NULL;
-    }
-    fifoq = (fifoq_type*) allocator_alloc(allocator, sizeof(fifoq_type));
-    if (!fifoq) {
-        ods_log_error("[%s] unable to create fifoq: allocator_alloc() failed",
+        ods_log_error("[%s] unable to create: no allocator available",
             fifoq_str);
         return NULL;
     }
+    ods_log_assert(allocator);
+
+    fifoq = (fifoq_type*) allocator_alloc(allocator, sizeof(fifoq_type));
+    if (!fifoq) {
+        ods_log_error("[%s] unable to create: allocator failed", fifoq_str);
+        return NULL;
+    }
+    ods_log_assert(fifoq);
+
     fifoq->allocator = allocator;
     fifoq_wipe(fifoq);
     lock_basic_init(&fifoq->q_lock);
@@ -74,6 +81,7 @@ void
 fifoq_wipe(fifoq_type* q)
 {
     size_t i = 0;
+
     for (i=0; i < FIFOQ_MAX_COUNT; i++) {
         q->blob[i] = NULL;
         q->owner[i] = NULL;
@@ -92,9 +100,14 @@ fifoq_pop(fifoq_type* q, worker_type** worker)
 {
     void* pop = NULL;
     size_t i = 0;
-    if (!q || q->count <= 0) {
+
+    if (!q) {
         return NULL;
     }
+    if (q->count <= 0) {
+        return NULL;
+    }
+
     pop = q->blob[0];
     *worker = q->owner[0];
     for (i = 0; i < q->count-1; i++) {
@@ -102,6 +115,7 @@ fifoq_pop(fifoq_type* q, worker_type** worker)
         q->owner[i] = q->owner[i+1];
     }
     q->count -= 1;
+
     if (q->count <= (size_t) FIFOQ_MAX_COUNT * 0.1) {
         /* notify waiting workers that they can start queuing again */
         lock_basic_broadcast(&q->q_nonfull);
@@ -117,9 +131,17 @@ fifoq_pop(fifoq_type* q, worker_type** worker)
 ods_status
 fifoq_push(fifoq_type* q, void* item, worker_type* worker, int* tries)
 {
-    if (!q || !item || !worker) {
+    if (!item) {
+        ods_log_error("[%s] unable to push item: no item", fifoq_str);
         return ODS_STATUS_ASSERT_ERR;
     }
+    ods_log_assert(item);
+    if (!q) {
+        ods_log_error("[%s] unable to push item: no queue", fifoq_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(q);
+
     if (q->count >= FIFOQ_MAX_COUNT) {
         /* #262 if drudgers remain on hold, do additional broadcast */
         if (*tries > FIFOQ_TRIES_COUNT) {
@@ -130,13 +152,14 @@ fifoq_push(fifoq_type* q, void* item, worker_type* worker, int* tries)
         }
         return ODS_STATUS_UNCHANGED;
     }
+
     q->blob[q->count] = item;
     q->owner[q->count] = worker;
     q->count += 1;
     if (q->count == 1) {
+        lock_basic_broadcast(&q->q_threshold);
         ods_log_deeebug("[%s] threshold %u reached, notify drudgers",
             fifoq_str, q->count);
-        lock_basic_broadcast(&q->q_threshold);
     }
     return ODS_STATUS_OK;
 }
@@ -153,13 +176,16 @@ fifoq_cleanup(fifoq_type* q)
     lock_basic_type q_lock;
     cond_basic_type q_threshold;
     cond_basic_type q_nonfull;
+
     if (!q) {
         return;
     }
+    ods_log_assert(q);
     allocator = q->allocator;
     q_lock = q->q_lock;
     q_threshold = q->q_threshold;
     q_nonfull = q->q_nonfull;
+
     allocator_deallocate(allocator, (void*) q);
     lock_basic_off(&q_threshold);
     lock_basic_off(&q_nonfull);

@@ -1,5 +1,5 @@
 /*
- * $Id: file.c 6166 2012-02-14 15:36:44Z matthijs $
+ * $Id: file.c 6244 2012-04-03 13:56:27Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,7 +35,6 @@
 #include "shared/file.h"
 #include "shared/log.h"
 
-#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -85,7 +84,10 @@ ods_fgetc(FILE* fd, unsigned int* line_nr)
     ods_log_assert(line_nr);
 
     c = fgetc(fd);
-	if (c == '\n') {
+    if (c == '\r') { /* carriage return */
+        c = ' ';
+    }
+    if (c == '\n') {
         (*line_nr)++;
     }
     return c;
@@ -119,7 +121,7 @@ ods_skip_whitespace(FILE* fd, unsigned int* line_nr)
  *
  */
 char*
-ods_build_path(const char* file, const char* suffix, int dir)
+ods_build_path(const char* file, const char* suffix, int dir, int no_slash)
 {
     size_t len_file = 0;
     size_t len_suffix = 0;
@@ -145,6 +147,21 @@ ods_build_path(const char* file, const char* suffix, int dir)
 
             strncpy(openf, file, len_file);
             openf[len_file] = '\0';
+            if (no_slash) {
+                size_t i = 0;
+                for (i=0; i<len_file; i++) {
+                    switch (openf[i]) {
+                        case '/':
+                        case ' ':
+                        /* more? */
+                            openf[i] = '-';
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
             if (suffix) {
                 strncat(openf, suffix, len_suffix);
             }
@@ -265,13 +282,11 @@ ods_file_lastmodified(const char* file)
     int ret;
     struct stat buf;
     FILE* fd;
+
     ods_log_assert(file);
+
     if ((fd = ods_fopen(file, NULL, "r")) != NULL) {
         ret = stat(file, &buf);
-        if (ret == -1) {
-            ods_log_error("[%s] unable to stat file %s: %s", file_str,
-                file, strerror(errno));
-        }
         ods_fclose(fd);
         return buf.st_mtime;
     }
@@ -298,38 +313,6 @@ ods_strcmp(const char* s1, const char* s2)
         }
     }
     return strncmp(s1, s2, strlen(s1));
-}
-
-
-/**
- * Compare a string lowercased
- *
- */
-int
-ods_strlowercmp(const char* str1, const char* str2)
-{
-    while (str1 && str2 && *str1 != '\0' && *str2 != '\0') {
-        if (tolower((int)*str1) != tolower((int)*str2)) {
-            if (tolower((int)*str1) < tolower((int)*str2)) {
-                return -1;
-            }
-            return 1;
-        }
-        str1++;
-        str2++;
-    }
-    if (str1 && str2) {
-        if (*str1 == *str2) {
-            return 0;
-        } else if (*str1 == '\0') {
-            return -1;
-        }
-    } else if (!str1 && !str2) {
-        return 0;
-    } else if (!str1 && str2) {
-        return -1;
-    }
-    return 1;
 }
 
 

@@ -17,6 +17,9 @@ else
 CFLAGS += -O2
 endif
 
+
+TRANG_VERSION ?= $(shell dpkg-query -W trang | cut -f 2)
+
 %:
 	dh --with quilt $@
 
@@ -24,23 +27,26 @@ override_dh_auto_clean:
 	dh_auto_clean -Bbuild-sqlite3
 	dh_auto_clean -Denforcer -Bbuild-mysql/enforcer
 	rm -rf build-mysql build-sqlite3
+	if test -f auditor/common/config.h.orig; then mv auditor/common/config.h.orig auditor/common/config.h; fi
 	if test -f enforcer/common/config.h.orig; then mv enforcer/common/config.h.orig enforcer/common/config.h; fi
 	if test -f signer/tools/config.h.orig; then mv signer/tools/config.h.orig signer/tools/config.h; fi
 
-COMMON = --disable-rpath \
-	 --with-cunit=/usr --libexecdir=/usr/lib/opendnssec/ \
-	 --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so \
-	 --with-mysql=/usr --libexecdir=/usr/lib/opendnssec/
-
 override_dh_auto_configure:
 	autoreconf
+	if test -f auditor/common/config.h; then mv auditor/common/config.h auditor/common/config.h.orig; fi
 	if test -f enforcer/common/config.h; then mv enforcer/common/config.h enforcer/common/config.h.orig; fi
 	if test -f signer/tools/config.h; then mv signer/tools/config.h signer/tools/config.h.orig; fi
 
-	dh_auto_configure -Bbuild-sqlite3 -- $(COMMON) --with-database-backend=sqlite3
+	dh_auto_configure -Bbuild-sqlite3 -- --with-ruby=/usr/bin/ruby1.8 --with-ldns=/usr --with-database-backend=sqlite3 --with-sqlite3=/usr --libexecdir=/usr/lib/opendnssec/ --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so
 	mkdir build-mysql
 	ln -s ../build-sqlite3/libhsm build-mysql/libhsm
-	dh_auto_configure -Bbuild-mysql/enforcer -- $(COMMON) --with-database-backend=mysql --disable-signer --disable-doxygen-doc
+	dh_auto_configure -Bbuild-mysql/enforcer -- --with-ldns=/usr --with-database-backend=mysql --with-mysql=/usr --libexecdir=/usr/lib/opendnssec/ --disable-auditor --disable-signer --disable-doxygen-doc
+
+	# Trang ends with bus error on kfreebsd-amd64, so we skip rebuilding at all
+	# Only rebuild RNG files if we have recent trang
+	#@if dpkg --compare-versions "$(TRANG_VERSION)" ge "20091111-1"; then \
+	#  rm conf/*.rng; \
+	#fi
 
 override_dh_auto_build:
 	dh_auto_build -Bbuild-sqlite3
@@ -68,7 +74,7 @@ override_dh_auto_install:
 override_dh_installdocs:
 	dh_installdocs -popendnssec-common -popendnssec -popendnssec-dbg-mysql -popendnssec-dbg-sqlite3 --link-doc=opendnssec-common
 	dh_installdocs -popendnssec-enforcer -popendnssec-enforcer-sqlite3 -popendnssec-enforcer-mysql --link-doc=opendnssec-enforcer
-	dh_installdocs -plibhsm-bin -popendnssec-signer
+	dh_installdocs -plibhsm-bin -popendnssec-auditor -popendnssec-signer
 	# Remove extra and unnecessary jquery.js library from generated docs (See #622147)
 	for p in libhsm-bin opendnssec-signer opendnssec-enforcer; do \
 	    rm -f $(CURDIR)/debian/$$p/usr/share/doc/$$p/html/jquery.js; \

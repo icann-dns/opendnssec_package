@@ -40,7 +40,6 @@
 
 static const char* allocator_str = "allocator";
 
-
 /**
  * Create allocator.
  *
@@ -137,6 +136,7 @@ void
 allocator_deallocate(allocator_type *allocator, void* data)
 {
     ods_log_assert(allocator);
+
     if (!data) {
         return;
     }

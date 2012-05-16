@@ -1,5 +1,5 @@
 /*
- * $Id: signconfparser.h 6036 2012-01-06 12:08:45Z matthijs $
+ * $Id: signconfparser.h 5376 2011-08-09 09:01:54Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -27,8 +27,8 @@
  */
 
 /**
- * Parsing signer configuration files.
  *
+ * Parsing signer configuration files.
  */
 
 #ifndef PARSER_SIGNCONFPARSER_H
@@ -44,12 +44,11 @@
 
 /**
  * Parse keys from the signer configuration file.
- * \param[in] sc signer configuration reference
  * \param[in] cfgfile the configuration file name.
  * \return keylist_type* key list
  *
  */
-keylist_type* parse_sc_keys(void* sc, const char* cfgfile);
+keylist_type* parse_sc_keys(allocator_type* allocator, const char* cfgfile);
 
 /**
  * Parse elements from the configuration file.
@@ -91,6 +90,7 @@ uint32_t parse_sc_nsec3_iterations(const char* cfgfile);
  *
  */
 int parse_sc_nsec3_optout(const char* cfgfile);
+int parse_sc_audit(const char* cfgfile);
 
 /**
  * Parse elements from the configuration file.

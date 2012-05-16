@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 6140 2012-02-06 15:10:50Z sion $
+ * $Id: enforcer.c 6307 2012-05-04 09:36:03Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -38,7 +38,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <syslog.h>
-#include <sys/stat.h>
 
 #include <libxml/xmlreader.h>
 #include <libxml/xpath.h>
@@ -102,7 +101,6 @@ server_main(DAEMONCONFIG *config)
     policy = KsmPolicyAlloc();
     if (policy == NULL) {
         log_msg(config, LOG_ERR, "Malloc for policy struct failed");
-        unlink(config->pidfile);
         exit(1);
     }
     kaspSetPolicyDefaults(policy, NULL);
@@ -111,7 +109,6 @@ server_main(DAEMONCONFIG *config)
     status = ReadConfig(config , 0);
     if (status != 0) {
         log_msg(config, LOG_ERR, "Error reading config");
-        unlink(config->pidfile);
         exit(1);
     }
 
@@ -151,12 +148,25 @@ server_main(DAEMONCONFIG *config)
                         log_msg(config, LOG_ERR, "hsm_open() result: %d", result);
                 }
             }
-            unlink(config->pidfile);
             exit(1);
         }
         log_msg(config, LOG_INFO, "HSM opened successfully.");
         ctx = hsm_create_context();
     /*}*/
+
+    log_msg(config, LOG_INFO, "Checking database connection...");
+    if (kaspTryConnect(config, &dbhandle)) {
+        log_msg(config, LOG_ERR, "Database connection failed");
+        exit(1);
+    }
+    log_msg(config, LOG_INFO, "Database connection ok.");
+
+    /* Create pidfile as late as possible to report start up error */
+	if (writepid(config) == -1) {
+		log_msg(config, LOG_ERR, "cannot write the pidfile %s: %s",
+			config->pidfile, strerror(errno));
+		exit(1);
+	}
 
     while (1) {
 
@@ -291,6 +301,7 @@ server_main(DAEMONCONFIG *config)
 		/* Make sure that we can still talk to the HSM; this call exits if
 		   we can not (after trying to reconnect) */
 		check_hsm_connection(&ctx, config);
+
     }
 
     /*
@@ -968,6 +979,12 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
     fprintf(file, "\t\t\t<Serial>%s</Serial>\n", KsmKeywordSerialValueToName( policy->signer->serial) );
     fprintf(file, "\t\t</SOA>\n");
 
+    if (strncmp(policy->audit, "NULL", 4) != 0) {
+        fprintf(file, "\n");
+        fprintf(file, "\t\t<Audit />\n");
+        fprintf(file, "\n");
+    }
+
     fprintf(file, "\t</Zone>\n");
     fprintf(file, "</SignerConfiguration>\n");
 
@@ -1466,18 +1483,15 @@ int do_purge(int interval, int policy_id)
             DdsConditionInt(&sql1, "keypair_id", DQS_COMPARE_EQ, temp_id, 0);
             DdsConditionInt(&sql1, "(state", DQS_COMPARE_NE, KSM_STATE_DEAD, 1);
 
-			status = DbDateDiff(rightnow, interval, -1, buffer, KSM_SQL_SIZE);
-			if (status != 0) {
-				log_msg(NULL, LOG_ERR, "DbDateDiff failed\n");
-                DbStringFree(temp_loc);
-                DbFreeRow(row);
-                StrFree(rightnow);
-                return status;
-			}	
+#ifdef USE_MYSQL
+            nchar = snprintf(buffer, sizeof(buffer),
+                    " or state = %d and DEAD > DATE_ADD('%s', INTERVAL -%d SECOND)) ", KSM_STATE_DEAD, rightnow, interval);
+#else
+            nchar = snprintf(buffer, sizeof(buffer),
+                    " or state = %d and DEAD > DATETIME('%s', '-%d SECONDS')) ", KSM_STATE_DEAD, rightnow, interval);
+#endif /* USE_MYSQL */
 
-            StrAppend(&sql1, " or state = 6 and DEAD > ");
             StrAppend(&sql1, buffer);
-            StrAppend(&sql1, ")");
             DqsEnd(&sql1);
 
             status = DbIntQuery(DbHandle(), &count, sql1);
@@ -1542,9 +1556,9 @@ int do_purge(int interval, int policy_id)
                 hsm_key_free(key);
 
                 if (!status) {
-                    log_msg(NULL, LOG_INFO, "Key remove successful: %s\n", temp_loc);
+                    log_msg(NULL, LOG_INFO, "Key remove successful.\n");
                 } else {
-                    log_msg(NULL, LOG_ERR, "Key remove failed: %s\n", temp_loc);
+                    log_msg(NULL, LOG_ERR, "Key remove failed.\n");
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
                     StrFree(rightnow);
@@ -1600,11 +1614,6 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
     char*   ds_seen_buffer = NULL;   /* Which keys have we promoted */
     char*   temp_char = NULL;   /* Contents of DS records */
 
-	/* To find the ttl of the DS */
-	int policy_id = -1;
-	int rrttl = -1;
-	int param_id = -1; /* unused */
-
     /* Key information */
     hsm_key_t *key = NULL;
     ldns_rr *dnskey_rr = NULL;
@@ -1612,8 +1621,6 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
 
     FILE *fp;
     int bytes_written = -1;
-
-	struct stat stat_ret; /* we will test the DSSubmitCmd */
 
     nchar = snprintf(buffer, sizeof(buffer), "(%d, %d, %d, %d, %d, %d, %d, %d)",
             KSM_STATE_PUBLISH, KSM_STATE_READY, KSM_STATE_ACTIVE,
@@ -1784,18 +1791,6 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
             sign_params->flags += LDNS_KEY_SEP_KEY;
             dnskey_rr = hsm_get_dnskey(NULL, key, sign_params);
 
-			/* Set TTL if we can find it; else leave it as the default */
-			/* We need a policy id */
-			status = KsmPolicyIdFromZoneId(zone_id, &policy_id);
-			if (status == 0) {
-
-				/* Use this to get the TTL parameter value */
-				status = KsmParameterValue(KSM_PAR_KSKTTL_STRING, KSM_PAR_KSKTTL_CAT, &rrttl, policy_id, &param_id);
-				if (status == 0) {
-					ldns_rr_set_ttl(dnskey_rr, rrttl);
-				}
-			}
-
             temp_char = ldns_rr2str(dnskey_rr);
             ldns_rr_free(dnskey_rr);
 
@@ -1845,33 +1840,22 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
     }
 
     if (DSSubmitCmd[0] != '\0') {
-		/* First check that the command exists */
-		if (stat(DSSubmitCmd, &stat_ret) != 0) {
-			log_msg(NULL, LOG_WARNING, "Cannot stat file %s: %s", DSSubmitCmd, strerror(errno));
-		}
-		/* Then see if it is a regular file, then if usr, grp or all have execute set */
-		else if (S_ISREG(stat_ret.st_mode) && !(stat_ret.st_mode & S_IXUSR || stat_ret.st_mode & S_IXGRP || stat_ret.st_mode & S_IXOTH)) {
-			log_msg(NULL, LOG_WARNING, "File %s is not executable", DSSubmitCmd);
-		}
-		else {
+        /* send records to the configured command */
+        fp = popen(DSSubmitCmd, "w");
+        if (fp == NULL) {
+            log_msg(NULL, LOG_ERR, "Failed to run command: %s: %s", DSSubmitCmd, strerror(errno));
+            return -1;
+        }
+        bytes_written = fprintf(fp, "%s", ds_buffer);
+        if (bytes_written < 0) {
+            log_msg(NULL, LOG_ERR, "Failed to write to %s: %s", DSSubmitCmd, strerror(errno));
+            return -1;
+        }
 
-			/* send records to the configured command */
-			fp = popen(DSSubmitCmd, "w");
-			if (fp == NULL) {
-				log_msg(NULL, LOG_ERR, "Failed to run command: %s: %s", DSSubmitCmd, strerror(errno));
-				return -1;
-			}
-			bytes_written = fprintf(fp, "%s", ds_buffer);
-			if (bytes_written < 0) {
-				log_msg(NULL, LOG_ERR, "Failed to write to %s: %s", DSSubmitCmd, strerror(errno));
-				return -1;
-			}
-
-			if (pclose(fp) == -1) {
-				log_msg(NULL, LOG_ERR, "Failed to close %s: %s", DSSubmitCmd, strerror(errno));
-				return -1;
-			}
-		}
+        if (pclose(fp) == -1) {
+            log_msg(NULL, LOG_ERR, "Failed to close %s: %s", DSSubmitCmd, strerror(errno));
+            return -1;
+        }
     }
 
     StrFree(ds_buffer);
@@ -1945,3 +1929,4 @@ void check_hsm_connection(hsm_ctx_t **ctx, DAEMONCONFIG *config)
 	}
 
 }
+
