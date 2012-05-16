@@ -1,5 +1,5 @@
 /*
- * $Id: db_fields.h 6013 2012-01-04 15:57:01Z sion $
+ * $Id: db_fields.h 3838 2010-08-31 11:35:52Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -97,20 +97,19 @@ extern "C" {
 #define DB_SECURITY_MODULE_REQUIREBACKUP 3
 
 #define DB_ZONE_TABLE			"zones"
-#define DB_ZONE_FIELDS 			"id, name, policy_id, signconf, input, output, in_type, out_type"
+#define DB_ZONE_FIELDS 			"id, name, policy_id, signconf, input, output"
 #define DB_ZONE_ID				0
 #define DB_ZONE_NAME			1
 #define DB_ZONE_POLICY_ID   	2
 #define DB_ZONE_SIGNCONF       	3
 #define DB_ZONE_INPUT       	4
 #define DB_ZONE_OUTPUT       	5
-#define DB_ZONE_IN_TYPE       	6
-#define DB_ZONE_OUT_TYPE       	7
 
 /* policy select variables, including salt */
 #define DB_POLICY_ID	0
 #define DB_POLICY_NAME	1
 #define DB_POLICY_DESCRIPTION	2
+#define DB_POLICY_AUDIT	3
 #define DB_POLICY_SALT	1
 #define DB_POLICY_SALT_STAMP	2
 

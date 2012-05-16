@@ -1,5 +1,5 @@
 /*
- * $Id: kaspaccess.h 757 2009-05-21 16:21:36Z jad $
+ * $Id: kaspaccess.h 6307 2012-05-04 09:36:03Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -37,6 +37,7 @@
 int kaspReadConfig(DAEMONCONFIG* config);
 void kaspSetPolicyDefaults(KSM_POLICY *policy, char *name);
 void kaspConnect(DAEMONCONFIG* config, DB_HANDLE	*handle);
+int kaspTryConnect(DAEMONCONFIG* config, DB_HANDLE	*handle);
 void kaspDisconnect(DB_HANDLE	*handle);
 int kaspReadPolicy(KSM_POLICY* policy);
 

@@ -1,14 +1,13 @@
-# $Id: Makefile.am 6103 2012-01-26 22:00:03Z jakob $
+# $Id: Makefile.am 5142 2011-05-18 19:14:18Z jakob $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
-RNC =	addns.rnc conf.rnc kasp.rnc zonelist.rnc signconf.rnc enforcerstate.rnc
-RNG =	addns.rng conf.rng kasp.rng zonelist.rng signconf.rng enforcerstate.rng
-XML =	addns.xml conf.xml kasp.xml zonelist.xml signconf.xml enforcerstate.xml
+RNC =	conf.rnc kasp.rnc zonelist.rnc signconf.rnc zonefetch.rnc
+RNG =	conf.rng kasp.rng zonelist.rng signconf.rng zonefetch.rng
+XML =	conf.xml kasp.xml zonelist.xml signconf.xml zonefetch.xml
 XSL=	kasp2html.xsl
 
-TRANG=		/usr/bin/trang
-TRANG_URL	"https://code.google.com/p/jing-trang/"
+TRANG=	/usr/bin/trang
 
 sysconfdir = @sysconfdir@/opendnssec
 datadir = @datadir@/opendnssec
@@ -17,16 +16,11 @@ noinst_DATA = ${XML} ${XSL}
 
 dist_data_DATA = ${RNG} ${RNC} ${XSL}
 
-CLEANFILES =+		${XML}
-DISTCLEANFILES =+	${RNG}
+CLEANFILES =+		*.xml
+DISTCLEANFILES =+	*.rng
 
 SUFFIXES = .rng .rnc .xml
 
-
-$(TRANG):
-	@echo You need to manually fetch trang.jar from ${TRANG_URL}
-	@echo and copy trang.jar to ${TRANG} before rebuilding
-	@echo the RelaxNG schemas.
 
 .rnc.rng:
 	@test -x "${JAVA}" || \
@@ -50,12 +44,12 @@ install-data-hook:
 	test -f ${DESTDIR}${sysconfdir}/conf.xml || \
 		${INSTALL_DATA} -m 0640 conf.xml ${DESTDIR}${sysconfdir}
 	${INSTALL_DATA} -m 640 conf.xml ${DESTDIR}${sysconfdir}/conf.xml.sample
-	test -f ${DESTDIR}${sysconfdir}/addns.xml || \
-		${INSTALL_DATA} addns.xml ${DESTDIR}${sysconfdir}
-	${INSTALL_DATA} addns.xml ${DESTDIR}${sysconfdir}/addns.xml.sample
 	test -f ${DESTDIR}${sysconfdir}/zonelist.xml || \
 		${INSTALL_DATA} zonelist.xml ${DESTDIR}${sysconfdir}
 	${INSTALL_DATA} zonelist.xml ${DESTDIR}${sysconfdir}/zonelist.xml.sample
+	test -f ${DESTDIR}${sysconfdir}/zonefetch.xml || \
+		${INSTALL_DATA} -m 0640 zonefetch.xml ${DESTDIR}${sysconfdir}
+	${INSTALL_DATA} -m 640 zonefetch.xml ${DESTDIR}${sysconfdir}/zonefetch.xml.sample
 	test -f ${DESTDIR}${sysconfdir}/kasp.xml || \
 		${INSTALL_DATA} kasp.xml ${DESTDIR}${sysconfdir}
 	${INSTALL_DATA} kasp.xml ${DESTDIR}${sysconfdir}/kasp.xml.sample

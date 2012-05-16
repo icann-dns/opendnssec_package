@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: ods-control.in 6139 2012-02-06 13:29:36Z jerry $
+# $Id: ods-control.in 6307 2012-05-04 09:36:03Z jerry $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation)
 # All rights reserved.
@@ -32,6 +32,7 @@ bindir="@OPENDNSSEC_BIN_DIR@"
 sbindir="@OPENDNSSEC_SBIN_DIR@"
 enforcer_pid_file="@OPENDNSSEC_ENFORCER_PIDFILE@"
 signer_pid_file="@OPENDNSSEC_SIGNER_PIDFILE@"
+signer_socket_file="@OPENDNSSEC_SIGNER_SOCKET@"
 
 
 case "$1" in
@@ -52,22 +53,37 @@ case "$1" in
 	case "$2" in
 
 	'start')
-		echo "Starting signer..."
+		echo "Starting signer engine..."
 		"$sbindir/ods-signer" start
-		i=0
-		while [ ! -r "$signer_pid_file" ]; do
-			sleep 1
-			i=`expr $i + 1`
-			if [ $i -ge 5 ]; then
-				RETVAL=1
-				echo "Could not start signer"
-				exit $RETVAL
-			fi
-		done
-
-		"$sbindir/ods-signer" running
+		
 		RETVAL=$?
+		if [ $RETVAL = 0 ]; then
+			i=0
+			while [ ! -r "$signer_pid_file" ]; do
+				sleep 1
+				i=`expr $i + 1`
+				if [ $i -ge 5 ]; then
+					RETVAL=1
+					echo "Could not start signer"
+					exit $RETVAL
+				fi
+			done
+			i=0
+			while [ ! -r "$signer_socket_file" ]; do
+				sleep 1
+				i=`expr $i + 1`
+				if [ $i -ge 5 ]; then
+					RETVAL=1
+					echo "Could not start signer"
+					exit $RETVAL
+				fi
+			done
+			sleep 1
 
+			"$sbindir/ods-signer" running
+			RETVAL=$?
+		fi
+		
 		exit $RETVAL
 		;;
 	*)
@@ -83,25 +99,20 @@ case "$1" in
 	case "$2" in
 
 	'start')
-		if [ -r "$enforcer_pid_file" ]; then
-			echo "Enforcer is already running"
-			RETVAL=1
-		else
-			echo "Starting enforcer..."
-			"$sbindir/ods-enforcerd"
-			RETVAL=$?
-			if [ $RETVAL = 0 ]; then
-				i=0
-				while [ ! -r "$enforcer_pid_file" ]; do
-					sleep 1
-					i=`expr $i + 1`
-					if [ $i -ge 5 ]; then
-						RETVAL=1
-						echo "Could not start enforcer"
-						break
-					fi
-				done
-			fi
+		echo "Starting enforcer..."
+		"$sbindir/ods-enforcerd"
+		RETVAL=$?
+		if [ $RETVAL = 0 ]; then
+			i=0
+			while [ ! -r "$enforcer_pid_file" ]; do
+				sleep 1
+				i=`expr $i + 1`
+				if [ $i -ge 5 ]; then
+					RETVAL=1
+					echo "Could not start enforcer"
+					break
+				fi
+			done
 		fi
 		exit $RETVAL
 		;;
@@ -118,7 +129,7 @@ case "$1" in
 					i=`expr $i + 1`
 					if [ $i -ge 5 ]; then
 						RETVAL=1
-						echo "Could not start enforcer"
+						echo "Could not stop enforcer"
 						break
 					fi
 				done
@@ -153,19 +164,19 @@ case "$1" in
 'start')
 	"$0" enforcer start
 	RETVAL=$?
-	if [ "$RETVAL" != "0" ]; then
-	    exit $RETVAL
+	if [ $RETVAL != 0 ]
+	then
+		exit $RETVAL
 	fi
-	echo "Starting signer engine..."
 	"$0" signer start
-	exit $?
+	RETVAL=$?
+	exit $RETVAL
 	;;
 
 'stop')
 	"$0" enforcer stop
-
-	echo "Stopping signer engine.."
-	"$0" signer stop
+	echo "Stopping signer engine..."
+	"$0" signed stop
 	exit $?
 	;;
 

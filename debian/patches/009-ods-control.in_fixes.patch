@@ -1,6 +1,6 @@
 --- a/tools/ods-control.in
 +++ b/tools/ods-control.in
-@@ -39,11 +39,13 @@ case "$1" in
+@@ -40,11 +40,13 @@ case "$1" in
  'ksm')
  	shift
  	"$bindir/ods-ksmutil" $@
@@ -14,7 +14,7 @@
  	;;
  
  'signer')
-@@ -71,6 +73,7 @@ case "$1" in
+@@ -87,6 +89,7 @@ case "$1" in
  	*)
  		shift
  		"$sbindir/ods-signer" "$@"
@@ -22,7 +22,7 @@
  		;;
  
  	esac
-@@ -140,7 +143,8 @@ case "$1" in
+@@ -151,7 +154,8 @@ case "$1" in
  		;;
  
  	*)
@@ -32,27 +32,12 @@
  		;;
  
  	esac
-@@ -148,21 +152,26 @@ case "$1" in
- 
- 'start')
- 	"$0" enforcer start
--
-+	RETVAL=$?
-+	if [ "$RETVAL" != "0" ]; then
-+	    exit $RETVAL
-+	fi
- 	echo "Starting signer engine..."
- 	"$0" signer start
--
-+	exit $?
- 	;;
- 
+@@ -172,11 +176,13 @@ case "$1" in
  'stop')
  	"$0" enforcer stop
- 
- 	echo "Stopping signer engine.."
+ 	echo "Stopping signer engine..."
 -	"$sbindir/ods-signer" stop
-+	"$0" signer stop
++	"$0" signed stop
 +	exit $?
  	;;
  

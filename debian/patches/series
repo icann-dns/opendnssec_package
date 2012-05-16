@@ -3,4 +3,3 @@
 004-runas_opendnssec.patch
 005-rename_regress_for_autotest.patch
 009-ods-control.in_fixes.patch
-011-fix_AC_LANG_PROGRAM_libtool_warning.patch

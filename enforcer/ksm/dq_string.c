@@ -1,5 +1,5 @@
 /*
- * $Id: dq_string.c 5336 2011-07-15 12:53:09Z sion $
+ * $Id: dq_string.c 3776 2010-08-24 14:55:39Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -243,9 +243,9 @@ void DqsConditionString(char** query, const char* field, DQS_COMPARISON compare,
     StrAppend(query, (index == 0) ? " WHERE " : " AND ");
     StrAppend(query, field);
     DqsAppendComparison(query, compare);
-    StrAppend(query, "'");
+    StrAppend(query, "\"");
     StrAppend(query, value);
-    StrAppend(query, "'");
+    StrAppend(query, "\"");
 
     return;
 }

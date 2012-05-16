@@ -1,5 +1,5 @@
 /*
- * $Id: keys.h 5544 2011-09-05 13:38:22Z matthijs $
+ * $Id: keys.h 5380 2011-08-09 21:00:32Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -54,15 +54,17 @@
  */
 typedef struct key_struct key_type;
 struct key_struct {
+    allocator_type* allocator;
+    const char* locator;
     ldns_rr* dnskey;
     hsm_key_t* hsmkey;
     hsm_sign_params_t* params;
-    const char* locator;
     uint8_t algorithm;
     uint32_t flags;
     int publish;
     int ksk;
     int zsk;
+    key_type* next;
 };
 
 /**
@@ -71,18 +73,51 @@ struct key_struct {
  */
 typedef struct keylist_struct keylist_type;
 struct keylist_struct {
-    void* sc;
-    key_type* keys;
+    allocator_type* allocator;
     size_t count;
+    key_type* first_key;
 };
 
 /**
+ * Create a new key.
+ * \param[in] allocator memory allocator
+ * \param[in] locator string that identifies location of key
+ * \param[in] algorithm DNSKEY algorithm field value
+ * \param[in] flags DNSKEY flags field value
+ * \param[in] publish if true, publish key as a DNSKEY
+ * \param[in] ksk if true, sign DNSKEY RRset with this key
+ * \param[in] zsk if true, sign all but DNSKEY RRset with this key
+ * \return key_type* key
+ *
+ */
+key_type* key_create(allocator_type* allocator, const char* locator,
+    uint8_t algorithm, uint32_t flags, int publish, int ksk, int zsk);
+
+/**
+ * Recover key from backup.
+ * \param[in] fd file descriptor of key backup file
+ * \param[in] allocator memory allocator
+ * \return key_type* key
+ *
+ */
+key_type* key_recover(FILE* fd, allocator_type* allocator);
+
+/**
  * Create a new key list.
- * \param[in] sc signer configuration reference
+ * \param[in] allocator memory allocator
  * \return keylist_type* key list
  *
  */
-keylist_type* keylist_create(void* sc);
+keylist_type* keylist_create(allocator_type* allocator);
+
+/**
+ * Push a key to the keylist.
+ * \param[in] kl key list
+ * \param[in] key key
+ * \return ods_status status
+ *
+ */
+ods_status keylist_push(keylist_type* kl, key_type* key);
 
 /**
  * Lookup a key in the key list by locator.
@@ -91,7 +126,7 @@ keylist_type* keylist_create(void* sc);
  * \return key_type* key if it exists, NULL otherwise
  *
  */
-key_type* keylist_lookup_by_locator(keylist_type* kl, const char* locator);
+key_type* keylist_lookup(keylist_type* kl, const char* locator);
 
 /**
  * Lookup a key in the key list by dnskey.
@@ -103,19 +138,11 @@ key_type* keylist_lookup_by_locator(keylist_type* kl, const char* locator);
 key_type* keylist_lookup_by_dnskey(keylist_type* kl, ldns_rr* dnskey);
 
 /**
- * Push a key to the keylist.
- * \param[in] kl key list
- * \param[in] locator string that identifies location of key
- * \param[in] algorithm DNSKEY algorithm field value
- * \param[in] flags DNSKEY flags field value
- * \param[in] publish if true, publish key as a DNSKEY
- * \param[in] ksk if true, sign DNSKEY RRset with this key
- * \param[in] zsk if true, sign all but DNSKEY RRset with this key
- * \return key_type* key
+ * Clean up key list.
+ * \param[in] kl key list to clean up
  *
  */
-key_type* keylist_push(keylist_type* kl, const char* locator,
-    uint8_t algorithm, uint32_t flags, int publish, int ksk, int zsk);
+void keylist_cleanup(keylist_type* kl);
 
 /**
  * Print key list.
@@ -126,35 +153,19 @@ key_type* keylist_push(keylist_type* kl, const char* locator,
 void keylist_print(FILE* fd, keylist_type* kl);
 
 /**
- * Log key list.
- * \param[in] kl key list to print
- * \param[in] name zone name
- *
- */
-void keylist_log(keylist_type* kl, const char* name);
-
-/**
- * Clean up key list.
- * \param[in] kl key list to clean up
- *
- */
-void keylist_cleanup(keylist_type* kl);
-
-/**
- * Recover key from backup.
- * \param[in] fd file descriptor of key backup file
- * \param[in] kl key list to print
- * \return key_type* key
- *
- */
-key_type* key_recover(FILE* fd, keylist_type* kl);
-
-/**
  * Backup key list.
  * \param[in] fd file descriptor
  * \param[in] kl key list to print
  *
  */
 void keylist_backup(FILE* fd, keylist_type* kl);
+
+/**
+ * Log key list.
+ * \param[in] kl key list to print
+ * \param[in] name zone name
+ *
+ */
+void keylist_log(keylist_type* kl, const char* name);
 
 #endif /* SIGNER_KEYS_H */

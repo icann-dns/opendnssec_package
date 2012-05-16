@@ -1,5 +1,5 @@
 /*
- * $Id: privdrop.c 6166 2012-02-14 15:36:44Z matthijs $
+ * $Id: privdrop.c 4340 2011-01-31 15:15:15Z matthijs $
  *
  * Copyright (c) 2009 Nominet UK. All rights reserved.
  *
@@ -91,10 +91,6 @@ privuid(const char* username)
         }
         /* Lookup the user id in /etc/passwd */
         s = getpwnam_r(username, &pwd, buf, bufsize, &result); /* LEAK */
-        if (s) {
-            ods_log_error("[%s] unable to get user id for %s: %s",
-                privdrop_str, username, strerror(s));
-        }
         if (result != NULL) {
             uid = pwd.pw_uid;
         }
@@ -134,10 +130,6 @@ privgid(const char *groupname)
         }
         /* Lookup the group id in /etc/group */
         s = getgrnam_r(groupname, &grp, buf, bufsize, &result); /* LEAK */
-        if (s) {
-            ods_log_error("[%s] unable to get group id for %s: %s",
-                privdrop_str, groupname, strerror(s));
-        }
         if (result != NULL) {
             gid = grp.gr_gid;
         }
