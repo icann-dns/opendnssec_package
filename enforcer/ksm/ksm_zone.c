@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_zone.c 3838 2010-08-31 11:35:52Z sion $
+ * $Id: ksm_zone.c 6352 2012-05-29 08:45:11Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -371,21 +371,6 @@ int KsmDeleteZone(int zone_id)
 {
     int         status = 0;         /* Status return */
     char*       sql = NULL;         /* SQL Statement */
-
-    /* Delete from dnsseckeys */
-    sql = DdsInit("dnsseckeys");
-    if (zone_id != -1) {
-        DdsConditionInt(&sql, "zone_id", DQS_COMPARE_EQ, zone_id, 0);
-    }
-    DdsEnd(&sql);
-
-    status = DbExecuteSqlNoResult(DbHandle(), sql);
-    DdsFree(sql);
-    if (status != 0)
-    {
-        status = MsgLog(KSM_SQLFAIL, DbErrmsg(DbHandle()));
-        return status;
-	}
 
     /* Delete from zones */
     sql = DdsInit("zones");

@@ -1,3 +1,10 @@
+opendnssec (1:1.3.9-1) unstable; urgency=low
+
+  * Imported Upstream version 1.3.9
+  * Delete use_system_trang.patch as we don't rebuild rng files anymore
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 28 Jun 2012 11:24:55 +0200
+
 opendnssec (1:1.3.8-1) unstable; urgency=low
 
   * Imported Upstream version 1.3.8

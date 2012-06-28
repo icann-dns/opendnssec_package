@@ -1,5 +1,5 @@
 /*
- * $Id: ksm.h 5838 2011-11-08 14:28:05Z sion $
+ * $Id: ksm.h 6379 2012-06-05 08:52:37Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -141,7 +141,7 @@ int KsmKeyCountQueue(int keytype, int* count, int zone_id);
 int KsmKeyCountStillGood(int policy_id, int sm, int bits, int algorithm, int interval, const char* datetime, int *count, int keytype);
 int KsmKeyGetUnallocated(int policy_id, int sm, int bits, int algorithm, int zone_id, int share_keys, int *keypair_id);
 int KsmMarkKeysAsDead(int zone_id);
-int KsmKillKey(int keypair_id);
+int KsmKillKey(int keypair_id, int zone_id);
 
 /* delete */
 
@@ -510,6 +510,7 @@ int KsmParameterPubSafety(KSM_PARCOLL* collection);
 int KsmParameterRetSafety(KSM_PARCOLL* collection);
 int KsmParameterInitialPublicationInterval(KSM_PARCOLL* collection);
 int KsmParameterCollection(KSM_PARCOLL* data, int policy_id);
+void KsmParameterCollectionCache(int enable);
 
 /* ksm_keyword */
 
