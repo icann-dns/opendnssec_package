@@ -1,5 +1,4 @@
 001-fix_localstate_dir.patch
-002_use_system_trang.patch
 004-runas_opendnssec.patch
 005-rename_regress_for_autotest.patch
 009-ods-control.in_fixes.patch

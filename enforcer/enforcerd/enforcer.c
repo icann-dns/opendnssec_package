@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 6307 2012-05-04 09:36:03Z jerry $
+ * $Id: enforcer.c 6379 2012-06-05 08:52:37Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -246,7 +246,9 @@ server_main(DAEMONCONFIG *config)
         }
 
         /* Communicate zones to the signer */
+        KsmParameterCollectionCache(1); /* Enable caching of policy parameters while in do_communication() */
         do_communication(config, policy);
+        KsmParameterCollectionCache(0);
         
         DbFreeResult(handle);
 

@@ -2,7 +2,7 @@
 +++ b/conf/Makefile.am
 @@ -27,7 +27,7 @@ SUFFIXES = .rng .rnc .xml
  		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)
- 	${TRANG} $< $@
+ 	${JAVA} -jar ${TRANG} $< $@
  
 -regress: $(RNG)
 +check: $(RNG)

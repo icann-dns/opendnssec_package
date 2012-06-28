@@ -1,4 +1,15 @@
-$Id: NEWS 6323 2012-05-09 18:38:49Z jakob $
+$Id: NEWS 6422 2012-06-15 06:14:30Z jerry $
+
+
+OpenDNSSEC 1.3.9 - 2012-06-15
+
+* OPENDNSSEC-277: Enforcer: Performance optimisation of database access.
+
+Bugfixes:
+* SUPPORT-27: ods-ksmutil: simplify zone delete so that it only marks keys as
+  dead (rather than actually removing them). Leave the key removal to purge
+  jobs.
+
 
 OpenDNSSEC 1.3.8 - 2012-05-09
 
