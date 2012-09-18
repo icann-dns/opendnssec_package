@@ -40,11 +40,13 @@ case "$1" in
 'ksm')
 	shift
 	"$bindir/ods-ksmutil" $@
+	exit $?
 	;;
 
 'hsm')
 	shift
 	"$bindir/ods-hsmutil" $@
+	exit $?
 	;;
 
 'signer')
@@ -87,6 +89,7 @@ case "$1" in
 	*)
 		shift
 		"$sbindir/ods-signer" "$@"
+		exit $?
 		;;
 
 	esac
@@ -151,7 +154,8 @@ case "$1" in
 		;;
 
 	*)
-		echo "usage: $progname enforcer start|stop|notify"
+		echo "usage: $progname enforcer start|stop|notify" >&2
+		exit 3
 		;;
 
 	esac
@@ -172,11 +176,13 @@ case "$1" in
 'stop')
 	"$0" enforcer stop
 	echo "Stopping signer engine..."
-	"$sbindir/ods-signer" stop
+	"$0" signed stop
+	exit $?
 	;;
 
 *)
-	echo "usage: $progname ksm|hsm|signer|enforcer|start|stop ..."
+	echo "usage: $progname ksm|hsm|signer|enforcer|start|stop ..." >&2
+	exit 3
 	;;
 
 esac
