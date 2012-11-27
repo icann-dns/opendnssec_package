@@ -1,3 +1,15 @@
+opendnssec (1:1.3.9-3) unstable; urgency=low
+
+  * Pull couple of critical upstream fixes:
+    + OPENDNSSEC-303: for ods-ksmutil update zonelist will delete all
+      zones if unable to open/parse zonelist.xml
+    + OPENDNSSEC-282: RRSIGs are left in the signed zone when
+      authoritative RRsets become glue.
+    + OPENDNSSEC-338: ods-ksmutil zone delete --all does not work
+
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 27 Nov 2012 14:26:11 +0100
+
 opendnssec (1:1.3.9-2) unstable; urgency=low
 
   * Replace documentation directory with symlink. (Courtesy of Salvatore
