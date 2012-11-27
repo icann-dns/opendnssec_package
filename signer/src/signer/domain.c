@@ -1,5 +1,5 @@
 /*
- * $Id: domain.c 4975 2011-04-19 11:54:20Z matthijs $
+ * $Id: domain.c 6448 2012-06-20 11:57:01Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -963,7 +963,7 @@ domain_print(FILE* fd, domain_type* domain)
 */
                     if (print_glue && (rrset->rr_type == LDNS_RR_TYPE_A ||
                         rrset->rr_type == LDNS_RR_TYPE_AAAA)) {
-                        rrset_print(fd, rrset, 0);
+                        rrset_print(fd, rrset, 1);
                     }
                 } else {
                     rrset_print(fd, rrset, 0);

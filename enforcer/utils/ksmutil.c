@@ -1294,9 +1294,11 @@ cmd_listzone ()
         xmlFreeTextReader(reader);
         if (ret != 0) {
             printf("%s : failed to parse\n", zonelist_filename);
+            return 1;
         }
     } else {
         printf("Unable to open %s\n", zonelist_filename);
+        return 1;
     }
 
     /* Allocate space for the list of zone IDs */
@@ -4710,9 +4712,11 @@ int update_zones(char* zone_list_filename)
         xmlFreeTextReader(reader);
         if (ret != 0) {
             printf("%s : failed to parse\n", zone_list_filename);
+            return 1;
         }
     } else {
         printf("Unable to open %s\n", zone_list_filename);
+        return 1;
     }
 
     /* Allocate space for the list of zone IDs */
