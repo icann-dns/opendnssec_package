@@ -1,3 +1,2 @@
 usr/share/man/man1/ods-ksmutil.1
 usr/share/man/man8/ods-enforcerd.8
-build-sqlite3/enforcer/doxygen-doc/html /usr/share/doc/opendnssec-enforcer/
