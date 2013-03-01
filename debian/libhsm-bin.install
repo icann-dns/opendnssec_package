@@ -1,3 +1,2 @@
 usr/bin/ods-hsm*
 usr/share/man/man1/ods-hsm*
-build-sqlite3/libhsm/doxygen-doc/html /usr/share/doc/libhsm-bin/

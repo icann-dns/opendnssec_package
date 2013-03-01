@@ -48,10 +48,12 @@ override_dh_auto_configure:
 	#  rm conf/*.rng; \
 	#fi
 
-override_dh_auto_build:
+override_dh_auto_build-arch:
 	dh_auto_build -Bbuild-sqlite3
-	dh_auto_build -Bbuild-sqlite3 -- docs
 	dh_auto_build -Bbuild-mysql/enforcer
+
+override_dh_auto_build-indep:
+	dh_auto_build -Bbuild-sqlite3 -- docs
 
 override_dh_auto_install:
 	# Comment out example zone after regression testing
@@ -71,13 +73,13 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/kasp2html.xsl \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/etc/opendnssec
 
-override_dh_installdocs:
+override_dh_installdocs-arch:
 	dh_installdocs -popendnssec-common -popendnssec -popendnssec-dbg-mysql -popendnssec-dbg-sqlite3 --link-doc=opendnssec-common
 	dh_installdocs -popendnssec-enforcer -popendnssec-enforcer-sqlite3 -popendnssec-enforcer-mysql --link-doc=opendnssec-enforcer
-	dh_installdocs -plibhsm-bin -popendnssec-auditor -popendnssec-signer
+	dh_installdocs -plibhsm-bin -popendnssec-auditor -popendnssec-signer -popendnssec-doc
 	# Remove extra and unnecessary jquery.js library from generated docs (See #622147)
 	for p in libhsm-bin opendnssec-signer opendnssec-enforcer; do \
-	    rm -f $(CURDIR)/debian/$$p/usr/share/doc/$$p/html/jquery.js; \
+	    rm -f $(CURDIR)/debian/opendnssec-doc/usr/share/doc/$$p/html/jquery.js; \
 	done
 
 override_dh_installchangelogs:

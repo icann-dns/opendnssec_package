@@ -1,3 +1,15 @@
+opendnssec (1:1.3.9-5) unstable; urgency=low
+
+  * Add procps to build dependencies, so ods-ksmutil can HUP enforcer
+    (Closes: #701703)
+  * Create arch:all new opendnssec-doc package and move the doxygen
+    documentation there
+  * Split dh_auto_build to arch and indep, so doxygen documentation is
+    built only once
+  * Run dh_installdoc on opendnssec-doc too, so it gets it's own copyright
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 01 Mar 2013 14:52:33 +0100
+
 opendnssec (1:1.3.9-4) unstable; urgency=low
 
   * Move the information about dropping the foreign key to README.Debian
