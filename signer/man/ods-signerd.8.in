@@ -1,4 +1,4 @@
-.TH "ods-signerd" "22" "February 2012" "OpenDNSSEC" "OpenDNSSEC ods-signerd"
+.TH "ods-signerd" "8" "2010-02-02" "OpenDNSSEC" "OpenDNSSEC ods-signerd"
 .\" $Id: ods-signerd.8.in 2785 2010-02-02 16:45:00Z rb $
 .SH "NAME"
 .LP
