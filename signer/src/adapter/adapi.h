@@ -65,6 +65,14 @@ void adapi_set_serial(zone_type* zone, uint32_t serial);
 ldns_rdf* adapi_get_origin(zone_type* zone);
 
 /**
+ * Get class.
+ * \param[in] zone zone
+ * \return ldns_rr_class class
+ *
+ */
+ldns_rr_class adapi_get_class(zone_type* zone);
+
+/**
  * Get ttl.
  * \param[in] zone zone
  * \return uint32_t ttl
@@ -75,35 +83,64 @@ uint32_t adapi_get_ttl(zone_type* zone);
 /*
  * Do full zone transaction.
  * \param[in] zone zone
- * \return ods_status status
+ * \param[in] more_coming more transactions are possible
  *
  */
-ods_status adapi_trans_full(zone_type* zone);
+void adapi_trans_full(zone_type* zone, unsigned more_coming);
 
 /*
  * Do incremental zone transaction.
  * \param[in] zone zone
- * \return ods_status status
+ * \param[in] more_coming more transactions are possible
  *
  */
-ods_status adapi_trans_diff(zone_type* zone);
+void adapi_trans_diff(zone_type* zone, unsigned more_coming);
 
 /**
  * Add RR.
  * \param[in] zone zone
  * \param[in] rr RR
+ * \param[in] backup from backup
  * \return ods_status status
  *
  */
-ods_status adapi_add_rr(zone_type* zone, ldns_rr* rr);
+ods_status adapi_add_rr(zone_type* zone, ldns_rr* rr, int backup);
 
 /**
  * Delete RR.
  * \param[in] zone zone
  * \param[in] rr RR
+ * \param[in] backup from backup
  * \return ods_status status
  *
  */
-ods_status adapi_del_rr(zone_type* zone, ldns_rr* rr);
+ods_status adapi_del_rr(zone_type* zone, ldns_rr* rr, int backup);
+
+/**
+ * Print zonefile.
+ * \param[in] fd file descriptor
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status adapi_printzone(FILE* fd, zone_type* zone);
+
+/**
+ * Print axfr.
+ * \param[in] fd file descriptor
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status adapi_printaxfr(FILE* fd, zone_type* zone);
+
+/**
+ * Print ixfr.
+ * \param[in] fd file descriptor
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status adapi_printixfr(FILE* fd, zone_type* zone);
 
 #endif /* ADAPTER_ADAPI_H */

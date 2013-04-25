@@ -11,7 +11,7 @@
  AC_SUBST([OPENDNSSEC_BIN_DIR])
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -30,16 +30,6 @@ EXTRA_DIST =	$(srcdir)/KNOWN_ISSUES \
+@@ -23,16 +23,6 @@ EXTRA_DIST =	$(srcdir)/LICENSE \
  		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
  
  

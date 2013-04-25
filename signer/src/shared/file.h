@@ -1,5 +1,5 @@
 /*
- * $Id: file.h 6244 2012-04-03 13:56:27Z matthijs $
+ * $Id: file.h 6501 2012-08-06 10:52:03Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -132,6 +132,15 @@ time_t ods_file_lastmodified(const char* file);
 int ods_strcmp(const char* s1, const char* s2);
 
 /**
+ * Compare strings lowercased.
+ * \param[in] s1 one string
+ * \param[in] s2 another string
+ * \return -1, 0 or 1
+ *
+ */
+int ods_strlowercmp(const char* s1, const char* s2);
+
+/**
  * Replace a substring in string.
  * \param[in] str The string
  * \param[in] oldstr old substring
@@ -176,5 +185,13 @@ void ods_chown(const char* file, uid_t uid, gid_t gid, int getdir);
  *
  */
 void ods_str_trim(char* str);
+
+/**
+ * Add a string to a list of strings. Taken from ods-enforcer.
+ * \param[out] list string list
+ * \param[in] str string to add
+ *
+ */
+void ods_str_list_add(char*** list, char* str);
 
 #endif /* SHARED_FILE_H */

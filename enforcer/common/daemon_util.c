@@ -1,5 +1,5 @@
 /*
- * $Id: daemon_util.c 6199 2012-03-07 10:26:59Z matthijs $
+ * $Id: daemon_util.c 7018 2013-02-05 13:59:43Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -73,6 +73,21 @@
 #include "ksm/datetime.h"
 #include "ksm/string_util.h"
 #include "ksm/string_util2.h"
+
+
+/**
+ * Use _r() functions on platforms that have. They are thread safe versions of
+ * the normal syslog functions. Platforms without _r() usually have thread safe
+ * normal functions.
+ */
+#if defined(HAVE_SYSLOG_R) && defined(HAVE_OPENLOG_R) && defined(HAVE_CLOSELOG_R) && defined(HAVE_VSYSLOG_R)
+struct syslog_data sdata = SYSLOG_DATA_INIT;
+#else
+#undef HAVE_SYSLOG_R
+#undef HAVE_OPENLOG_R
+#undef HAVE_CLOSELOG_R
+#undef HAVE_VSYSLOG_R
+#endif
 
     int
 getPermsForDrop(DAEMONCONFIG* config)
@@ -186,10 +201,10 @@ getPermsForDrop(DAEMONCONFIG* config)
         temp_char = (char*) xmlXPathCastToString(xpathObj);
         StrAppend(&config->groupname, temp_char);
         StrFree(temp_char);
-        xmlXPathFreeObject(xpathObj);
     } else {
         config->groupname = NULL;
     }
+	xmlXPathFreeObject(xpathObj);
 
     /* Set the user to drop to if specified */
     xpathObj = xmlXPathEvalExpression(user_expr, xpathCtx);
@@ -203,16 +218,20 @@ getPermsForDrop(DAEMONCONFIG* config)
         temp_char = (char*) xmlXPathCastToString(xpathObj);
         StrAppend(&config->username, temp_char);
         StrFree(temp_char);
-        xmlXPathFreeObject(xpathObj);
     } else {
         config->username = NULL;
     }
+	xmlXPathFreeObject(xpathObj);
 
     /* Set uid and gid if required */
     if (config->username != NULL) {
         /* Lookup the user id in /etc/passwd */
         if ((pwd = getpwnam(config->username)) == NULL) {
+#ifdef HAVE_SYSLOG_R
+            syslog_r(LOG_ERR, &sdata, "user '%s' does not exist. exiting...\n", config->username);
+#else
             syslog(LOG_ERR, "user '%s' does not exist. exiting...\n", config->username);
+#endif
             exit(1);
         } else {
             config->uid = pwd->pw_uid;
@@ -222,7 +241,11 @@ getPermsForDrop(DAEMONCONFIG* config)
     if (config->groupname) {
         /* Lookup the group id in /etc/groups */
         if ((grp = getgrnam(config->groupname)) == NULL) {
+#ifdef HAVE_SYSLOG_R
+            syslog_r(LOG_ERR, &sdata, "group '%s' does not exist. exiting...\n", config->groupname);
+#else
             syslog(LOG_ERR, "group '%s' does not exist. exiting...\n", config->groupname);
+#endif
             exit(1);
         } else {
             config->gid = grp->gr_gid;
@@ -230,7 +253,6 @@ getPermsForDrop(DAEMONCONFIG* config)
         endgrent();
     }
 
-    xmlXPathFreeContext(xpathCtx);
     xmlRelaxNGFree(schema);
     xmlRelaxNGFreeValidCtxt(rngctx);
     xmlRelaxNGFreeParserCtxt(rngpctx);
@@ -244,28 +266,45 @@ getPermsForDrop(DAEMONCONFIG* config)
 /* Set up logging as per default (facility may be switched based on config file) */
 void log_init(int facility, const char *program_name)
 {
+#ifdef HAVE_OPENLOG_R
+	openlog_r(program_name, 0, facility, &sdata);
+#else
 	openlog(program_name, 0, facility);
+#endif
 }
 
 /* Switch log to new facility */
 void log_switch(int facility, const char *facility_name, const char *program_name, int verbose)
 {
+#ifdef HAVE_CLOSELOG_R
+    closelog_r(&sdata);
+#else
     closelog();
+#endif
+#ifdef HAVE_OPENLOG_R
+	openlog_r(program_name, 0, facility, &sdata);
+#else
 	openlog(program_name, 0, facility);
+#endif
     if (verbose) {
         log_msg(NULL, LOG_INFO, "Switched log facility to: %s", facility_name);
     }
 }
 
 
-    void
+void
 log_msg(DAEMONCONFIG *config, int priority, const char *format, ...)
 {
     /* If the variable arg list is bad then random errors can occur */ 
     va_list args;
     if (config && config->debug) priority = LOG_ERR;
     va_start(args, format);
+
+#ifdef HAVE_VSYSLOG_R
+    vsyslog_r(priority, &sdata, format, args);
+#else
     vsyslog(priority, format, args);
+#endif
     va_end(args);
 }
 
@@ -276,19 +315,39 @@ log_msg(DAEMONCONFIG *config, int priority, const char *format, ...)
 ksm_log_msg(const char *format)
 {
     if (strncmp(format, "ERROR:", 6) == 0) {
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_ERR, &sdata, "%s", format);
+#else
         syslog(LOG_ERR, "%s", format);
+#endif
     }
     else if (strncmp(format, "INFO:", 5) == 0) {
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_INFO, &sdata, "%s", format);
+#else
         syslog(LOG_INFO, "%s", format);
+#endif
     }
     else if (strncmp(format, "WARNING:", 8) == 0) {
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_WARNING, &sdata, "%s", format);
+#else
         syslog(LOG_WARNING, "%s", format);
+#endif
     }
     else if (strncmp(format, "DEBUG:", 6) == 0) {
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_DEBUG, &sdata, "%s", format);
+#else
         syslog(LOG_DEBUG, "%s", format);
+#endif
     }
     else {
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_ERR, &sdata, "%s", format);
+#else
         syslog(LOG_ERR, "%s", format);
+#endif
     }
 }
 
@@ -302,7 +361,11 @@ log_xml_error(void *ignore, const char *format, ...)
 
     /* If the variable arg list is bad then random errors can occur */ 
     va_start(args, format);
+#ifdef HAVE_VSYSLOG_R
+    vsyslog_r(LOG_ERR, &sdata, format, args);
+#else
     vsyslog(LOG_ERR, format, args);
+#endif
     va_end(args);
 }
 
@@ -316,7 +379,11 @@ log_xml_warn(void *ignore, const char *format, ...)
 
     /* If the variable arg list is bad then random errors can occur */ 
     va_start(args, format);
+#ifdef HAVE_VSYSLOG_R
+    vsyslog_r(LOG_INFO, &sdata, format, args);
+#else
     vsyslog(LOG_INFO, format, args);
+#endif
     va_end(args);
 }
 
@@ -417,7 +484,7 @@ writepid (DAEMONCONFIG *config)
     } else {
         if (S_ISREG(stat_ret.st_mode)) {
             /* The file exists already */
-	    if ((oldpid = readpid(config->pidfile)) == -1) {
+            if ((oldpid = readpid(config->pidfile)) == -1) {
                 /* consider stale pidfile */
                 if (errno != ENOENT) {
                     log_msg(config, LOG_ERR, "cannot read pidfile %s: %s",
@@ -461,6 +528,8 @@ writepid (DAEMONCONFIG *config)
         return -1;
     }
 
+    /* Mark this our pidfile so exit_function unlink's it */
+    daemon_our_pidfile = 1;
     return 0;
 }
 
@@ -518,13 +587,18 @@ int make_directory(DAEMONCONFIG* config, const char* path) {
 
     *slash = 0;
 
-    stat(parent, &stat_ret);
+    if (stat(parent, &stat_ret) != 0) {
+		if (errno != ENOENT) {
+			log_msg(NULL, LOG_ERR, "cannot stat %s: %s\n",
+					parent, strerror(errno));
+			return 1;
+		}
+	}
 
-    if (!S_ISDIR(stat_ret.st_mode)) {
+	if (!S_ISDIR(stat_ret.st_mode)) {
+		make_directory(config, parent);
+	}
 
-        make_directory(config, parent);
-
-    }
 
     StrFree(parent);
 
@@ -660,6 +734,7 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
     char* rngfilename = OPENDNSSEC_SCHEMA_DIR "/conf.rng";
 
     char* temp_char = NULL;
+    char* str = NULL; /* used to split DSSub command */
 
     FILE *file;
 
@@ -812,6 +887,7 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
         if (status > 0) {
             log_msg(config, LOG_ERR, "Error: unable to convert RolloverNotification %s to seconds, error: %i", temp_char, status);
             StrFree(temp_char);
+			xmlXPathFreeObject(xpathObj);
             return status;
         }
         else if (status == -1) {
@@ -822,12 +898,12 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
             log_msg(config, LOG_INFO, "Rollover Notification Interval: %i", config->rolloverNotify);
         }
         StrFree(temp_char);
-        xmlXPathFreeObject(xpathObj);
     }
     else {
         /* Tag RolloverNotification absent, set rolloverNotify to -1 */
         config->rolloverNotify = -1;
     }
+	xmlXPathFreeObject(xpathObj);
 
     /* Evaluate xpath expression for DelegationSignerSubmitCommand */
     xpathObj = xmlXPathEvalExpression(ds_expr, xpathCtx);
@@ -844,16 +920,25 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
         }
         config->DSSubmitCmd = (char *)xmlXPathCastToString(xpathObj);
 
+		/* If the string ends " --cka_id" strip that off and set flag */
+		str = strstr(config->DSSubmitCmd, " --cka_id");
+		if (str) {
+			config->DSSubCKA_ID = 1;
+			*str = 0;
+		} else {
+			config->DSSubCKA_ID = 0;
+		}
+
         if (verbose) {
             log_msg(config, LOG_INFO, "Using command: %s to submit DS records", config->DSSubmitCmd);
         }
-        xmlXPathFreeObject(xpathObj);
     } else {
         if (verbose) {
             log_msg(config, LOG_INFO, "No DS Submit command supplied");
         }
         config->DSSubmitCmd[0] = '\0';
     }
+	xmlXPathFreeObject(xpathObj);
 
     /* Evaluate xpath expression for SQLite file location */
 		
@@ -984,15 +1069,13 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
     /* Check that we found one or the other database */
     if(db_found == 0) {
         log_msg(config, LOG_ERR, "Error: unable to find complete database connection expression in %s", filename);
-        xmlXPathFreeContext(xpathCtx);
         xmlFreeDoc(doc);
         return(-1);
     }
 
     /* Check that we found the right database type */
     if (db_found != DbFlavour()) {
-        log_msg(config, LOG_ERR, "Error: database in config file %s does not match libksm", filename);
-        xmlXPathFreeContext(xpathCtx);
+        log_msg(config, LOG_ERR, "Error: Config file %s specifies database type %s but system is compiled to use %s", filename, (db_found==1) ? "MySQL" : "sqlite3", (db_found==2) ? "MySQL" : "sqlite3");
         xmlFreeDoc(doc);
         return(-1);
     }
@@ -1014,6 +1097,9 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
         if (status > 0) {
             log_msg(config, LOG_ERR, "Error: unable to set log user: %s, error: %i", logFacilityName, status);
             StrFree(logFacilityName);
+			xmlXPathFreeObject(xpathObj);
+			xmlXPathFreeContext(xpathCtx);
+			xmlFreeDoc(doc);
             return status;
         }
         config->log_user = my_log_user;
@@ -1029,14 +1115,12 @@ ReadConfig(DAEMONCONFIG *config, int verbose)
             log_msg(config, LOG_INFO, "Using default log user: %s", logFacilityName);
         }
     }
-
     xmlXPathFreeObject(xpathObj);
 
     log_switch(my_log_user, logFacilityName, config->program, verbose);
 
     /* Cleanup */
     /* TODO: some other frees are needed */
-    xmlXPathFreeContext(xpathCtx);
     xmlFreeDoc(doc);
     StrFree(logFacilityName);
     StrFree(filename);

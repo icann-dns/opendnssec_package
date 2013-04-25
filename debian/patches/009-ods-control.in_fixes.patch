@@ -14,7 +14,15 @@
  	;;
  
  'signer')
-@@ -87,6 +89,7 @@ case "$1" in
+@@ -84,9 +86,15 @@ case "$1" in
+ 		
+ 		exit $RETVAL
+ 		;;
++	stop)
++		echo "Stopping signer engine.."
++		"$sbindir/ods-signer" stop
++		exit $?
++		;;
  	*)
  		shift
  		"$sbindir/ods-signer" "$@"
@@ -22,7 +30,7 @@
  		;;
  
  	esac
-@@ -151,7 +154,8 @@ case "$1" in
+@@ -151,7 +159,8 @@ case "$1" in
  		;;
  
  	*)
@@ -32,12 +40,13 @@
  		;;
  
  	esac
-@@ -172,11 +176,13 @@ case "$1" in
+@@ -171,12 +180,13 @@ case "$1" in
+ 
  'stop')
  	"$0" enforcer stop
- 	echo "Stopping signer engine..."
+-	echo "Stopping signer engine..."
 -	"$sbindir/ods-signer" stop
-+	"$0" signed stop
++	"$0" signer stop
 +	exit $?
  	;;
  

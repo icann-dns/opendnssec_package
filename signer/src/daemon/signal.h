@@ -1,5 +1,5 @@
 /*
- * $Id: signal.h 4349 2011-02-01 10:42:53Z matthijs $
+ * $Id: signal.h 5548 2011-09-05 14:29:25Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -43,14 +43,12 @@
 #define SIGNAL_RELOAD 2
 #define SIGNAL_SHUTDOWN 3
 
-struct engine_struct;
-
 /**
  * Set corresponding engine.
  * \param[in] engine corresponding engine
  *
  */
-void signal_set_engine(struct engine_struct* engine);
+void signal_set_engine(void* engine);
 
 /**
  * Handle signals.

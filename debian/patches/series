@@ -2,6 +2,4 @@
 004-runas_opendnssec.patch
 005-rename_regress_for_autotest.patch
 009-ods-control.in_fixes.patch
-011-return_if_open_parse_of_zonelist.xml_fails.patch
-012-fix_RRSIGs_with_glue.patch
-013-fix_zone_delete_with_MySQL.patch
+010-fix_manpages_errors.patch

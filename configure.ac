@@ -1,4 +1,4 @@
-# $Id: configure.ac 6309 2012-05-04 12:47:37Z jerry $
+# $Id: configure.ac 6930 2013-01-08 12:31:16Z jakob $
 
 m4_sinclude([version.m4])
 
@@ -68,6 +68,20 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 AC_TYPE_UINT16_T
+AC_MSG_CHECKING(for union semun)
+AC_TRY_COMPILE([#include <sys/types.h>
+                #include <sys/ipc.h>
+                #include <sys/sem.h>],
+               [union semun arg;],
+               [have_union_semun=1],
+               [have_union_semun=0]
+)
+if test $have_union_semun = 1; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE_UNION_SEMUN, 1, [union semun is defined])
+else
+  AC_MSG_RESULT(no)
+fi
 
 # pthread
 ACX_PTHREAD
@@ -86,6 +100,7 @@ AC_CHECK_FUNCS([malloc calloc realloc free])
 AC_CHECK_FUNCS([strlen strncmp strncat strncpy strerror strncasecmp strdup])
 AC_CHECK_FUNCS([fgetc fopen fclose ferror fprintf vsnprintf fflush])
 AC_CHECK_FUNCS([openlog closelog syslog])
+AC_CHECK_FUNCS([openlog_r closelog_r syslog_r vsyslog_r])
 AC_CHECK_FUNCS([chroot getgroups setgroups initgroups])
 AC_CHECK_FUNCS([close unlink fcntl socket listen bzero])
 AC_CHECK_FUNCS([va_start va_end])
@@ -105,20 +120,11 @@ AC_FUNC_VPRINTF
 
 AC_REPLACE_FUNCS(strlcat)
 AC_REPLACE_FUNCS(strlcpy)
+AC_REPLACE_FUNCS(b64_pton)
+AC_REPLACE_FUNCS(b64_ntop)
 
 ACX_BROKEN_SETRES
 AC_CHECK_STRPTIME
-
-# find out how to restart named processes
-AC_PATH_PROG(PKILL, pkill)
-AC_PATH_PROG(KILLALL, killall)
-if test -n "$PKILL" -a -x "$PKILL"; then
-  AC_DEFINE_UNQUOTED(RESTART_ENFORCERD_CMD, "$PKILL -HUP ods-enforcerd", [Command to restart a named process])
-elif test -n "$KILLALL" -a -x "$KILLALL"; then
-  AC_DEFINE_UNQUOTED(RESTART_ENFORCERD_CMD, "$KILLALL -HUP ods-enforcerd", [Command to restart a named process])
-else
-  AC_DEFINE_UNQUOTED(RESTART_ENFORCERD_CMD, "/bin/false", [Command to restart a named process])
-fi
 
 # check for some target-specific stuff
 case "$host" in
@@ -129,6 +135,14 @@ case "$host" in
 	AC_DEFINE(BROKEN_SETREGID, 1, [Define if your setregid() is broken])
     ;;
 esac
+
+# check for the sockaddr_un.sun_len member
+AC_CHECK_MEMBER([struct sockaddr_un.sun_len],
+    [AC_DEFINE(HAVE_SOCKADDR_SUN_LEN,1,[Have the sockaddr_un.sun_len member.])],
+    [],
+    [ #include <sys/types.h>
+      #include <sys/un.h>
+    ])
 
 # timeshift
 AC_ARG_ENABLE(timeshift,
@@ -146,8 +160,12 @@ fi
 # common dependencies
 ACX_LIBXML2
 ACX_LDNS(1,6,12)
+ACX_LDNS_NOT(1,6,14, [binary incompatibility, see http://open.nlnetlabs.nl/pipermail/ldns-users/2012-October/000564.html])
+ACX_LDNS_NOT(1,6,15, [fail to create NSEC3 bitmap for empty non-terminals, see http://www.nlnetlabs.nl/pipermail/ldns-users/2012-November/000565.html])
 ACX_PKCS11_MODULES
 ACX_RT
+ACX_LIBC
+ACX_SSL
 
 # libhsm
 ACX_DLOPEN
@@ -200,31 +218,6 @@ AH_BOTTOM([
 ])
 AM_CONDITIONAL([ENABLE_SIGNER], [test "${enable_signer}" = "yes"])
 
-# auditor
-AC_ARG_ENABLE(auditor,
-	AC_HELP_STRING([--disable-auditor],
-		[Disable auditor build (default enabled)]),
-		[enable_auditor="${enableval}"],
-		[enable_auditor="yes"])
-if test "x${enable_auditor}" = "xyes"; then
-	AM_PROG_RUBY
-	AC_CONFIG_SUBDIRS([ auditor ])
-	AC_DEFINE([HAVE_AUDITOR], 1, [Define this to enable auditor support.])
-fi
-AM_CONDITIONAL([ENABLE_AUDITOR], [test "${enable_auditor}" = "yes"])
-
-# plugins/eppclient
-AC_ARG_ENABLE(eppclient,
-	AC_HELP_STRING([--enable-eppclient],
-		[Enable eppclient build (default disabled)]),
-		[enable_eppclient="${enableval}"],
-		[enable_eppclient="no"])
-if test "x${enable_eppclient}" = "xyes"; then
-	LIBCURL_CHECK_CONFIG([yes], [7.18.2], [], [AC_MSG_ERROR(["libcurl not found"])])
-	AC_CONFIG_SUBDIRS([ plugins/eppclient ])
-fi
-AM_CONDITIONAL([ENABLE_EPPCLIENT], [test "${enable_eppclient}" = "yes"])
-
 # check for a green cucumber (but only if we can shift time)
 if test "x${enable_timeshift}" = "xyes"; then
 	AC_PATH_PROG(CUCUMBER, cucumber)
@@ -244,20 +237,19 @@ AC_CONFIG_FILES([
 	Doxyfile
 	common/Makefile
 	conf/Makefile
+	conf/addns.xml
 	conf/conf.xml
+	conf/enforcerstate.xml
 	conf/kasp.xml
 	conf/signconf.xml
 	conf/zonelist.xml
-	conf/zonefetch.xml
 	enforcer/Makefile
-	enforcer/ksm/Makefile
-	enforcer/ksm/include/Makefile
-	enforcer/ksm/include/ksm/Makefile
 	enforcer/common/Makefile
 	enforcer/enforcerd/Makefile
 	enforcer/enforcerd/ods-enforcerd.8
-	enforcer/utils/Makefile
-	enforcer/utils/ods-ksmutil.1
+	enforcer/ksm/Makefile
+	enforcer/ksm/include/Makefile
+	enforcer/ksm/include/ksm/Makefile
 	enforcer/test/Makefile
 	enforcer/test/cucumber/Makefile
 	enforcer/test/cucumber/c_conf.xml
@@ -266,10 +258,15 @@ AC_CONFIG_FILES([
 	enforcer/test/cunit/Makefile
 	enforcer/test/cunit/database_setup_mysql.sh
 	enforcer/test/cunit/database_setup_sqlite3.sh
+	enforcer/utils/Makefile
+	enforcer/utils/ods-kaspcheck.1
+	enforcer/utils/ods-ksmutil.1
 	libhsm/Makefile
 	libhsm/src/Makefile
-	libhsm/src/ods-hsmspeed.1
-	libhsm/src/ods-hsmutil.1
+	libhsm/src/bin/Makefile
+	libhsm/src/bin/ods-hsmspeed.1
+	libhsm/src/bin/ods-hsmutil.1
+	libhsm/src/lib/Makefile
 	libhsm/checks/Makefile
 	libhsm/checks/conf-softhsm.xml
 	libhsm/checks/conf-sca6000.xml
@@ -279,10 +276,10 @@ AC_CONFIG_FILES([
 	libhsm/checks/conf-ncipher.xml
 	libhsm/checks/conf-aepkeyper.xml
 	signer/Makefile
-	signer/src/Makefile
 	signer/man/Makefile
 	signer/man/ods-signer.8
 	signer/man/ods-signerd.8
+	signer/src/Makefile
 	tools/Makefile
 	tools/ods-control
 	tools/solaris/Makefile
@@ -292,7 +289,6 @@ AC_CONFIG_FILES([
 	tools/opendnssec.7
 	tools/ods-control.8
 	tools/ods-kasp2html
-	contrib/Makefile
 ])
 
 AC_OUTPUT

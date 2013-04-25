@@ -1,5 +1,5 @@
 /*
- * $Id: worker.h 6162 2012-02-13 12:33:26Z jerry $
+ * $Id: worker.h 6890 2012-12-12 14:33:49Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -47,14 +47,12 @@ enum worker_enum {
 };
 typedef enum worker_enum worker_id;
 
-struct engine_struct;
-
 typedef struct worker_struct worker_type;
 struct worker_struct {
     allocator_type* allocator;
     int thread_num;
     ods_thread_type thread_id;
-    struct engine_struct* engine;
+    void* engine;
     task_type* task;
     task_id working_with;
     worker_id type;
@@ -62,11 +60,11 @@ struct worker_struct {
     size_t jobs_appointed;
     size_t jobs_completed;
     size_t jobs_failed;
-    int sleeping;
-    int waiting;
-    int need_to_exit;
     cond_basic_type worker_alarm;
     lock_basic_type worker_lock;
+    unsigned sleeping : 1;
+    unsigned waiting : 1;
+    unsigned need_to_exit : 1;
 };
 
 /**
@@ -125,21 +123,10 @@ void worker_wait(lock_basic_type* lock, cond_basic_type* condition);
  * Let worker wait.
  * \param[in] lock lock to use
  * \param[in] condition condition to be met
- * \param[in] timeout maximum waiting time in seconds
  *
  */
 void worker_wait_timeout(lock_basic_type* lock, cond_basic_type* condition,
     time_t timeout);
-
-/**
- * Let worker wait on an already locked cond
- * \param[in] lock lock to use
- * \param[in] condition condition to be met
- * \param[in] timeout maximum waiting time in seconds
- *
- */
-void worker_wait_timeout_locked(lock_basic_type* lock, cond_basic_type*
-    condition, time_t timeout);
 
 /**
  * Notify a worker.

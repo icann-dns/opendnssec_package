@@ -15,23 +15,16 @@
  
  <!--
  		<Repository name="sca6000">
-@@ -42,14 +44,12 @@
- 	</Common>
- 
- 	<Enforcer>
--<!--
- 		<Privileges>
- 			<User>opendnssec</User>
- 			<Group>opendnssec</Group>
- 		</Privileges>
---->
- 
+@@ -48,7 +50,7 @@
+ <!--
+ 		<WorkerThreads>4</WorkerThreads>
+ -->
 -		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/kasp.db</SQLite></Datastore>
 +		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/db/kasp.db</SQLite></Datastore>
  		<Interval>PT3600S</Interval>
  		<!-- <ManualKeyGeneration/> -->
  		<!-- <RolloverNotification>P14D</RolloverNotification> -->
-@@ -61,12 +61,10 @@
+@@ -60,12 +62,10 @@
  	</Enforcer>
  
  	<Signer>
@@ -44,16 +37,3 @@
  
  		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
  		<WorkerThreads>4</WorkerThreads>
-@@ -88,12 +86,10 @@
- 	</Signer>
- 
- 	<Auditor>
--<!--
- 		<Privileges>
- 			<User>opendnssec</User>
- 			<Group>opendnssec</Group>
- 		</Privileges>
---->
- 
- 		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
- 	</Auditor>

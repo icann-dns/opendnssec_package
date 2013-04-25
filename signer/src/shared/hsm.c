@@ -1,5 +1,5 @@
 /*
- * $Id: hsm.c 6192 2012-02-29 14:29:03Z matthijs $
+ * $Id: hsm.c 6747 2012-10-19 10:32:45Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -45,7 +45,7 @@ static const char* hsm_str = "hsm";
 int
 lhsm_open(const char* filename)
 {
-    int result = hsm_open(filename, hsm_prompt_pin, NULL);
+    int result = hsm_open(filename, hsm_check_pin);
     if (result != HSM_OK) {
         char* error =  hsm_get_error(NULL);
         if (error != NULL) {
@@ -91,7 +91,7 @@ lhsm_clear_key_cache(key_type* key)
         return;
     }
     if (key->dnskey) {
-        ldns_rr_free(key->dnskey);
+        /* DNSKEY still exists in zone */
         key->dnskey = NULL;
     }
     if (key->hsmkey) {
@@ -143,8 +143,6 @@ lhsm_get_key(hsm_ctx_t* ctx, ldns_rdf* owner, key_type* key_id)
             hsm_str);
         return ODS_STATUS_ASSERT_ERR;
     }
-    ods_log_assert(owner);
-    ods_log_assert(key_id);
 
 lhsm_key_start:
 
@@ -165,13 +163,12 @@ lhsm_key_start:
                 lhsm_clear_key_cache(key_id);
                 retries++;
                 goto lhsm_key_start;
-            }
+           }
             ods_log_error("[%s] unable to get key: create params for key %s "
                 "failed", hsm_str, key_id->locator?key_id->locator:"(null)");
             return ODS_STATUS_ERR;
         }
     }
-
     /* lookup key */
     if (!key_id->hsmkey) {
         key_id->hsmkey = hsm_find_key_by_id(ctx, key_id->locator);
@@ -191,7 +188,6 @@ lhsm_key_start:
             key_id->locator?key_id->locator:"(null)");
         return ODS_STATUS_ERR;
     }
-
     /* get dnskey */
     if (!key_id->dnskey) {
         key_id->dnskey = hsm_get_dnskey(ctx, key_id->hsmkey, key_id->params);
@@ -234,14 +230,10 @@ lhsm_sign(hsm_ctx_t* ctx, ldns_rr_list* rrset, key_type* key_id,
             hsm_str);
         return NULL;
     }
-    ods_log_assert(owner);
-    ods_log_assert(key_id);
-    ods_log_assert(rrset);
-    ods_log_assert(inception);
-    ods_log_assert(expiration);
 
 lhsm_sign_start:
 
+    /* get dnskey */
     if (!key_id->dnskey) {
         status = lhsm_get_key(ctx, owner, key_id);
         if (status != ODS_STATUS_OK) {
@@ -261,7 +253,7 @@ lhsm_sign_start:
     ods_log_assert(key_id->dnskey);
     ods_log_assert(key_id->hsmkey);
     ods_log_assert(key_id->params);
-
+    /* adjust parameters */
     params = hsm_sign_params_new();
     params->owner = ldns_rdf_clone(key_id->params->owner);
     params->algorithm = key_id->algorithm;
@@ -269,12 +261,11 @@ lhsm_sign_start:
     params->inception = inception;
     params->expiration = expiration;
     params->keytag = ldns_calc_keytag(key_id->dnskey);
-    ods_log_debug("[%s] sign RRset[%i] with key %s tag %u", hsm_str,
+    ods_log_deeebug("[%s] sign RRset[%i] with key %s tag %u", hsm_str,
         ldns_rr_get_type(ldns_rr_list_rr(rrset, 0)),
         key_id->locator?key_id->locator:"(null)", params->keytag);
     result = hsm_sign_rrset(ctx, rrset, key_id->hsmkey, params);
     hsm_sign_params_free(params);
-
     if (!result) {
         error = hsm_get_error(ctx);
         if (error) {

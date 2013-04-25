@@ -1,5 +1,5 @@
 /*
- * $Id: database_access_mysql.c 2676 2010-01-11 15:31:31Z sion $
+ * $Id: database_access_mysql.c 7018 2013-02-05 13:59:43Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -418,7 +418,7 @@ void DbStringFree(char* string)
 int DbBeginTransaction(void)
 {
     const char* sql = "start transaction";
-    return DbExecuteSqlNoResult(DbHandle(), sql);
+	return DbExecuteSqlNoResult(DbHandle(), sql);
 }
 
 /*+
@@ -434,7 +434,7 @@ int DbBeginTransaction(void)
 int DbCommit(void)
 {
     const char* sql = "commit";
-    return DbExecuteSqlNoResult(DbHandle(), sql);
+	return DbExecuteSqlNoResult(DbHandle(), sql);
 }
 
 /*+
