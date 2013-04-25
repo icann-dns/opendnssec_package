@@ -1,5 +1,5 @@
 /*
- * $Id: tools.h 4500 2011-02-17 15:42:12Z matthijs $
+ * $Id: tools.h 5948 2011-11-30 11:56:02Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,8 +35,17 @@
 #define SIGNER_TOOLS_H
 
 #include "config.h"
+#include "daemon/engine.h"
 #include "shared/status.h"
 #include "signer/zone.h"
+
+/**
+ * Load zone signconf.
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status tools_signconf(zone_type* zone);
 
 /**
  * Read zone from input adapter.
@@ -47,37 +56,12 @@
 ods_status tools_input(zone_type* zone);
 
 /**
- * Examine and commit updates.
- * \param[in] zone zone
- * \return ods_status status
- *
- */
-ods_status tools_commit(zone_type* zone);
-
-/**
- * Nsecify zone.
- * \param[in] zone zone
- * \return ods_status status
- *
- */
-ods_status tools_nsecify(zone_type* zone);
-
-/**
- * Audit zone.
- * \param[in] zone zone
- * \param[in] working_dir working directory
- * \param[in] cfg_filename conf.xml filename
- * \return ods_status status
- *
- */
-ods_status tools_audit(zone_type* zone, char* working_dir, char* cfg_filename);
-
-/**
  * Write zone to output adapter.
  * \param[in] zone zone
+ * \param[in] engine signer engine
  * \return ods_status status
  *
  */
-ods_status tools_output(zone_type* zone);
+ods_status tools_output(zone_type* zone, engine_type* engine);
 
 #endif /* SIGNER_TOOLS_H */

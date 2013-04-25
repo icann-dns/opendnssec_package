@@ -45,14 +45,13 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
 	$(top_srcdir)/m4/acx_database_backend.m4 \
 	$(top_srcdir)/m4/acx_dbparams.m4 \
 	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
-	$(top_srcdir)/m4/acx_libcurl.m4 \
-	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
-	$(top_srcdir)/m4/acx_pedantic.m4 \
+	$(top_srcdir)/m4/acx_libc.m4 $(top_srcdir)/m4/acx_libxml2.m4 \
+	$(top_srcdir)/m4/acx_mysql.m4 $(top_srcdir)/m4/acx_pedantic.m4 \
 	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
 	$(top_srcdir)/m4/acx_rpath.m4 $(top_srcdir)/m4/acx_rt.m4 \
-	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_strict.m4 \
-	$(top_srcdir)/m4/am_prog_ruby.m4 \
+	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_ssl.m4 \
+	$(top_srcdir)/m4/acx_strict.m4 \
 	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
 	$(top_srcdir)/m4/ax_pthread.m4 \
 	$(top_srcdir)/m4/check_compiler_flag.m4 \
@@ -128,6 +127,7 @@ CUCUMBER = @CUCUMBER@
 CUNIT_INCLUDES = @CUNIT_INCLUDES@
 CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
+C_LIBS = @C_LIBS@
 DB_HOST = @DB_HOST@
 DB_INCLUDES = @DB_INCLUDES@
 DB_LIBS = @DB_LIBS@
@@ -172,20 +172,18 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
+HAVE_SSL = @HAVE_SSL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JAVA = @JAVA@
-KILLALL = @KILLALL@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
 LDNS_LIBS = @LDNS_LIBS@
-LIBCURL = @LIBCURL@
-LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -232,19 +230,19 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PKILL = @PKILL@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RT_LIBS = @RT_LIBS@
-RUBY = @RUBY@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SQLITE3 = @SQLITE3@
 SQLITE3_INCLUDES = @SQLITE3_INCLUDES@
 SQLITE3_LIBS = @SQLITE3_LIBS@
+SSL_INCLUDES = @SSL_INCLUDES@
+SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
@@ -252,7 +250,6 @@ XML2_INCLUDES = @XML2_INCLUDES@
 XML2_LIBS = @XML2_LIBS@
 XMLLINT = @XMLLINT@
 XSLTPROC = @XSLTPROC@
-_libcurl_config = @_libcurl_config@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -307,7 +304,6 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@

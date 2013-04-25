@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 4495 2011-02-17 11:22:41Z matthijs $
+# $Id: Makefile.am 6368 2012-06-04 10:11:42Z matthijs $
 
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -46,14 +46,13 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
 	$(top_srcdir)/m4/acx_database_backend.m4 \
 	$(top_srcdir)/m4/acx_dbparams.m4 \
 	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
-	$(top_srcdir)/m4/acx_libcurl.m4 \
-	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
-	$(top_srcdir)/m4/acx_pedantic.m4 \
+	$(top_srcdir)/m4/acx_libc.m4 $(top_srcdir)/m4/acx_libxml2.m4 \
+	$(top_srcdir)/m4/acx_mysql.m4 $(top_srcdir)/m4/acx_pedantic.m4 \
 	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
 	$(top_srcdir)/m4/acx_rpath.m4 $(top_srcdir)/m4/acx_rt.m4 \
-	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_strict.m4 \
-	$(top_srcdir)/m4/am_prog_ruby.m4 \
+	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_ssl.m4 \
+	$(top_srcdir)/m4/acx_strict.m4 \
 	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
 	$(top_srcdir)/m4/ax_pthread.m4 \
 	$(top_srcdir)/m4/check_compiler_flag.m4 \
@@ -76,21 +75,26 @@ am_ods_signer_OBJECTS = ods-signer.$(OBJEXT) allocator.$(OBJEXT) \
 ods_signer_OBJECTS = $(am_ods_signer_OBJECTS)
 ods_signer_DEPENDENCIES = $(LIBHSM)
 am_ods_signerd_OBJECTS = ods-signerd.$(OBJEXT) adapi.$(OBJEXT) \
-	adapter.$(OBJEXT) adfile.$(OBJEXT) adutil.$(OBJEXT) \
-	cfg.$(OBJEXT) cmdhandler.$(OBJEXT) engine.$(OBJEXT) \
-	signal.$(OBJEXT) worker.$(OBJEXT) confparser.$(OBJEXT) \
-	signconfparser.$(OBJEXT) zonelistparser.$(OBJEXT) \
-	fifoq.$(OBJEXT) schedule.$(OBJEXT) task.$(OBJEXT) \
-	allocator.$(OBJEXT) duration.$(OBJEXT) file.$(OBJEXT) \
-	hsm.$(OBJEXT) locks.$(OBJEXT) log.$(OBJEXT) privdrop.$(OBJEXT) \
-	status.$(OBJEXT) util.$(OBJEXT) backup.$(OBJEXT) \
-	denial.$(OBJEXT) domain.$(OBJEXT) keys.$(OBJEXT) \
-	nsec3params.$(OBJEXT) rrset.$(OBJEXT) rrsigs.$(OBJEXT) \
-	signconf.$(OBJEXT) stats.$(OBJEXT) tools.$(OBJEXT) \
-	zone.$(OBJEXT) zonedata.$(OBJEXT) zonelist.$(OBJEXT) \
-	toolutil.$(OBJEXT) zone_fetcher.$(OBJEXT)
+	adapter.$(OBJEXT) addns.$(OBJEXT) adfile.$(OBJEXT) \
+	adutil.$(OBJEXT) cfg.$(OBJEXT) cmdhandler.$(OBJEXT) \
+	dnshandler.$(OBJEXT) xfrhandler.$(OBJEXT) engine.$(OBJEXT) \
+	signal.$(OBJEXT) worker.$(OBJEXT) addnsparser.$(OBJEXT) \
+	confparser.$(OBJEXT) signconfparser.$(OBJEXT) \
+	zonelistparser.$(OBJEXT) fifoq.$(OBJEXT) schedule.$(OBJEXT) \
+	task.$(OBJEXT) allocator.$(OBJEXT) duration.$(OBJEXT) \
+	file.$(OBJEXT) hsm.$(OBJEXT) locks.$(OBJEXT) log.$(OBJEXT) \
+	privdrop.$(OBJEXT) status.$(OBJEXT) util.$(OBJEXT) \
+	backup.$(OBJEXT) denial.$(OBJEXT) domain.$(OBJEXT) \
+	ixfr.$(OBJEXT) keys.$(OBJEXT) namedb.$(OBJEXT) \
+	nsec3params.$(OBJEXT) rrset.$(OBJEXT) signconf.$(OBJEXT) \
+	stats.$(OBJEXT) tools.$(OBJEXT) zone.$(OBJEXT) \
+	zonelist.$(OBJEXT) acl.$(OBJEXT) axfr.$(OBJEXT) \
+	buffer.$(OBJEXT) edns.$(OBJEXT) listener.$(OBJEXT) \
+	netio.$(OBJEXT) notify.$(OBJEXT) query.$(OBJEXT) \
+	sock.$(OBJEXT) tcpset.$(OBJEXT) tsig.$(OBJEXT) \
+	tsig-openssl.$(OBJEXT) xfrd.$(OBJEXT)
 ods_signerd_OBJECTS = $(am_ods_signerd_OBJECTS)
-ods_signerd_DEPENDENCIES = $(LIBHSM)
+ods_signerd_DEPENDENCIES = $(LIBHSM) $(LIBCOMPAT)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -126,6 +130,7 @@ CUCUMBER = @CUCUMBER@
 CUNIT_INCLUDES = @CUNIT_INCLUDES@
 CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
+C_LIBS = @C_LIBS@
 DB_HOST = @DB_HOST@
 DB_INCLUDES = @DB_INCLUDES@
 DB_LIBS = @DB_LIBS@
@@ -170,20 +175,18 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
+HAVE_SSL = @HAVE_SSL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JAVA = @JAVA@
-KILLALL = @KILLALL@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
 LDNS_LIBS = @LDNS_LIBS@
-LIBCURL = @LIBCURL@
-LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -230,19 +233,19 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PKILL = @PKILL@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RT_LIBS = @RT_LIBS@
-RUBY = @RUBY@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SQLITE3 = @SQLITE3@
 SQLITE3_INCLUDES = @SQLITE3_INCLUDES@
 SQLITE3_LIBS = @SQLITE3_LIBS@
+SSL_INCLUDES = @SSL_INCLUDES@
+SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
@@ -250,7 +253,6 @@ XML2_INCLUDES = @XML2_INCLUDES@
 XML2_LIBS = @XML2_LIBS@
 XMLLINT = @XMLLINT@
 XSLTPROC = @XSLTPROC@
-_libcurl_config = @_libcurl_config@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -305,19 +307,19 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
-LIBHSM = ${top_builddir}/libhsm/src/libhsm.a
+LIBHSM = ${top_builddir}/libhsm/src/lib/libhsm.a
+LIBCOMPAT = ${top_builddir}/common/libcompat.a
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/common \
 	-I$(top_builddir)/common \
-	-I$(srcdir)/../../libhsm/src \
-	-I$(builddir)/../../libhsm/src \
+    -I$(top_srcdir)/libhsm/src/lib \
+	@SSL_INCLUDES@ \
 	@XML2_INCLUDES@ \
 	@LDNS_INCLUDES@
 
@@ -326,13 +328,17 @@ signerdir = @libdir@/opendnssec/signer
 ods_signerd_SOURCES = ods-signerd.c \
 				adapter/adapi.c adapter/adapi.h \
 				adapter/adapter.c adapter/adapter.h \
+				adapter/addns.c adapter/addns.h \
 				adapter/adfile.c adapter/adfile.h \
 				adapter/adutil.c adapter/adutil.h \
 				daemon/cfg.c daemon/cfg.h \
 				daemon/cmdhandler.c daemon/cmdhandler.h \
+				daemon/dnshandler.c daemon/dnshandler.h \
+				daemon/xfrhandler.c daemon/xfrhandler.h \
 				daemon/engine.c daemon/engine.h \
 				daemon/signal.c daemon/signal.h \
 				daemon/worker.c daemon/worker.h \
+				parser/addnsparser.c parser/addnsparser.h \
 				parser/confparser.c parser/confparser.h \
 				parser/signconfparser.c parser/signconfparser.h \
 				parser/zonelistparser.c parser/zonelistparser.h \
@@ -351,21 +357,32 @@ ods_signerd_SOURCES = ods-signerd.c \
 				signer/backup.c signer/backup.h \
 				signer/denial.c signer/denial.h \
 				signer/domain.c signer/domain.h \
+				signer/ixfr.c signer/ixfr.h \
 				signer/keys.c signer/keys.h \
+				signer/namedb.c signer/namedb.h \
 				signer/nsec3params.c signer/nsec3params.h \
 				signer/rrset.c signer/rrset.h \
-				signer/rrsigs.c signer/rrsigs.h \
 				signer/signconf.c signer/signconf.h \
 				signer/stats.c signer/stats.h \
 				signer/tools.c signer/tools.h \
 				signer/zone.c signer/zone.h \
-				signer/zonedata.c signer/zonedata.h \
 				signer/zonelist.c signer/zonelist.h \
-				tools/toolutil.c tools/toolutil.h \
-				tools/zone_fetcher.c tools/zone_fetcher.h
+				wire/acl.c wire/acl.h \
+				wire/axfr.c wire/axfr.h \
+				wire/buffer.c wire/buffer.h \
+				wire/edns.c wire/edns.h \
+				wire/listener.c wire/listener.h \
+				wire/netio.c wire/netio.h \
+				wire/notify.c wire/notify.h \
+				wire/query.c wire/query.h \
+				wire/sock.c wire/sock.h \
+				wire/tcpset.c wire/tcpset.h \
+				wire/tsig.c wire/tsig.h \
+				wire/tsig-openssl.c wire/tsig-openssl.h \
+				wire/xfrd.c wire/xfrd.h
 
-ods_signerd_LDADD = $(LIBHSM) @LDNS_LIBS@ @XML2_LIBS@ @PTHREAD_LIBS@ \
-	@RT_LIBS@ $(am__empty)
+ods_signerd_LDADD = $(LIBHSM) $(LIBCOMPAT) @LDNS_LIBS@ @XML2_LIBS@ \
+	@PTHREAD_LIBS@ @RT_LIBS@ @SSL_LIBS@ @C_LIBS@ $(am__empty)
 ods_signer_SOURCES = ods-signer.c \
 				shared/allocator.c shared/allocator.h \
 				shared/duration.c shared/duration.h \
@@ -464,45 +481,60 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adapi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adapter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/addns.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/addnsparser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adutil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allocator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/axfr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/backup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdhandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/confparser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/denial.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dnshandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/domain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/duration.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/edns.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/engine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fifoq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hsm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ixfr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/keys.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/listener.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locks.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/namedb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netio.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/notify.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nsec3params.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ods-signer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ods-signerd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/privdrop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/query.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rrset.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rrsigs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/schedule.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signconf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signconfparser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/status.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/task.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcpset.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tools.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/toolutil.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tsig-openssl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tsig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/worker.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xfrd.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xfrhandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zone_fetcher.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zonedata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zonelist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zonelistparser.Po@am__quote@
 
@@ -625,6 +657,20 @@ adapter.obj: adapter/adapter.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o adapter.obj `if test -f 'adapter/adapter.c'; then $(CYGPATH_W) 'adapter/adapter.c'; else $(CYGPATH_W) '$(srcdir)/adapter/adapter.c'; fi`
 
+addns.o: adapter/addns.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT addns.o -MD -MP -MF $(DEPDIR)/addns.Tpo -c -o addns.o `test -f 'adapter/addns.c' || echo '$(srcdir)/'`adapter/addns.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/addns.Tpo $(DEPDIR)/addns.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adapter/addns.c' object='addns.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o addns.o `test -f 'adapter/addns.c' || echo '$(srcdir)/'`adapter/addns.c
+
+addns.obj: adapter/addns.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT addns.obj -MD -MP -MF $(DEPDIR)/addns.Tpo -c -o addns.obj `if test -f 'adapter/addns.c'; then $(CYGPATH_W) 'adapter/addns.c'; else $(CYGPATH_W) '$(srcdir)/adapter/addns.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/addns.Tpo $(DEPDIR)/addns.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='adapter/addns.c' object='addns.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o addns.obj `if test -f 'adapter/addns.c'; then $(CYGPATH_W) 'adapter/addns.c'; else $(CYGPATH_W) '$(srcdir)/adapter/addns.c'; fi`
+
 adfile.o: adapter/adfile.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT adfile.o -MD -MP -MF $(DEPDIR)/adfile.Tpo -c -o adfile.o `test -f 'adapter/adfile.c' || echo '$(srcdir)/'`adapter/adfile.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/adfile.Tpo $(DEPDIR)/adfile.Po
@@ -681,6 +727,34 @@ cmdhandler.obj: daemon/cmdhandler.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cmdhandler.obj `if test -f 'daemon/cmdhandler.c'; then $(CYGPATH_W) 'daemon/cmdhandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/cmdhandler.c'; fi`
 
+dnshandler.o: daemon/dnshandler.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT dnshandler.o -MD -MP -MF $(DEPDIR)/dnshandler.Tpo -c -o dnshandler.o `test -f 'daemon/dnshandler.c' || echo '$(srcdir)/'`daemon/dnshandler.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/dnshandler.Tpo $(DEPDIR)/dnshandler.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/dnshandler.c' object='dnshandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o dnshandler.o `test -f 'daemon/dnshandler.c' || echo '$(srcdir)/'`daemon/dnshandler.c
+
+dnshandler.obj: daemon/dnshandler.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT dnshandler.obj -MD -MP -MF $(DEPDIR)/dnshandler.Tpo -c -o dnshandler.obj `if test -f 'daemon/dnshandler.c'; then $(CYGPATH_W) 'daemon/dnshandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/dnshandler.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/dnshandler.Tpo $(DEPDIR)/dnshandler.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/dnshandler.c' object='dnshandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o dnshandler.obj `if test -f 'daemon/dnshandler.c'; then $(CYGPATH_W) 'daemon/dnshandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/dnshandler.c'; fi`
+
+xfrhandler.o: daemon/xfrhandler.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT xfrhandler.o -MD -MP -MF $(DEPDIR)/xfrhandler.Tpo -c -o xfrhandler.o `test -f 'daemon/xfrhandler.c' || echo '$(srcdir)/'`daemon/xfrhandler.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/xfrhandler.Tpo $(DEPDIR)/xfrhandler.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/xfrhandler.c' object='xfrhandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o xfrhandler.o `test -f 'daemon/xfrhandler.c' || echo '$(srcdir)/'`daemon/xfrhandler.c
+
+xfrhandler.obj: daemon/xfrhandler.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT xfrhandler.obj -MD -MP -MF $(DEPDIR)/xfrhandler.Tpo -c -o xfrhandler.obj `if test -f 'daemon/xfrhandler.c'; then $(CYGPATH_W) 'daemon/xfrhandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/xfrhandler.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/xfrhandler.Tpo $(DEPDIR)/xfrhandler.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/xfrhandler.c' object='xfrhandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o xfrhandler.obj `if test -f 'daemon/xfrhandler.c'; then $(CYGPATH_W) 'daemon/xfrhandler.c'; else $(CYGPATH_W) '$(srcdir)/daemon/xfrhandler.c'; fi`
+
 engine.o: daemon/engine.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT engine.o -MD -MP -MF $(DEPDIR)/engine.Tpo -c -o engine.o `test -f 'daemon/engine.c' || echo '$(srcdir)/'`daemon/engine.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/engine.Tpo $(DEPDIR)/engine.Po
@@ -722,6 +796,20 @@ worker.obj: daemon/worker.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='daemon/worker.c' object='worker.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o worker.obj `if test -f 'daemon/worker.c'; then $(CYGPATH_W) 'daemon/worker.c'; else $(CYGPATH_W) '$(srcdir)/daemon/worker.c'; fi`
+
+addnsparser.o: parser/addnsparser.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT addnsparser.o -MD -MP -MF $(DEPDIR)/addnsparser.Tpo -c -o addnsparser.o `test -f 'parser/addnsparser.c' || echo '$(srcdir)/'`parser/addnsparser.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/addnsparser.Tpo $(DEPDIR)/addnsparser.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='parser/addnsparser.c' object='addnsparser.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o addnsparser.o `test -f 'parser/addnsparser.c' || echo '$(srcdir)/'`parser/addnsparser.c
+
+addnsparser.obj: parser/addnsparser.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT addnsparser.obj -MD -MP -MF $(DEPDIR)/addnsparser.Tpo -c -o addnsparser.obj `if test -f 'parser/addnsparser.c'; then $(CYGPATH_W) 'parser/addnsparser.c'; else $(CYGPATH_W) '$(srcdir)/parser/addnsparser.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/addnsparser.Tpo $(DEPDIR)/addnsparser.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='parser/addnsparser.c' object='addnsparser.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o addnsparser.obj `if test -f 'parser/addnsparser.c'; then $(CYGPATH_W) 'parser/addnsparser.c'; else $(CYGPATH_W) '$(srcdir)/parser/addnsparser.c'; fi`
 
 confparser.o: parser/confparser.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT confparser.o -MD -MP -MF $(DEPDIR)/confparser.Tpo -c -o confparser.o `test -f 'parser/confparser.c' || echo '$(srcdir)/'`parser/confparser.c
@@ -905,6 +993,20 @@ domain.obj: signer/domain.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o domain.obj `if test -f 'signer/domain.c'; then $(CYGPATH_W) 'signer/domain.c'; else $(CYGPATH_W) '$(srcdir)/signer/domain.c'; fi`
 
+ixfr.o: signer/ixfr.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ixfr.o -MD -MP -MF $(DEPDIR)/ixfr.Tpo -c -o ixfr.o `test -f 'signer/ixfr.c' || echo '$(srcdir)/'`signer/ixfr.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ixfr.Tpo $(DEPDIR)/ixfr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/ixfr.c' object='ixfr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ixfr.o `test -f 'signer/ixfr.c' || echo '$(srcdir)/'`signer/ixfr.c
+
+ixfr.obj: signer/ixfr.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ixfr.obj -MD -MP -MF $(DEPDIR)/ixfr.Tpo -c -o ixfr.obj `if test -f 'signer/ixfr.c'; then $(CYGPATH_W) 'signer/ixfr.c'; else $(CYGPATH_W) '$(srcdir)/signer/ixfr.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ixfr.Tpo $(DEPDIR)/ixfr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/ixfr.c' object='ixfr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ixfr.obj `if test -f 'signer/ixfr.c'; then $(CYGPATH_W) 'signer/ixfr.c'; else $(CYGPATH_W) '$(srcdir)/signer/ixfr.c'; fi`
+
 keys.o: signer/keys.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT keys.o -MD -MP -MF $(DEPDIR)/keys.Tpo -c -o keys.o `test -f 'signer/keys.c' || echo '$(srcdir)/'`signer/keys.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/keys.Tpo $(DEPDIR)/keys.Po
@@ -918,6 +1020,20 @@ keys.obj: signer/keys.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/keys.c' object='keys.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o keys.obj `if test -f 'signer/keys.c'; then $(CYGPATH_W) 'signer/keys.c'; else $(CYGPATH_W) '$(srcdir)/signer/keys.c'; fi`
+
+namedb.o: signer/namedb.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT namedb.o -MD -MP -MF $(DEPDIR)/namedb.Tpo -c -o namedb.o `test -f 'signer/namedb.c' || echo '$(srcdir)/'`signer/namedb.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/namedb.Tpo $(DEPDIR)/namedb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/namedb.c' object='namedb.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o namedb.o `test -f 'signer/namedb.c' || echo '$(srcdir)/'`signer/namedb.c
+
+namedb.obj: signer/namedb.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT namedb.obj -MD -MP -MF $(DEPDIR)/namedb.Tpo -c -o namedb.obj `if test -f 'signer/namedb.c'; then $(CYGPATH_W) 'signer/namedb.c'; else $(CYGPATH_W) '$(srcdir)/signer/namedb.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/namedb.Tpo $(DEPDIR)/namedb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/namedb.c' object='namedb.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o namedb.obj `if test -f 'signer/namedb.c'; then $(CYGPATH_W) 'signer/namedb.c'; else $(CYGPATH_W) '$(srcdir)/signer/namedb.c'; fi`
 
 nsec3params.o: signer/nsec3params.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nsec3params.o -MD -MP -MF $(DEPDIR)/nsec3params.Tpo -c -o nsec3params.o `test -f 'signer/nsec3params.c' || echo '$(srcdir)/'`signer/nsec3params.c
@@ -946,20 +1062,6 @@ rrset.obj: signer/rrset.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/rrset.c' object='rrset.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o rrset.obj `if test -f 'signer/rrset.c'; then $(CYGPATH_W) 'signer/rrset.c'; else $(CYGPATH_W) '$(srcdir)/signer/rrset.c'; fi`
-
-rrsigs.o: signer/rrsigs.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT rrsigs.o -MD -MP -MF $(DEPDIR)/rrsigs.Tpo -c -o rrsigs.o `test -f 'signer/rrsigs.c' || echo '$(srcdir)/'`signer/rrsigs.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/rrsigs.Tpo $(DEPDIR)/rrsigs.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/rrsigs.c' object='rrsigs.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o rrsigs.o `test -f 'signer/rrsigs.c' || echo '$(srcdir)/'`signer/rrsigs.c
-
-rrsigs.obj: signer/rrsigs.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT rrsigs.obj -MD -MP -MF $(DEPDIR)/rrsigs.Tpo -c -o rrsigs.obj `if test -f 'signer/rrsigs.c'; then $(CYGPATH_W) 'signer/rrsigs.c'; else $(CYGPATH_W) '$(srcdir)/signer/rrsigs.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/rrsigs.Tpo $(DEPDIR)/rrsigs.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/rrsigs.c' object='rrsigs.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o rrsigs.obj `if test -f 'signer/rrsigs.c'; then $(CYGPATH_W) 'signer/rrsigs.c'; else $(CYGPATH_W) '$(srcdir)/signer/rrsigs.c'; fi`
 
 signconf.o: signer/signconf.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT signconf.o -MD -MP -MF $(DEPDIR)/signconf.Tpo -c -o signconf.o `test -f 'signer/signconf.c' || echo '$(srcdir)/'`signer/signconf.c
@@ -1017,20 +1119,6 @@ zone.obj: signer/zone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zone.obj `if test -f 'signer/zone.c'; then $(CYGPATH_W) 'signer/zone.c'; else $(CYGPATH_W) '$(srcdir)/signer/zone.c'; fi`
 
-zonedata.o: signer/zonedata.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zonedata.o -MD -MP -MF $(DEPDIR)/zonedata.Tpo -c -o zonedata.o `test -f 'signer/zonedata.c' || echo '$(srcdir)/'`signer/zonedata.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/zonedata.Tpo $(DEPDIR)/zonedata.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/zonedata.c' object='zonedata.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zonedata.o `test -f 'signer/zonedata.c' || echo '$(srcdir)/'`signer/zonedata.c
-
-zonedata.obj: signer/zonedata.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zonedata.obj -MD -MP -MF $(DEPDIR)/zonedata.Tpo -c -o zonedata.obj `if test -f 'signer/zonedata.c'; then $(CYGPATH_W) 'signer/zonedata.c'; else $(CYGPATH_W) '$(srcdir)/signer/zonedata.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/zonedata.Tpo $(DEPDIR)/zonedata.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='signer/zonedata.c' object='zonedata.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zonedata.obj `if test -f 'signer/zonedata.c'; then $(CYGPATH_W) 'signer/zonedata.c'; else $(CYGPATH_W) '$(srcdir)/signer/zonedata.c'; fi`
-
 zonelist.o: signer/zonelist.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zonelist.o -MD -MP -MF $(DEPDIR)/zonelist.Tpo -c -o zonelist.o `test -f 'signer/zonelist.c' || echo '$(srcdir)/'`signer/zonelist.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/zonelist.Tpo $(DEPDIR)/zonelist.Po
@@ -1045,33 +1133,187 @@ zonelist.obj: signer/zonelist.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zonelist.obj `if test -f 'signer/zonelist.c'; then $(CYGPATH_W) 'signer/zonelist.c'; else $(CYGPATH_W) '$(srcdir)/signer/zonelist.c'; fi`
 
-toolutil.o: tools/toolutil.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT toolutil.o -MD -MP -MF $(DEPDIR)/toolutil.Tpo -c -o toolutil.o `test -f 'tools/toolutil.c' || echo '$(srcdir)/'`tools/toolutil.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/toolutil.Tpo $(DEPDIR)/toolutil.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/toolutil.c' object='toolutil.o' libtool=no @AMDEPBACKSLASH@
+acl.o: wire/acl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT acl.o -MD -MP -MF $(DEPDIR)/acl.Tpo -c -o acl.o `test -f 'wire/acl.c' || echo '$(srcdir)/'`wire/acl.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/acl.Tpo $(DEPDIR)/acl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/acl.c' object='acl.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o toolutil.o `test -f 'tools/toolutil.c' || echo '$(srcdir)/'`tools/toolutil.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o acl.o `test -f 'wire/acl.c' || echo '$(srcdir)/'`wire/acl.c
 
-toolutil.obj: tools/toolutil.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT toolutil.obj -MD -MP -MF $(DEPDIR)/toolutil.Tpo -c -o toolutil.obj `if test -f 'tools/toolutil.c'; then $(CYGPATH_W) 'tools/toolutil.c'; else $(CYGPATH_W) '$(srcdir)/tools/toolutil.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/toolutil.Tpo $(DEPDIR)/toolutil.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/toolutil.c' object='toolutil.obj' libtool=no @AMDEPBACKSLASH@
+acl.obj: wire/acl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT acl.obj -MD -MP -MF $(DEPDIR)/acl.Tpo -c -o acl.obj `if test -f 'wire/acl.c'; then $(CYGPATH_W) 'wire/acl.c'; else $(CYGPATH_W) '$(srcdir)/wire/acl.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/acl.Tpo $(DEPDIR)/acl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/acl.c' object='acl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o toolutil.obj `if test -f 'tools/toolutil.c'; then $(CYGPATH_W) 'tools/toolutil.c'; else $(CYGPATH_W) '$(srcdir)/tools/toolutil.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o acl.obj `if test -f 'wire/acl.c'; then $(CYGPATH_W) 'wire/acl.c'; else $(CYGPATH_W) '$(srcdir)/wire/acl.c'; fi`
 
-zone_fetcher.o: tools/zone_fetcher.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zone_fetcher.o -MD -MP -MF $(DEPDIR)/zone_fetcher.Tpo -c -o zone_fetcher.o `test -f 'tools/zone_fetcher.c' || echo '$(srcdir)/'`tools/zone_fetcher.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/zone_fetcher.Tpo $(DEPDIR)/zone_fetcher.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/zone_fetcher.c' object='zone_fetcher.o' libtool=no @AMDEPBACKSLASH@
+axfr.o: wire/axfr.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT axfr.o -MD -MP -MF $(DEPDIR)/axfr.Tpo -c -o axfr.o `test -f 'wire/axfr.c' || echo '$(srcdir)/'`wire/axfr.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/axfr.Tpo $(DEPDIR)/axfr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/axfr.c' object='axfr.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zone_fetcher.o `test -f 'tools/zone_fetcher.c' || echo '$(srcdir)/'`tools/zone_fetcher.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o axfr.o `test -f 'wire/axfr.c' || echo '$(srcdir)/'`wire/axfr.c
 
-zone_fetcher.obj: tools/zone_fetcher.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT zone_fetcher.obj -MD -MP -MF $(DEPDIR)/zone_fetcher.Tpo -c -o zone_fetcher.obj `if test -f 'tools/zone_fetcher.c'; then $(CYGPATH_W) 'tools/zone_fetcher.c'; else $(CYGPATH_W) '$(srcdir)/tools/zone_fetcher.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/zone_fetcher.Tpo $(DEPDIR)/zone_fetcher.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/zone_fetcher.c' object='zone_fetcher.obj' libtool=no @AMDEPBACKSLASH@
+axfr.obj: wire/axfr.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT axfr.obj -MD -MP -MF $(DEPDIR)/axfr.Tpo -c -o axfr.obj `if test -f 'wire/axfr.c'; then $(CYGPATH_W) 'wire/axfr.c'; else $(CYGPATH_W) '$(srcdir)/wire/axfr.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/axfr.Tpo $(DEPDIR)/axfr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/axfr.c' object='axfr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zone_fetcher.obj `if test -f 'tools/zone_fetcher.c'; then $(CYGPATH_W) 'tools/zone_fetcher.c'; else $(CYGPATH_W) '$(srcdir)/tools/zone_fetcher.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o axfr.obj `if test -f 'wire/axfr.c'; then $(CYGPATH_W) 'wire/axfr.c'; else $(CYGPATH_W) '$(srcdir)/wire/axfr.c'; fi`
+
+buffer.o: wire/buffer.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT buffer.o -MD -MP -MF $(DEPDIR)/buffer.Tpo -c -o buffer.o `test -f 'wire/buffer.c' || echo '$(srcdir)/'`wire/buffer.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/buffer.Tpo $(DEPDIR)/buffer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/buffer.c' object='buffer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o buffer.o `test -f 'wire/buffer.c' || echo '$(srcdir)/'`wire/buffer.c
+
+buffer.obj: wire/buffer.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT buffer.obj -MD -MP -MF $(DEPDIR)/buffer.Tpo -c -o buffer.obj `if test -f 'wire/buffer.c'; then $(CYGPATH_W) 'wire/buffer.c'; else $(CYGPATH_W) '$(srcdir)/wire/buffer.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/buffer.Tpo $(DEPDIR)/buffer.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/buffer.c' object='buffer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o buffer.obj `if test -f 'wire/buffer.c'; then $(CYGPATH_W) 'wire/buffer.c'; else $(CYGPATH_W) '$(srcdir)/wire/buffer.c'; fi`
+
+edns.o: wire/edns.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT edns.o -MD -MP -MF $(DEPDIR)/edns.Tpo -c -o edns.o `test -f 'wire/edns.c' || echo '$(srcdir)/'`wire/edns.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/edns.Tpo $(DEPDIR)/edns.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/edns.c' object='edns.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o edns.o `test -f 'wire/edns.c' || echo '$(srcdir)/'`wire/edns.c
+
+edns.obj: wire/edns.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT edns.obj -MD -MP -MF $(DEPDIR)/edns.Tpo -c -o edns.obj `if test -f 'wire/edns.c'; then $(CYGPATH_W) 'wire/edns.c'; else $(CYGPATH_W) '$(srcdir)/wire/edns.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/edns.Tpo $(DEPDIR)/edns.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/edns.c' object='edns.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o edns.obj `if test -f 'wire/edns.c'; then $(CYGPATH_W) 'wire/edns.c'; else $(CYGPATH_W) '$(srcdir)/wire/edns.c'; fi`
+
+listener.o: wire/listener.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT listener.o -MD -MP -MF $(DEPDIR)/listener.Tpo -c -o listener.o `test -f 'wire/listener.c' || echo '$(srcdir)/'`wire/listener.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/listener.Tpo $(DEPDIR)/listener.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/listener.c' object='listener.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o listener.o `test -f 'wire/listener.c' || echo '$(srcdir)/'`wire/listener.c
+
+listener.obj: wire/listener.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT listener.obj -MD -MP -MF $(DEPDIR)/listener.Tpo -c -o listener.obj `if test -f 'wire/listener.c'; then $(CYGPATH_W) 'wire/listener.c'; else $(CYGPATH_W) '$(srcdir)/wire/listener.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/listener.Tpo $(DEPDIR)/listener.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/listener.c' object='listener.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o listener.obj `if test -f 'wire/listener.c'; then $(CYGPATH_W) 'wire/listener.c'; else $(CYGPATH_W) '$(srcdir)/wire/listener.c'; fi`
+
+netio.o: wire/netio.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT netio.o -MD -MP -MF $(DEPDIR)/netio.Tpo -c -o netio.o `test -f 'wire/netio.c' || echo '$(srcdir)/'`wire/netio.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/netio.Tpo $(DEPDIR)/netio.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/netio.c' object='netio.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o netio.o `test -f 'wire/netio.c' || echo '$(srcdir)/'`wire/netio.c
+
+netio.obj: wire/netio.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT netio.obj -MD -MP -MF $(DEPDIR)/netio.Tpo -c -o netio.obj `if test -f 'wire/netio.c'; then $(CYGPATH_W) 'wire/netio.c'; else $(CYGPATH_W) '$(srcdir)/wire/netio.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/netio.Tpo $(DEPDIR)/netio.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/netio.c' object='netio.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o netio.obj `if test -f 'wire/netio.c'; then $(CYGPATH_W) 'wire/netio.c'; else $(CYGPATH_W) '$(srcdir)/wire/netio.c'; fi`
+
+notify.o: wire/notify.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT notify.o -MD -MP -MF $(DEPDIR)/notify.Tpo -c -o notify.o `test -f 'wire/notify.c' || echo '$(srcdir)/'`wire/notify.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/notify.Tpo $(DEPDIR)/notify.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/notify.c' object='notify.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o notify.o `test -f 'wire/notify.c' || echo '$(srcdir)/'`wire/notify.c
+
+notify.obj: wire/notify.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT notify.obj -MD -MP -MF $(DEPDIR)/notify.Tpo -c -o notify.obj `if test -f 'wire/notify.c'; then $(CYGPATH_W) 'wire/notify.c'; else $(CYGPATH_W) '$(srcdir)/wire/notify.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/notify.Tpo $(DEPDIR)/notify.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/notify.c' object='notify.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o notify.obj `if test -f 'wire/notify.c'; then $(CYGPATH_W) 'wire/notify.c'; else $(CYGPATH_W) '$(srcdir)/wire/notify.c'; fi`
+
+query.o: wire/query.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT query.o -MD -MP -MF $(DEPDIR)/query.Tpo -c -o query.o `test -f 'wire/query.c' || echo '$(srcdir)/'`wire/query.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/query.Tpo $(DEPDIR)/query.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/query.c' object='query.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o query.o `test -f 'wire/query.c' || echo '$(srcdir)/'`wire/query.c
+
+query.obj: wire/query.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT query.obj -MD -MP -MF $(DEPDIR)/query.Tpo -c -o query.obj `if test -f 'wire/query.c'; then $(CYGPATH_W) 'wire/query.c'; else $(CYGPATH_W) '$(srcdir)/wire/query.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/query.Tpo $(DEPDIR)/query.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/query.c' object='query.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o query.obj `if test -f 'wire/query.c'; then $(CYGPATH_W) 'wire/query.c'; else $(CYGPATH_W) '$(srcdir)/wire/query.c'; fi`
+
+sock.o: wire/sock.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sock.o -MD -MP -MF $(DEPDIR)/sock.Tpo -c -o sock.o `test -f 'wire/sock.c' || echo '$(srcdir)/'`wire/sock.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/sock.Tpo $(DEPDIR)/sock.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/sock.c' object='sock.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sock.o `test -f 'wire/sock.c' || echo '$(srcdir)/'`wire/sock.c
+
+sock.obj: wire/sock.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sock.obj -MD -MP -MF $(DEPDIR)/sock.Tpo -c -o sock.obj `if test -f 'wire/sock.c'; then $(CYGPATH_W) 'wire/sock.c'; else $(CYGPATH_W) '$(srcdir)/wire/sock.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/sock.Tpo $(DEPDIR)/sock.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/sock.c' object='sock.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sock.obj `if test -f 'wire/sock.c'; then $(CYGPATH_W) 'wire/sock.c'; else $(CYGPATH_W) '$(srcdir)/wire/sock.c'; fi`
+
+tcpset.o: wire/tcpset.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tcpset.o -MD -MP -MF $(DEPDIR)/tcpset.Tpo -c -o tcpset.o `test -f 'wire/tcpset.c' || echo '$(srcdir)/'`wire/tcpset.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/tcpset.Tpo $(DEPDIR)/tcpset.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/tcpset.c' object='tcpset.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tcpset.o `test -f 'wire/tcpset.c' || echo '$(srcdir)/'`wire/tcpset.c
+
+tcpset.obj: wire/tcpset.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tcpset.obj -MD -MP -MF $(DEPDIR)/tcpset.Tpo -c -o tcpset.obj `if test -f 'wire/tcpset.c'; then $(CYGPATH_W) 'wire/tcpset.c'; else $(CYGPATH_W) '$(srcdir)/wire/tcpset.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/tcpset.Tpo $(DEPDIR)/tcpset.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/tcpset.c' object='tcpset.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tcpset.obj `if test -f 'wire/tcpset.c'; then $(CYGPATH_W) 'wire/tcpset.c'; else $(CYGPATH_W) '$(srcdir)/wire/tcpset.c'; fi`
+
+tsig.o: wire/tsig.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tsig.o -MD -MP -MF $(DEPDIR)/tsig.Tpo -c -o tsig.o `test -f 'wire/tsig.c' || echo '$(srcdir)/'`wire/tsig.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/tsig.Tpo $(DEPDIR)/tsig.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/tsig.c' object='tsig.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tsig.o `test -f 'wire/tsig.c' || echo '$(srcdir)/'`wire/tsig.c
+
+tsig.obj: wire/tsig.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tsig.obj -MD -MP -MF $(DEPDIR)/tsig.Tpo -c -o tsig.obj `if test -f 'wire/tsig.c'; then $(CYGPATH_W) 'wire/tsig.c'; else $(CYGPATH_W) '$(srcdir)/wire/tsig.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/tsig.Tpo $(DEPDIR)/tsig.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/tsig.c' object='tsig.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tsig.obj `if test -f 'wire/tsig.c'; then $(CYGPATH_W) 'wire/tsig.c'; else $(CYGPATH_W) '$(srcdir)/wire/tsig.c'; fi`
+
+tsig-openssl.o: wire/tsig-openssl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tsig-openssl.o -MD -MP -MF $(DEPDIR)/tsig-openssl.Tpo -c -o tsig-openssl.o `test -f 'wire/tsig-openssl.c' || echo '$(srcdir)/'`wire/tsig-openssl.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/tsig-openssl.Tpo $(DEPDIR)/tsig-openssl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/tsig-openssl.c' object='tsig-openssl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tsig-openssl.o `test -f 'wire/tsig-openssl.c' || echo '$(srcdir)/'`wire/tsig-openssl.c
+
+tsig-openssl.obj: wire/tsig-openssl.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tsig-openssl.obj -MD -MP -MF $(DEPDIR)/tsig-openssl.Tpo -c -o tsig-openssl.obj `if test -f 'wire/tsig-openssl.c'; then $(CYGPATH_W) 'wire/tsig-openssl.c'; else $(CYGPATH_W) '$(srcdir)/wire/tsig-openssl.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/tsig-openssl.Tpo $(DEPDIR)/tsig-openssl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/tsig-openssl.c' object='tsig-openssl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tsig-openssl.obj `if test -f 'wire/tsig-openssl.c'; then $(CYGPATH_W) 'wire/tsig-openssl.c'; else $(CYGPATH_W) '$(srcdir)/wire/tsig-openssl.c'; fi`
+
+xfrd.o: wire/xfrd.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT xfrd.o -MD -MP -MF $(DEPDIR)/xfrd.Tpo -c -o xfrd.o `test -f 'wire/xfrd.c' || echo '$(srcdir)/'`wire/xfrd.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/xfrd.Tpo $(DEPDIR)/xfrd.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/xfrd.c' object='xfrd.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o xfrd.o `test -f 'wire/xfrd.c' || echo '$(srcdir)/'`wire/xfrd.c
+
+xfrd.obj: wire/xfrd.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT xfrd.obj -MD -MP -MF $(DEPDIR)/xfrd.Tpo -c -o xfrd.obj `if test -f 'wire/xfrd.c'; then $(CYGPATH_W) 'wire/xfrd.c'; else $(CYGPATH_W) '$(srcdir)/wire/xfrd.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/xfrd.Tpo $(DEPDIR)/xfrd.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='wire/xfrd.c' object='xfrd.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o xfrd.obj `if test -f 'wire/xfrd.c'; then $(CYGPATH_W) 'wire/xfrd.c'; else $(CYGPATH_W) '$(srcdir)/wire/xfrd.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

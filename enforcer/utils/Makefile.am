@@ -2,19 +2,18 @@
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
-LIBHSM = ${top_builddir}/libhsm/src/libhsm.a
+LIBHSM = ${top_builddir}/libhsm/src/lib/libhsm.a
 LIBKSM = ../ksm/libksm.a
 LIBCOMPAT = ${top_builddir}/common/libcompat.a
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/common \
 	-I$(top_builddir)/common \
+	-I$(top_srcdir)/libhsm/src/lib \
 	-I$(srcdir)/../common \
 	-I$(builddir)/../common \
 	-I$(srcdir)/../ksm/include \
 	-I$(builddir)/../ksm/include \
-	-I$(srcdir)/../../libhsm/src \
-	-I$(builddir)/../../libhsm/src \
 	@XML2_INCLUDES@ \
 	@DB_INCLUDES@ \
 	@LDNS_INCLUDES@
@@ -27,12 +26,20 @@ else
 dist_opendnssecdata_DATA = database_create.sqlite3
 endif
 
-bin_PROGRAMS =	ods-ksmutil
-man1_MANS =	ods-ksmutil.1
+bin_PROGRAMS =	ods-ksmutil ods-kaspcheck
+man1_MANS =	ods-ksmutil.1 ods-kaspcheck.1
 
 ods_ksmutil_SOURCES = ksmutil.c
 ods_ksmutil_LDADD = $(LIBKSM) $(LIBHSM) $(LIBCOMPAT)
 ods_ksmutil_LDADD += @XML2_LIBS@ @DB_LIBS@ @LDNS_LIBS@
 
+ods_kaspcheck_SOURCES = kaspcheck.c kaspcheck.h \
+						kc_helper.c kc_helper.h
+
+ods_kaspcheck_LDADD = $(LIBHSM) $(LIBCOMPAT)
+ods_kaspcheck_LDADD += @XML2_LIBS@
+
 EXTRA_DIST = $(srcdir)/migrate_*.pl
-EXTRA_DIST += $(srcdir)/add_indexes.sqlite3
+EXTRA_DIST += $(srcdir)/migrate_adapters_1.*
+EXTRA_DIST += $(srcdir)/convert_database.pl
+EXTRA_DIST += $(srcdir)/migrate_zone_delete.mysql

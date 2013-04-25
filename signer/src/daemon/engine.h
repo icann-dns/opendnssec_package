@@ -1,5 +1,5 @@
 /*
- * $Id: engine.h 6111 2012-01-30 15:11:45Z matthijs $
+ * $Id: engine.h 7068 2013-03-13 10:42:49Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -37,13 +37,15 @@
 #include "config.h"
 #include "daemon/cfg.h"
 #include "daemon/cmdhandler.h"
+#include "daemon/dnshandler.h"
+#include "daemon/xfrhandler.h"
 #include "daemon/worker.h"
 #include "scheduler/fifoq.h"
 #include "scheduler/schedule.h"
-#include "scheduler/task.h"
 #include "shared/allocator.h"
 #include "shared/locks.h"
 #include "signer/zonelist.h"
+#include "wire/edns.h"
 
 #include <signal.h>
 
@@ -61,10 +63,12 @@ struct engine_struct {
     schedule_type* taskq;
     fifoq_type* signq;
     cmdhandler_type* cmdhandler;
+    dnshandler_type* dnshandler;
+    xfrhandler_type* xfrhandler;
+    edns_data_type edns;
     int cmdhandler_done;
 
     pid_t pid;
-    pid_t zfpid;
     uid_t uid;
     gid_t gid;
 
@@ -113,9 +117,10 @@ void engine_wakeup_workers(engine_type* engine);
 /**
  * Update zones.
  * \param[in] engine engine
+ * \param[in] zl_changed whether the zonelist has changed or not
  *
  */
-void engine_update_zones(engine_type* engine);
+void engine_update_zones(engine_type* engine, ods_status zl_changed);
 
 /**
  * Clean up engine.

@@ -1,5 +1,5 @@
 /*
- * $Id: confparser.h 6065 2012-01-16 09:45:47Z jerry $
+ * $Id: confparser.h 7065 2013-03-12 13:13:55Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -27,15 +27,15 @@
  */
 
 /**
- *
  * Parsing configuration files.
+ *
  */
 
 #ifndef PARSER_CONFPARSER_H
 #define PARSER_CONFPARSER_H
 
 #include "config.h"
-#include "adapter/adapter.h"
+#include "wire/listener.h"
 #include "shared/allocator.h"
 #include "shared/status.h"
 
@@ -62,15 +62,14 @@ const char* parse_conf_string(const char* cfgfile, const char* expr,
     int required);
 
 /**
- * Parse the adapters.
+ * Parse the listener interfaces.
  * \param[in] allocator the allocator
  * \param[in] cfgfile the configuration file name
- * \param[out] count number of adapters encountered
- * \return adapter_type** bunch of adapters that need to be initialized.
+ * \return listener_type* listener interfaces
  *
  */
-adapter_type** parse_conf_adapters(allocator_type* allocator,
-    const char* cfgfile, int* count);
+listener_type* parse_conf_listener(allocator_type* allocator,
+    const char* cfgfile);
 
 /**
  * Parse elements from the configuration file.
@@ -82,8 +81,6 @@ adapter_type** parse_conf_adapters(allocator_type* allocator,
 
 /** Common */
 const char* parse_conf_zonelist_filename(allocator_type* allocator,
-    const char* cfgfile);
-const char* parse_conf_zonefetch_filename(allocator_type* allocator,
     const char* cfgfile);
 const char* parse_conf_log_filename(allocator_type* allocator,
     const char* cfgfile);

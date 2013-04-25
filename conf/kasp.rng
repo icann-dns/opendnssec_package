@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: kasp.rnc 4027 2010-09-29 10:17:08Z sion $
+  $Id: kasp.rnc 6095 2012-01-25 09:45:06Z matthijs $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -161,14 +161,6 @@
               <ref name="anysoa"/>
             </element>
           </element>
-          <zeroOrMore>
-            <element name="Audit">
-              <optional>
-                <!-- Do a partial audit? -->
-                <ref name="partial"/>
-              </optional>
-            </element>
-          </zeroOrMore>
         </element>
       </zeroOrMore>
     </element>

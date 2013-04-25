@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: ods-control.in 6307 2012-05-04 09:36:03Z jerry $
+# $Id: ods-control.in 6300 2012-05-03 11:35:59Z jerry $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation)
 # All rights reserved.
@@ -85,6 +85,11 @@ case "$1" in
 		fi
 		
 		exit $RETVAL
+		;;
+	stop)
+		echo "Stopping signer engine.."
+		"$sbindir/ods-signer" stop
+		exit $?
 		;;
 	*)
 		shift
@@ -175,8 +180,7 @@ case "$1" in
 
 'stop')
 	"$0" enforcer stop
-	echo "Stopping signer engine..."
-	"$0" signed stop
+	"$0" signer stop
 	exit $?
 	;;
 

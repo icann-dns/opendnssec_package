@@ -1,4 +1,4 @@
-# $Id: Makefile.am 3714 2010-08-10 20:24:33Z jakob $
+# $Id: Makefile.am 5348 2011-08-03 13:01:40Z rb $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
@@ -7,8 +7,6 @@ AM_CPPFLAGS = \
 	-I$(top_builddir)/common \
 	-I$(srcdir)/../ksm/include \
 	-I$(builddir)/../ksm/include \
-	-I$(srcdir)/../../libhsm/src \
-	-I$(builddir)/../../libhsm/src \
 	@XML2_INCLUDES@ \
 	@DB_INCLUDES@
 

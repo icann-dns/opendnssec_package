@@ -1,5 +1,5 @@
 /*
- * $Id: daemon.h 3078 2010-03-22 21:52:57Z sion $
+ * $Id: daemon.h 7018 2013-02-05 13:59:43Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -114,11 +114,13 @@ typedef struct
     int manualKeyGeneration;
     int rolloverNotify;
     char* DSSubmitCmd;
+    int DSSubCKA_ID;
 
     int log_user; /* log facility (or default of LOG_DAEMON) */
 
 } DAEMONCONFIG;
 
+extern int daemon_our_pidfile;
 
 #define AUTHOR_NAME "John Dickinson"
 #define COPYRIGHT_STR "Copyright (C) 2008 2009 Nominet UK"
