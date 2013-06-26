@@ -1,5 +1,5 @@
 /*
- * $Id: zonelist.c 5292 2011-07-05 14:01:20Z matthijs $
+ * $Id: zonelist.c 7124 2013-05-03 09:49:26Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -96,6 +96,7 @@ zonelist_create(allocator_type* allocator)
     zlist->zones = ldns_rbtree_create(zone_compare);
     zlist->last_modified = 0;
     lock_basic_init(&zlist->zl_lock);
+    zlist->zl_locked = 0;
     return zlist;
 }
 

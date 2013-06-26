@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 4495 2011-02-17 11:22:41Z matthijs $
+# $Id: Makefile.am 6839 2012-11-15 18:32:50Z sara $
 
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -90,7 +90,7 @@ am_ods_signerd_OBJECTS = ods-signerd.$(OBJEXT) adapi.$(OBJEXT) \
 	zone.$(OBJEXT) zonedata.$(OBJEXT) zonelist.$(OBJEXT) \
 	toolutil.$(OBJEXT) zone_fetcher.$(OBJEXT)
 ods_signerd_OBJECTS = $(am_ods_signerd_OBJECTS)
-ods_signerd_DEPENDENCIES = $(LIBHSM)
+ods_signerd_DEPENDENCIES = $(LIBHSM) $(LIBCOMPAT)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -176,7 +176,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JAVA = @JAVA@
-KILLALL = @KILLALL@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
@@ -230,7 +229,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PKILL = @PKILL@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
@@ -313,6 +311,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 LIBHSM = ${top_builddir}/libhsm/src/libhsm.a
+LIBCOMPAT = ${top_builddir}/common/libcompat.a
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/common \
 	-I$(top_builddir)/common \
@@ -365,7 +364,7 @@ ods_signerd_SOURCES = ods-signerd.c \
 				tools/zone_fetcher.c tools/zone_fetcher.h
 
 ods_signerd_LDADD = $(LIBHSM) @LDNS_LIBS@ @XML2_LIBS@ @PTHREAD_LIBS@ \
-	@RT_LIBS@ $(am__empty)
+	@RT_LIBS@ $(LIBCOMPAT)
 ods_signer_SOURCES = ods-signer.c \
 				shared/allocator.c shared/allocator.h \
 				shared/duration.c shared/duration.h \

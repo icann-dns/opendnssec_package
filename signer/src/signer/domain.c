@@ -1,5 +1,5 @@
 /*
- * $Id: domain.c 6448 2012-06-20 11:57:01Z matthijs $
+ * $Id: domain.c 7104 2013-04-18 14:04:27Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -917,7 +917,6 @@ void
 domain_print(FILE* fd, domain_type* domain)
 {
     ldns_rbnode_t* node = LDNS_RBTREE_NULL;
-    int print_glue = 0;
     rrset_type* rrset = NULL;
     rrset_type* soa_rrset = NULL;
     rrset_type* cname_rrset = NULL;
@@ -950,21 +949,7 @@ domain_print(FILE* fd, domain_type* domain)
             if (rrset->rr_type != LDNS_RR_TYPE_SOA) {
                 if (domain->dstatus == DOMAIN_STATUS_OCCLUDED) {
                     /* glue?  */
-                    print_glue = 1;
-/* TODO: allow for now (root zone has it)
-                    parent = domain->parent;
-                    while (parent && parent->dstatus != DOMAIN_STATUS_APEX) {
-                        if (domain_examine_ns_rdata(parent, domain->dname)) {
-                            print_glue = 1;
-                            break;
-                        }
-                        parent = parent->parent;
-                    }
-*/
-                    if (print_glue && (rrset->rr_type == LDNS_RR_TYPE_A ||
-                        rrset->rr_type == LDNS_RR_TYPE_AAAA)) {
-                        rrset_print(fd, rrset, 1);
-                    }
+                    rrset_print(fd, rrset, 1);
                 } else {
                     rrset_print(fd, rrset, 0);
                 }

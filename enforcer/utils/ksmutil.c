@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.c 6352 2012-05-29 08:45:11Z sion $
+ * $Id: ksmutil.c 7094 2013-04-16 15:19:10Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -118,8 +118,22 @@ static int retire_flag = 1;
 static int verbose_flag = 0;
 static int xml_flag = 1;
 static int td_flag = 0;
+static int force_flag = 0;
 
 static int restart_enforcerd(void);
+
+/**
+ * Use _r() functions on platforms that have. They are thread safe versions of
+ * the normal syslog functions. Platforms without _r() usually have thread safe
+ * normal functions.
+ */
+#if defined(HAVE_SYSLOG_R) && defined(HAVE_OPENLOG_R) && defined(HAVE_CLOSELOG_R)
+struct syslog_data sdata = SYSLOG_DATA_INIT;
+#else
+#undef HAVE_SYSLOG_R
+#undef HAVE_OPENLOG_R
+#undef HAVE_CLOSELOG_R
+#endif
 
     void
 usage_general ()
@@ -292,9 +306,11 @@ usage_keyroll ()
 {
     fprintf(stderr,
             "  key rollover\n"
-            "\t--zone zone [--keytype <type>]           aka -z\n"
+            "\t--zone zone                              aka -z\n"
+            "\t--keytype <type> | --all                 aka -t / -a\n"
             "  key rollover\n"
-            "\t--policy policy [--keytype <type>]       aka -p\n");
+            "\t--policy policy                          aka -p\n"
+            "\t--keytype <type> | --all                 aka -t / -a\n");
 }
 
     void
@@ -408,6 +424,7 @@ usage ()
     usage_zonelist ();
     usage_repo ();
     usage_policyexport ();
+    usage_policyimport ();
     usage_policylist ();
     usage_policypurge ();
     usage_keylist ();
@@ -1384,6 +1401,11 @@ cmd_exportkeys ()
     ldns_rr *ds_sha256_rr = NULL;
     hsm_sign_params_t *sign_params = NULL;
 
+	/* To find the ttl of the DS */
+	int policy_id = -1;
+	int rrttl = -1;
+	int param_id = -1; /* unused */
+
     char* sql = NULL;
     KSM_KEYDATA data;       /* Data for each key */
     DB_RESULT	result;     /* Result set from query */
@@ -1541,10 +1563,39 @@ cmd_exportkeys ()
             sign_params->keytag = ldns_calc_keytag(dnskey_rr);
 
             if (ds_flag == 0) {
+	
+				/* Set TTL if we can find it; else leave it as the default */
+				/* We need a policy id */
+				status = KsmPolicyIdFromZoneId(data.zone_id, &policy_id);
+				if (status == 0) {
+
+					/* Use this to get the TTL parameter value */
+					if (keytype_id == KSM_TYPE_KSK) {
+						status = KsmParameterValue(KSM_PAR_KSKTTL_STRING, KSM_PAR_KSKTTL_CAT, &rrttl, policy_id, &param_id);
+					} else {
+						status = KsmParameterValue(KSM_PAR_ZSKTTL_STRING, KSM_PAR_ZSKTTL_CAT, &rrttl, policy_id, &param_id);
+					}
+					if (status == 0) {
+						ldns_rr_set_ttl(dnskey_rr, rrttl);
+					}
+				}
+					
                 printf("\n;%s %s DNSKEY record:\n", KsmKeywordStateValueToName(data.state), (keytype_id == KSM_TYPE_KSK ? "KSK" : "ZSK"));
                 ldns_rr_print(stdout, dnskey_rr);
             }
             else {
+	
+				/* Set TTL if we can find it; else leave it as the default */
+				/* We need a policy id */
+				status = KsmPolicyIdFromZoneId(data.zone_id, &policy_id);
+				if (status == 0) {
+
+					/* Use this to get the DSTTL parameter value */
+					status = KsmParameterValue(KSM_PAR_DSTTL_STRING, KSM_PAR_DSTTL_CAT, &rrttl, policy_id, &param_id);
+					if (status == 0) {
+						ldns_rr_set_ttl(dnskey_rr, rrttl);
+					}
+				}	
 
                 printf("\n;%s %s DS record (SHA1):\n", KsmKeywordStateValueToName(data.state), (keytype_id == KSM_TYPE_KSK ? "KSK" : "ZSK"));
                 ds_sha1_rr = ldns_key_rr2ds(dnskey_rr, LDNS_SHA1);
@@ -1776,6 +1827,8 @@ cmd_rollzone ()
     int status = 0;
     int user_certain;
 
+    char logmsg[256]; /* For the message that we log when we are done here */
+
     /* If we were given a keytype, turn it into a number */
     if (o_keytype != NULL) {
         StrToLower(o_keytype);
@@ -1796,6 +1849,7 @@ cmd_rollzone ()
 		StrAppend(&o_zone, ".");
 		status = KsmZoneIdAndPolicyFromName(o_zone, &policy_id, &zone_id);
 		if (status != 0) {
+			printf("Error, can't find zone : %s\n", o_zone);
 			db_disconnect(lock_fd);
 			return(status);
 		}
@@ -1832,6 +1886,27 @@ cmd_rollzone ()
         return(status);
     }
 
+	/* Let them know that it seemed to work */
+	snprintf(logmsg, 256, "Manual key rollover for key type %s on zone %s initiated" , (o_keytype == NULL) ? "all" : o_keytype, o_zone);
+	printf("\n%s\n", logmsg);
+
+/* send the msg to syslog */
+#ifdef HAVE_OPENLOG_R
+        openlog_r("ods-ksmutil", 0, DEFAULT_LOG_FACILITY, &sdata);
+#else
+        openlog("ods-ksmutil", 0, DEFAULT_LOG_FACILITY);
+#endif
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_INFO, &sdata, "%s", logmsg);
+#else
+        syslog(LOG_INFO, "%s", logmsg);
+#endif
+#ifdef HAVE_CLOSELOG_R
+        closelog_r(&sdata);
+#else
+        closelog();
+#endif
+
     /* Release sqlite lock file (if we have it) */
     db_disconnect(lock_fd);
 
@@ -1860,11 +1935,13 @@ cmd_rollpolicy ()
 
     int zone_count = -1;
     
-    int key_type = 0;
+    int key_type = -1;
     int policy_id = 0;
 
     int status = 0;
     int user_certain;
+
+    char logmsg[256]; /* For the message that we log when we are done here */
 
     /* If we were given a keytype, turn it into a number */
     if (o_keytype != NULL) {
@@ -1919,6 +1996,31 @@ cmd_rollpolicy ()
     }
 
     status = keyRoll(-1, policy_id, key_type);
+    if (status != 0) {
+        db_disconnect(lock_fd);
+        return(status);
+    }
+ 
+	/* Let them know that it seemed to work */
+	snprintf(logmsg, 256, "Manual key rollover for key type %s on policy %s initiated" , (o_keytype == NULL) ? "all" : o_keytype, o_policy);
+	printf("%s\n", logmsg);
+
+/* send the msg to syslog */
+#ifdef HAVE_OPENLOG_R
+        openlog_r("ods-ksmutil", 0, DEFAULT_LOG_FACILITY, &sdata);
+#else
+        openlog("ods-ksmutil", 0, DEFAULT_LOG_FACILITY);
+#endif
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_INFO, &sdata, "%s", logmsg);
+#else
+        syslog(LOG_INFO, "%s", logmsg);
+#endif
+#ifdef HAVE_CLOSELOG_R
+        closelog_r(&sdata);
+#else
+        closelog();
+#endif
 
     /* Release sqlite lock file (if we have it) */
     db_disconnect(lock_fd);
@@ -2722,9 +2824,21 @@ cmd_dsseen()
         printf("%s\n", logmsg);
         
         /* send the msg to syslog */
+#ifdef HAVE_OPENLOG_R
+        openlog_r("ods-ksmutil", 0, DEFAULT_LOG_FACILITY, &sdata);
+#else
         openlog("ods-ksmutil", 0, DEFAULT_LOG_FACILITY);
+#endif
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_INFO, &sdata, "%s", logmsg);
+#else
         syslog(LOG_INFO, "%s", logmsg);
+#endif
+#ifdef HAVE_CLOSELOG_R
+        closelog_r(&sdata);
+#else
         closelog();
+#endif
         
     }
 
@@ -3654,18 +3768,26 @@ main (int argc, char *argv[])
             result = cmd_import();
         }
         else if (!strncmp(case_verb, "ROLLOVER", 8)) {
-            /* Are we rolling a zone or a whole policy? */
-            if (o_zone != NULL && o_policy == NULL) {
-                result = cmd_rollzone();
-            }
-            else if (o_zone == NULL && o_policy != NULL) {
-                result = cmd_rollpolicy();
-            }
-            else {
-                printf("Please provide either a zone OR a policy to rollover\n");
+            /* Check that we have either a key type or the all flag */
+            if (all_flag == 0 && o_keytype == NULL) {
+		        printf("Please specify either a keytype, KSK or ZSK, with the --keytype <type> option or use the --all option\n");
                 usage_keyroll();
                 result = -1;
-            }
+		    } 
+		    else {
+	            /* Are we rolling a zone or a whole policy? */
+	            if (o_zone != NULL && o_policy == NULL) {
+	                result = cmd_rollzone();
+	            }
+	            else if (o_zone == NULL && o_policy != NULL) {
+	                result = cmd_rollpolicy();
+	            }
+	            else {
+	                printf("Please provide either a zone OR a policy to rollover\n");
+	                usage_keyroll();
+	                result = -1;
+	            }
+	        }
         }
         else if (!strncmp(case_verb, "PURGE", 5)) {
             if ((o_zone != NULL && o_policy == NULL) || 
@@ -4203,6 +4325,14 @@ int update_policies(char* kasp_filename)
 
     KSM_POLICY *policy;
 
+	/* Some stuff for the algorithm change check */
+	int value = 0;
+	int algo_change = 0;
+	int user_certain;
+	char* changes_made = NULL;
+	int size = -1;
+	char tmp_change[KSM_MSG_LENGTH];
+
     /* Some files, the xml and rng */
     const char* rngfilename = OPENDNSSEC_SCHEMA_DIR "/kasp.rng";
     char* kaspcheck_cmd = NULL;
@@ -4303,6 +4433,163 @@ int update_policies(char* kasp_filename)
     }
 
     if (xpathObj->nodesetval) {
+
+		/* 
+		 * We will loop through twice, the first time to check on any algorithm
+		 * changes (which are not advised)
+		 */
+		for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) { /* foreach policy */
+
+            curNode = xpathObj->nodesetval->nodeTab[i]->xmlChildrenNode;
+            policy_name = (char *) xmlGetProp(xpathObj->nodesetval->nodeTab[i], (const xmlChar *)"name");
+            if (strlen(policy_name) == 0) {
+                /* error */
+                printf("Error extracting policy name from %s\n", kasp_filename);
+                break;
+            }
+
+			/* 
+			 * Only carry on if this is an existing policy
+			 */
+			SetPolicyDefaults(policy, policy_name);
+			status = KsmPolicyExists(policy_name);
+			if (status == 0) {
+				/* Policy exists */
+				status = KsmPolicyRead(policy);
+				if(status != 0) {
+					printf("Error: unable to read policy %s; skipping\n", policy_name);
+					break;
+				}
+
+				while (curNode) {
+					if (xmlStrEqual(curNode->name, (const xmlChar *)"Keys")) {
+						childNode = curNode->children;
+						while (childNode){
+							if (xmlStrEqual(childNode->name, (const xmlChar *)"KSK")) {
+								childNode2 = childNode->children;
+								while (childNode2){
+									if (xmlStrEqual(childNode2->name, (const xmlChar *)"Algorithm")) {
+										/* Compare with existing */
+										value = 0;
+										status = StrStrtoi((char *)xmlNodeGetContent(childNode2), &value);
+										if (status != 0) {
+											printf("Error extracting KSK algorithm for policy %s, exiting...", policy_name);
+											return status;
+										}
+										if (value != policy->ksk->algorithm) {
+											/* Changed */
+											if (!algo_change) {
+												printf("\n\nAlgorithm change attempted... details:\n");
+												StrAppend(&changes_made, "Algorithm changes made, details:");
+												algo_change = 1;
+											}
+											size = snprintf(tmp_change, KSM_MSG_LENGTH, "Policy: %s, KSK algorithm changed from %d to %d.", policy_name, policy->ksk->algorithm, value);
+											/* Check overflow */
+											if (size < 0 || size >= KSM_MSG_LENGTH) {
+												printf("Error constructing log message for policy %s, exiting...", policy_name);
+												return -1;
+											}
+											printf("%s\n", tmp_change);
+											StrAppend(&changes_made, "  ");
+											StrAppend(&changes_made, tmp_change);
+										}
+										
+									}
+									childNode2 = childNode2->next;
+								}
+
+							} /* End of KSK */
+							/* ZSK */
+							else if (xmlStrEqual(childNode->name, (const xmlChar *)"ZSK")) {
+								childNode2 = childNode->children;
+								while (childNode2){
+									if (xmlStrEqual(childNode2->name, (const xmlChar *)"Algorithm")) {
+										/* Compare with existing */
+										value = 0;
+										status = StrStrtoi((char *)xmlNodeGetContent(childNode2), &value);
+										if (status != 0) {
+											printf("Error extracting ZSK algorithm for policy %s, exiting...", policy_name);
+											return status;
+										}
+										if (value != policy->zsk->algorithm) {
+											/* Changed */
+											if (!algo_change) {
+												printf("\n\nAlgorithm change attempted... details:\n");
+												StrAppend(&changes_made, "Algorithm changes made, details:");
+												algo_change = 1;
+											}
+												size = snprintf(tmp_change, KSM_MSG_LENGTH, "Policy: %s, ZSK algorithm changed from %d to %d.", policy_name, policy->zsk->algorithm, value);
+											/* Check overflow */
+											if (size < 0 || size >= KSM_MSG_LENGTH) {
+												printf("Error constructing log message for policy %s, exiting...", policy_name);
+												return -1;
+											}
+											printf("%s\n", tmp_change);
+											StrAppend(&changes_made, "  ");
+											StrAppend(&changes_made, tmp_change);
+										}
+
+									}
+									childNode2 = childNode2->next;
+								}
+
+							} /* End of ZSK */
+
+							childNode = childNode->next;
+						}
+					}
+					curNode = curNode->next;
+				}
+			}
+			/* Free up some stuff that we don't need any more */
+            StrFree(policy_name);
+
+		} /* End of <Policy> */
+
+		/*
+		 * Did we see any changes? If so then warn and confirm before continuing
+		 */
+		
+		if (algo_change == 1 && force_flag == 0) {
+			printf("*WARNING* This will change the algorithms used as noted above. Algorithm rollover is _not_ supported by OpenDNSSEC and zones may break. Are you sure? [y/N] ");
+
+			user_certain = getchar();
+			if (user_certain != 'y' && user_certain != 'Y') {
+				printf("\nOkay, quitting...\n");
+				xmlXPathFreeContext(xpathCtx);
+				xmlFreeDoc(doc);
+				KsmPolicyFree(policy);
+
+				exit(0);
+			}
+
+			/* Newline for the output */
+			printf("\n");
+
+			/*
+			 * Log this change to syslog for posterity
+			 */
+#ifdef HAVE_OPENLOG_R
+        openlog_r("ods-ksmutil", 0, DEFAULT_LOG_FACILITY, &sdata);
+#else
+        openlog("ods-ksmutil", 0, DEFAULT_LOG_FACILITY);
+#endif
+#ifdef HAVE_SYSLOG_R
+        syslog_r(LOG_INFO, &sdata, "%s", changes_made);
+#else
+        syslog(LOG_INFO, "%s", changes_made);
+#endif
+#ifdef HAVE_CLOSELOG_R
+        closelog_r(&sdata);
+#else
+        closelog();
+#endif
+
+		}
+
+		/*
+		 * Then loop through to actually make the updates
+		 */
         for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) {
 
             curNode = xpathObj->nodesetval->nodeTab[i]->xmlChildrenNode;
@@ -7173,6 +7460,12 @@ int MarkDSSeen(int keypair_id, int zone_id, int policy_id, const char *datetime,
                 "DATETIME('%s', '+%d SECONDS') ", datetime, deltat);
 #endif /* USE_MYSQL */
 
+		if (nchar >= sizeof(buffer)) {
+            status = -1;
+			printf("Error: failed to create SQL statement\n");
+            return status;
+        }
+
         sql1 = DusInit("dnsseckeys");
         DusSetInt(&sql1, "STATE", KSM_STATE_ACTIVE, 0);
         DusSetString(&sql1, KsmKeywordStateValueToName(KSM_STATE_ACTIVE), datetime, 1);
@@ -7197,6 +7490,12 @@ int MarkDSSeen(int keypair_id, int zone_id, int policy_id, const char *datetime,
         nchar = snprintf(buffer, sizeof(buffer),
                 "DATETIME('%s', '+%d SECONDS') ", datetime, deltat);
 #endif /* USE_MYSQL */
+
+		if (nchar >= sizeof(buffer)) {
+            status = -1;
+			printf("Error: failed to create SQL statement\n");
+            return status;
+        }
 
         sql1 = DusInit("dnsseckeys");
         DusSetInt(&sql1, "STATE", KSM_STATE_DSPUBLISH, 0);
@@ -7314,6 +7613,12 @@ int RetireOldKey(int zone_id, int policy_id, const char *datetime)
     nchar = snprintf(buffer, sizeof(buffer),
         "DATETIME('%s', '+%d SECONDS') ", datetime, deltat);
 #endif /* USE_MYSQL */
+
+	if (nchar >= sizeof(buffer)) {
+		status = -1;
+		printf("Error: failed to create SQL statement\n");
+		return status;
+	}
 
     sql2 = DusInit("dnsseckeys");
     DusSetInt(&sql2, "STATE", KSM_STATE_RETIRE, 0);
@@ -7563,6 +7868,12 @@ int ChangeKeyState(int keytype, const char *cka_id, int zone_id, int policy_id, 
                 "DATETIME('%s', '+%d SECONDS') ", datetime, deltat);
 #endif /* USE_MYSQL */
 
+		if (nchar >= sizeof(buffer)) {
+            status = -1;
+			printf("Error: failed to create SQL statement\n");
+            return status;
+        }
+
         sql1 = DusInit("dnsseckeys");
         DusSetInt(&sql1, "STATE", KSM_STATE_ACTIVE, 0);
         DusSetString(&sql1, KsmKeywordStateValueToName(KSM_STATE_ACTIVE), datetime, 1);
@@ -7595,6 +7906,12 @@ int ChangeKeyState(int keytype, const char *cka_id, int zone_id, int policy_id, 
                 "DATETIME('%s', '+%d SECONDS') ", datetime, deltat);
 #endif /* USE_MYSQL */
 
+		if (nchar >= sizeof(buffer)) {
+            status = -1;
+			printf("Error: failed to create SQL statement\n");
+            return status;
+        }
+
         sql1 = DusInit("dnsseckeys");
         DusSetInt(&sql1, "STATE", KSM_STATE_RETIRE, 0);
         DusSetString(&sql1, KsmKeywordStateValueToName(KSM_STATE_RETIRE), datetime, 1);
@@ -7619,6 +7936,12 @@ int ChangeKeyState(int keytype, const char *cka_id, int zone_id, int policy_id, 
         nchar = snprintf(buffer, sizeof(buffer),
                 "DATETIME('%s', '+%d SECONDS') ", datetime, deltat);
 #endif /* USE_MYSQL */
+
+		if (nchar >= sizeof(buffer)) {
+            status = -1;
+			printf("Error: failed to create SQL statement\n");
+            return status;
+        }
 
         sql1 = DusInit("dnsseckeys");
         DusSetInt(&sql1, "STATE", KSM_STATE_DSPUBLISH, 0);
@@ -7666,7 +7989,7 @@ static int restart_enforcerd()
 {
 	/* ToDo: This should really be rewritten so that it will read
 	   OPENDNSSEC_ENFORCER_PIDFILE and send a SIGHUP itself */
-	return system(RESTART_ENFORCERD_CMD);
+	return system(ODS_EN_NOTIFY);
 }
 
 /* 
@@ -8407,6 +8730,6 @@ int rename_signconf(const char* zonelist_filename, const char* o_zone) {
 		}
 	}
 	
-	return status;
+	return 0;
 }
 

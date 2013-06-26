@@ -1,5 +1,5 @@
 /*
- * $Id: ksm.h 6379 2012-06-05 08:52:37Z jerry $
+ * $Id: ksm.h 7053 2013-02-21 16:10:40Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -57,6 +57,7 @@ int KsmInit(void);
 int KsmRundown(void);
 
 #define KSM_NAME_LENGTH     256         /* Includes trailing NULL */
+#define KSM_MSG_LENGTH      512         /* Includes trailing NULL */
 #define KSM_PATH_LENGTH     4096        /* Includes trailing NULL */
 #define KSM_POLICY_DESC_LENGTH     256  /* Includes trailing NULL */
 #define KSM_POLICY_AUDIT_LENGTH    4096 /* Includes trailing NULL */

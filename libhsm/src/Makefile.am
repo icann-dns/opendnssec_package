@@ -1,4 +1,6 @@
-# $Id: Makefile.am 3732 2010-08-11 10:21:06Z jakob $
+# $Id: Makefile.am 6840 2012-11-15 18:59:55Z sara $
+
+LIBCOMPAT = ${top_builddir}/common/libcompat.a
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
@@ -20,7 +22,7 @@ bin_PROGRAMS = ods-hsmutil ods-hsmspeed
 man1_MANS = ods-hsmutil.1 ods-hsmspeed.1
 
 ods_hsmutil_SOURCES = hsmutil.c hsmtest.c hsmtest.h
-ods_hsmutil_LDADD = libhsm.a @LDNS_LIBS@ @XML2_LIBS@
+ods_hsmutil_LDADD = libhsm.a @LDNS_LIBS@ @XML2_LIBS@ $(LIBCOMPAT)
 
 ods_hsmspeed_SOURCES = hsmspeed.c
-ods_hsmspeed_LDADD = libhsm.a -lpthread @LDNS_LIBS@ @XML2_LIBS@
+ods_hsmspeed_LDADD = libhsm.a -lpthread @LDNS_LIBS@ @XML2_LIBS@ $(LIBCOMPAT)

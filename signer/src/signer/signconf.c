@@ -1,5 +1,5 @@
 /*
- * $Id: signconf.c 6272 2012-04-20 10:25:47Z matthijs $
+ * $Id: signconf.c 7109 2013-04-22 09:52:44Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -179,7 +179,7 @@ signconf_update(signconf_type** signconf, const char* scfile,
     st_mtime = ods_file_lastmodified(scfile);
     if (st_mtime <= last_modified) {
         ods_log_deeebug("[%s] file %s not modified since (file %u, "
-            "mem %u)", sc_str, (unsigned) st_mtime,
+            "mem %u)", sc_str, scfile, (unsigned) st_mtime,
             (unsigned) last_modified);
         return ODS_STATUS_UNCHANGED;
     }
@@ -440,7 +440,9 @@ signconf_compare_denial(signconf_type* a, signconf_type* b)
     ods_log_assert(a);
     ods_log_assert(b);
 
-   if (a->nsec_type != b->nsec_type) {
+   if (duration_compare(a->soa_min, b->soa_min)) {
+       new_task = TASK_NSECIFY;
+   } else if (a->nsec_type != b->nsec_type) {
        new_task = TASK_NSECIFY;
    } else if (a->nsec_type == LDNS_RR_TYPE_NSEC3) {
        if ((ods_strcmp(a->nsec3_salt, b->nsec3_salt) != 0) ||
@@ -450,8 +452,6 @@ signconf_compare_denial(signconf_type* a, signconf_type* b)
 
            new_task = TASK_NSECIFY;
        }
-   } else if (duration_compare(a->soa_min, b->soa_min)) {
-       new_task = TASK_NSECIFY;
    }
    return new_task;
 }

@@ -1,5 +1,5 @@
 .TH "ods-ksmutil" "1" "February 2010" OpenDNSSEC "OpenDNSSEC ods-ksmutil"
-.\" $Id: ods-ksmutil.1.in 4142 2010-10-26 08:29:16Z sion $
+.\" $Id: ods-ksmutil.1.in 7094 2013-04-16 15:19:10Z sara $
 .SH "NAME"
 .LP
 .B ods-ksmutil
@@ -23,7 +23,7 @@
 .B ods-ksmutil rollover list
 .RB ...
 .br
-.B ods-ksmutil policy export|import
+.B ods-ksmutil policy export|import|purge
 .RB ...
 .br
 .B ods-ksmutil repository list
@@ -192,16 +192,20 @@ database of the KASP Enforcer.  The options \-\-zone and \-\-policy
 are used to limit this operation to a single named zone or policy,
 respectively.
 .TP
-.B key rollover \-\-zone|\-z \fIname\fB [\-\-keytype \fItype\fB]
+.B key rollover \-\-zone|\-z \fIname\fB \-\-keytype \fItype\fB|\-t \fItype\fB
 .TP
-.B key rollover \-\-policy|\-p \fIname\fB [\-\-keytype \fItype\fB]
+.B key rollover \-\-zone|\-z \fIname\fB \-\-all|\-a
+.TP
+.B key rollover \-\-policy|\-p \fIname\fB \-\-keytype \fItype\fB|\-t \fItype\fB
+.TP
+.B key rollover \-\-policy|\-p \fIname\fB \-\-all|\-a
 Rollover active keys on the named zone or policy, respectively.
 This command is used to intiate manual rollovers; if it is not given,
 OpenDNSSEC will automatically rollover keys when the need arises. (Or, in the 
 case of KSKs it will start the rollover process, to finish the KSK rollover see
 ksk-roll below.)
 
-The \-\-keytype option specifies the type of key to roll (both are rolled if nothing is specified) After running, the KASP Enforcer will be woken up so that the signer can be sent the new information.
+The \-\-keytype option specifies the type of key to roll. Alternatively the --all option can be used which will roll both types of keys. After running, the KASP Enforcer will be woken up so that the signer can be sent the new information.
 
 If the policy that the zone is on specifies that keys are shared then all zones on that policy will be rolled. If appropriate, a backup of the sqlite DB file is made.
 
@@ -254,6 +258,12 @@ Export a policy from the database in the same format as the kasp.xml file.
 .TP
 .B policy import
 Update the database with the contents of kasp.xml; identical to "update kasp".
+.TP
+.B policy purge
+* Experimental *
+
+Remove any policies which have no zones associated with them.
+Note that this command has only been tested in a lab environment and so caution is recommended.
 .SH "REPOSITORY AND BACKUP SUBCOMMANDS"
 .LP
 .TP

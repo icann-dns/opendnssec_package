@@ -1,5 +1,5 @@
 /*
- * $Id: zone.h 5432 2011-08-22 12:55:04Z matthijs $
+ * $Id: zone.h 7124 2013-05-03 09:49:26Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -91,6 +91,7 @@ struct zone_struct {
     stats_type* stats;
 
     lock_basic_type zone_lock;
+    int zone_locked;
 };
 
 /**

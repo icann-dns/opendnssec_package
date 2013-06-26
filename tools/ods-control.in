@@ -176,7 +176,7 @@ case "$1" in
 'stop')
 	"$0" enforcer stop
 	echo "Stopping signer engine..."
-	"$0" signed stop
+	"$0" signer stop
 	exit $?
 	;;
 

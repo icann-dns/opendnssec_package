@@ -1,5 +1,5 @@
 /*
- * $Id: zone.c 6244 2012-04-03 13:56:27Z matthijs $
+ * $Id: zone.c 7124 2013-05-03 09:49:26Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -131,6 +131,7 @@ zone_create(char* name, ldns_rr_class klass)
     zone->stats = stats_create();
     zone->task = NULL;
     lock_basic_init(&zone->zone_lock);
+    zone->zone_locked = 0;
     return zone;
 }
 
@@ -657,7 +658,7 @@ zone_prepare_nsec3(zone_type* zone, int recover)
         ods_log_assert(nsec3params_rr);
 
         ldns_rr_set_class(nsec3params_rr, zone->klass);
-        ldns_rr_set_ttl(nsec3params_rr, zone->zonedata->default_ttl);
+        ldns_rr_set_ttl(nsec3params_rr, 0);
         ldns_rr_set_owner(nsec3params_rr, ldns_rdf_clone(zone->dname));
         ldns_nsec3_add_param_rdfs(nsec3params_rr,
             zone->nsec3params->algorithm, 0,
@@ -974,8 +975,10 @@ zone_recover(zone_type* zone)
         zone->prepared = 1;
         if (zone->stats) {
             lock_basic_lock(&zone->stats->stats_lock);
+            zone->stats->stats_locked = LOCKED_STATS_ZONE_RECOVER;
             stats_clear(zone->stats);
             lock_basic_unlock(&zone->stats->stats_lock);
+            zone->stats->stats_locked = 0;
         }
         return ODS_STATUS_OK;
     } else {
@@ -1013,8 +1016,10 @@ zone_recover(zone_type* zone)
             zone->prepared = 1;
             if (zone->stats) {
                 lock_basic_lock(&zone->stats->stats_lock);
+                zone->stats->stats_locked = LOCKED_STATS_ZONE_RECOVER;
                 stats_clear(zone->stats);
                 lock_basic_unlock(&zone->stats->stats_lock);
+                zone->stats->stats_locked = 0;
             }
             return ODS_STATUS_UNCHANGED;
         }
@@ -1061,8 +1066,10 @@ recover_error:
 
     if (zone->stats) {
        lock_basic_lock(&zone->stats->stats_lock);
+       zone->stats->stats_locked = LOCKED_STATS_ZONE_RECOVER;
        stats_clear(zone->stats);
        lock_basic_unlock(&zone->stats->stats_lock);
+       zone->stats->stats_locked = 0;
     }
     return ODS_STATUS_ERR;
 }

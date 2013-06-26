@@ -1,4 +1,4 @@
-# $Id: opendnssec_common.m4 6065 2012-01-16 09:45:47Z jerry $
+# $Id: opendnssec_common.m4 6806 2012-11-01 10:56:59Z sion $
 
 AC_DEFUN([OPENDNSSEC_COMMON],[
 
@@ -98,5 +98,5 @@ AC_DEFINE_UNQUOTED(ODS_AU_KASPCHECK,  ["$OPENDNSSEC_AUDITOR_KASPCHECK"],    [Pat
 OPENDNSSEC_ENFORCER_CONTROL=$OPENDNSSEC_SBIN_DIR/ods-control
 
 AC_DEFINE_UNQUOTED(ODS_EN_CONTROL,  ["$OPENDNSSEC_ENFORCER_CONTROL enforcer "],    [Path to the OpenDNSSEC ods-control binary])
-
+AC_DEFINE_UNQUOTED(ODS_EN_NOTIFY,    ["$OPENDNSSEC_ENFORCER_CONTROL enforcer notify"],    [Command to send a SIGHUP to the ods-enforcerd process])
 ])

@@ -71,6 +71,7 @@ schedule_create(allocator_type* allocator)
     schedule->flushcount = 0;
     schedule->tasks = ldns_rbtree_create(task_compare);
     lock_basic_init(&schedule->schedule_lock);
+    schedule->schedule_locked = 0;
     return schedule;
 }
 
@@ -335,6 +336,12 @@ schedule_pop_task(schedule_type* schedule)
                 pop->who?pop->who:"(null)");
         }
         return unschedule_task(schedule, pop);
+    } else if (pop) {
+        ods_log_debug("[%s] not popping task for zone %s: not ready (when %u "
+              "< now %u, flush=%u)", schedule_str, pop->who?pop->who:"(null)",
+              pop->when, now, pop->flush);
+    } else {
+        ods_log_debug("[%s] not popping task: no task", schedule_str);
     }
     return NULL;
 }

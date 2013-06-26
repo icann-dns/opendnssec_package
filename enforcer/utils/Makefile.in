@@ -196,7 +196,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JAVA = @JAVA@
-KILLALL = @KILLALL@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
@@ -250,7 +249,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PKILL = @PKILL@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
@@ -355,7 +353,8 @@ man1_MANS = ods-ksmutil.1
 ods_ksmutil_SOURCES = ksmutil.c
 ods_ksmutil_LDADD = $(LIBKSM) $(LIBHSM) $(LIBCOMPAT) @XML2_LIBS@ \
 	@DB_LIBS@ @LDNS_LIBS@ $(am__empty)
-EXTRA_DIST = $(srcdir)/migrate_*.pl $(srcdir)/add_indexes.sqlite3
+EXTRA_DIST = $(srcdir)/migrate_*.pl $(srcdir)/add_indexes.sqlite3 \
+	$(srcdir)/migrate_zone_delete.mysql
 all: all-am
 
 .SUFFIXES:

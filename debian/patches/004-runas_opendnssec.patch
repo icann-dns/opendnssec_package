@@ -1,5 +1,5 @@
---- a/conf/conf.xml.in
-+++ b/conf/conf.xml.in
+--- opendnssec.orig/conf/conf.xml.in
++++ opendnssec/conf/conf.xml.in
 @@ -6,12 +6,14 @@
  
  	<RepositoryList>
