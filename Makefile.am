@@ -1,4 +1,4 @@
-# $Id: Makefile.am 5246 2011-06-26 07:43:30Z rb $
+# $Id: Makefile.am 6484 2012-07-17 06:53:51Z jerry $
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -11,7 +11,7 @@ MAINTAINERCLEANFILES = \
 	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
 	$(srcdir)/config.guess $(srcdir)/config.sub
 
-SUBDIRS = common libhsm enforcer conf tools contrib
+SUBDIRS = common libhsm enforcer conf tools
 
 if ENABLE_SIGNER
 SUBDIRS += signer

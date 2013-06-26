@@ -1,5 +1,5 @@
 /*
- * $Id: zonelist.h 4689 2011-04-11 09:55:49Z matthijs $
+ * $Id: zonelist.h 7124 2013-05-03 09:49:26Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -55,6 +55,7 @@ struct zonelist_struct {
     int just_updated;
     int just_removed;
     lock_basic_type zl_lock;
+    int zl_locked;
 };
 
 /**

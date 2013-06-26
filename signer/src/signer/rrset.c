@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 6253 2012-04-10 09:17:28Z matthijs $
+ * $Id: rrset.c 7124 2013-05-03 09:49:26Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -751,7 +751,7 @@ rrset_recycle(rrset_type* rrset, signconf_type* sc, time_t signtime)
     /* 1. If the RRset has changed, drop all signatures */
     /* 2. If Refresh is disabled, drop all signatures */
     if (rrset->needs_signing || refresh <= (uint32_t) signtime) {
-        ods_log_debug("[%s] drop signatures for RRset[%i]", rrset_str,
+        ods_log_deeebug("[%s] drop signatures for RRset[%i]", rrset_str,
             rrset->rr_type);
         if (rrset->rrsigs) {
             rrsigs_cleanup(rrset->rrsigs);
@@ -938,7 +938,7 @@ rrset_sigvalid_period(signconf_type* sc, ldns_rr_type rrtype, time_t signtime,
             ((validity + offset + random_jitter) - jitter),
             ((validity + offset) + jitter));
     } else {
-        ods_log_debug("[%s] signature validity %u in range [%u - %u]",
+        ods_log_deeebug("[%s] signature validity %u in range [%u - %u]",
             rrset_str, ((validity + offset + random_jitter) - jitter),
             ((validity + offset) - jitter),
             ((validity + offset) + jitter));
@@ -1110,12 +1110,14 @@ rrset_sign(hsm_ctx_t* ctx, rrset_type* rrset, ldns_rdf* owner,
     ldns_rr_list_free(rr_list);
 
     lock_basic_lock(&stats->stats_lock);
+    stats->stats_locked = LOCKED_STATS_RRSET_SIGN;
     if (rrset->rr_type == LDNS_RR_TYPE_SOA) {
         stats->sig_soa_count += newsigs;
     }
     stats->sig_count += newsigs;
     stats->sig_reuse += reusedsigs;
     lock_basic_unlock(&stats->stats_lock);
+    stats->stats_locked = 0;
     return ODS_STATUS_OK;
 }
 
@@ -1146,26 +1148,33 @@ rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker)
     }
     ods_log_assert(q);
 
-    while (status == ODS_STATUS_UNCHANGED && !worker->need_to_exit) {
+    lock_basic_lock(&q->q_lock);
+    q->q_locked = LOCKED_Q_WORKER(worker->thread_num);
+    status = fifoq_push(q, (void*) rrset, worker, &tries);
+    while (status == ODS_STATUS_UNCHANGED) {
         tries++;
-        lock_basic_lock(&q->q_lock);
-        status = fifoq_push(q, (void*) rrset, worker, &tries);
-        /**
-         * If tries are 0 they we have tries FIFOQ_TRIES_COUNT times,
-         * lets take a small break to not hog CPU.
-         */
-        if (status == ODS_STATUS_UNCHANGED) {
-            worker_wait_timeout_locked(&q->q_lock, &q->q_nonfull, 60);
+        if (worker->need_to_exit) {
+            lock_basic_unlock(&q->q_lock);
+            q->q_locked = 0;
+            return ODS_STATUS_UNCHANGED;
         }
-        lock_basic_unlock(&q->q_lock);
+        /**
+         * Apparently the queue is full. Lets take a small break to not hog CPU.
+         * The worker will release the signq lock while sleeping and will
+         * automatically grab the lock when the queue is nonfull.
+         * Queue is nonfull at 10% of the queue size.
+         */
+        lock_basic_sleep(&q->q_nonfull, &q->q_lock, 5);
+        status = fifoq_push(q, (void*) rrset, worker, &tries);
     }
-    if (status == ODS_STATUS_OK) {
-        lock_basic_lock(&worker->worker_lock);
-        /* [LOCK] worker */
-        worker->jobs_appointed += 1;
-        /* [UNLOCK] worker */
-        lock_basic_unlock(&worker->worker_lock);
-    }
+    lock_basic_unlock(&q->q_lock);
+    q->q_locked = 0;
+    ods_log_assert(status == ODS_STATUS_OK);
+    lock_basic_lock(&worker->worker_lock);
+    worker->worker_locked = LOCKED_WORKER_RRSET(worker->thread_num);
+    worker->jobs_appointed += 1;
+    lock_basic_unlock(&worker->worker_lock);
+    worker->worker_locked = 0;
     return status;
 }
 

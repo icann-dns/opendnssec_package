@@ -1,4 +1,4 @@
-# $Id: configure.ac 6309 2012-05-04 12:47:37Z jerry $
+# $Id: configure.ac 6829 2012-11-13 12:59:32Z jerry $
 
 m4_sinclude([version.m4])
 
@@ -86,6 +86,7 @@ AC_CHECK_FUNCS([malloc calloc realloc free])
 AC_CHECK_FUNCS([strlen strncmp strncat strncpy strerror strncasecmp strdup])
 AC_CHECK_FUNCS([fgetc fopen fclose ferror fprintf vsnprintf fflush])
 AC_CHECK_FUNCS([openlog closelog syslog])
+AC_CHECK_FUNCS([openlog_r closelog_r syslog_r vsyslog_r])
 AC_CHECK_FUNCS([chroot getgroups setgroups initgroups])
 AC_CHECK_FUNCS([close unlink fcntl socket listen bzero])
 AC_CHECK_FUNCS([va_start va_end])
@@ -108,17 +109,6 @@ AC_REPLACE_FUNCS(strlcpy)
 
 ACX_BROKEN_SETRES
 AC_CHECK_STRPTIME
-
-# find out how to restart named processes
-AC_PATH_PROG(PKILL, pkill)
-AC_PATH_PROG(KILLALL, killall)
-if test -n "$PKILL" -a -x "$PKILL"; then
-  AC_DEFINE_UNQUOTED(RESTART_ENFORCERD_CMD, "$PKILL -HUP ods-enforcerd", [Command to restart a named process])
-elif test -n "$KILLALL" -a -x "$KILLALL"; then
-  AC_DEFINE_UNQUOTED(RESTART_ENFORCERD_CMD, "$KILLALL -HUP ods-enforcerd", [Command to restart a named process])
-else
-  AC_DEFINE_UNQUOTED(RESTART_ENFORCERD_CMD, "/bin/false", [Command to restart a named process])
-fi
 
 # check for some target-specific stuff
 case "$host" in
@@ -146,6 +136,8 @@ fi
 # common dependencies
 ACX_LIBXML2
 ACX_LDNS(1,6,12)
+ACX_LDNS_NOT(1,6,14, [binary incompatibility, see http://open.nlnetlabs.nl/pipermail/ldns-users/2012-October/000564.html])
+ACX_LDNS_NOT(1,6,15, [fail to create NSEC3 bitmap for empty non-terminals, see http://www.nlnetlabs.nl/pipermail/ldns-users/2012-November/000565.html])
 ACX_PKCS11_MODULES
 ACX_RT
 
@@ -292,7 +284,6 @@ AC_CONFIG_FILES([
 	tools/opendnssec.7
 	tools/ods-control.8
 	tools/ods-kasp2html
-	contrib/Makefile
 ])
 
 AC_OUTPUT

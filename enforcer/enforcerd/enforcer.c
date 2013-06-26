@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 6379 2012-06-05 08:52:37Z jerry $
+ * $Id: enforcer.c 7092 2013-04-10 12:50:25Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -1493,6 +1493,14 @@ int do_purge(int interval, int policy_id)
                     " or state = %d and DEAD > DATETIME('%s', '-%d SECONDS')) ", KSM_STATE_DEAD, rightnow, interval);
 #endif /* USE_MYSQL */
 
+			if (nchar >= sizeof(buffer)) {
+				log_msg(NULL, LOG_ERR, "Error: failed to create SQL statement to purge keys\n");
+				DbStringFree(temp_loc);
+                DbFreeRow(row);
+                StrFree(rightnow);
+				return(-1);
+			}
+
             StrAppend(&sql1, buffer);
             DqsEnd(&sql1);
 
@@ -1615,6 +1623,11 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
     char*   ds_buffer = NULL;   /* Contents of DS records */
     char*   ds_seen_buffer = NULL;   /* Which keys have we promoted */
     char*   temp_char = NULL;   /* Contents of DS records */
+
+	/* To find the ttl of the DS */
+	int policy_id = -1;
+	int rrttl = -1;
+	int param_id = -1; /* unused */
 
     /* Key information */
     hsm_key_t *key = NULL;
@@ -1792,6 +1805,18 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
             sign_params->flags = LDNS_KEY_ZONE_KEY;
             sign_params->flags += LDNS_KEY_SEP_KEY;
             dnskey_rr = hsm_get_dnskey(NULL, key, sign_params);
+
+			/* Set TTL if we can find it; else leave it as the default */
+			/* We need a policy id */
+			status = KsmPolicyIdFromZoneId(zone_id, &policy_id);
+			if (status == 0) {
+
+				/* Use this to get the TTL parameter value */
+				status = KsmParameterValue(KSM_PAR_KSKTTL_STRING, KSM_PAR_KSKTTL_CAT, &rrttl, policy_id, &param_id);
+				if (status == 0) {
+					ldns_rr_set_ttl(dnskey_rr, rrttl);
+				}
+			}
 
             temp_char = ldns_rr2str(dnskey_rr);
             ldns_rr_free(dnskey_rr);

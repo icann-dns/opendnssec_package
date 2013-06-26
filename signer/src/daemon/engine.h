@@ -1,5 +1,5 @@
 /*
- * $Id: engine.h 6111 2012-01-30 15:11:45Z matthijs $
+ * $Id: engine.h 7124 2013-05-03 09:49:26Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -75,6 +75,7 @@ struct engine_struct {
     sig_atomic_t signal;
     cond_basic_type signal_cond;
     lock_basic_type signal_lock;
+    int signal_locked;
 };
 
 /**

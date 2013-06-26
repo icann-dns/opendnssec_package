@@ -1,5 +1,5 @@
---- a/m4/opendnssec_common.m4
-+++ b/m4/opendnssec_common.m4
+--- opendnssec.orig/m4/opendnssec_common.m4
++++ opendnssec/m4/opendnssec_common.m4
 @@ -18,7 +18,7 @@ OPENDNSSEC_LIB_DIR=$full_libdir/opendnss
  OPENDNSSEC_LIBEXEC_DIR=$full_libexecdir/opendnssec
  OPENDNSSEC_DATA_DIR=$full_datadir/opendnssec
@@ -9,8 +9,8 @@
  OPENDNSSEC_PID_DIR="$full_localstatedir/run/opendnssec"
  
  AC_SUBST([OPENDNSSEC_BIN_DIR])
---- a/Makefile.am
-+++ b/Makefile.am
+--- opendnssec.orig/Makefile.am
++++ opendnssec/Makefile.am
 @@ -30,16 +30,6 @@ EXTRA_DIST =	$(srcdir)/KNOWN_ISSUES \
  		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
  

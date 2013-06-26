@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 3732 2010-08-11 10:21:06Z jakob $
+# $Id: Makefile.am 6840 2012-11-15 18:59:55Z sara $
 
 
 VPATH = @srcdir@
@@ -81,10 +81,10 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_ods_hsmspeed_OBJECTS = hsmspeed.$(OBJEXT)
 ods_hsmspeed_OBJECTS = $(am_ods_hsmspeed_OBJECTS)
-ods_hsmspeed_DEPENDENCIES = libhsm.a
+ods_hsmspeed_DEPENDENCIES = libhsm.a $(LIBCOMPAT)
 am_ods_hsmutil_OBJECTS = hsmutil.$(OBJEXT) hsmtest.$(OBJEXT)
 ods_hsmutil_OBJECTS = $(am_ods_hsmutil_OBJECTS)
-ods_hsmutil_DEPENDENCIES = libhsm.a
+ods_hsmutil_DEPENDENCIES = libhsm.a $(LIBCOMPAT)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/common
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -202,7 +202,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JAVA = @JAVA@
-KILLALL = @KILLALL@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
@@ -256,7 +255,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PERL = @PERL@
-PKILL = @PKILL@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
@@ -337,6 +335,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+LIBCOMPAT = ${top_builddir}/common/libcompat.a
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 AM_CPPFLAGS = \
 		-I$(top_srcdir)/common \
@@ -351,9 +350,9 @@ libhsm_a_SOURCES = libhsm.c libhsm.h libhsmdns.h \
 
 man1_MANS = ods-hsmutil.1 ods-hsmspeed.1
 ods_hsmutil_SOURCES = hsmutil.c hsmtest.c hsmtest.h
-ods_hsmutil_LDADD = libhsm.a @LDNS_LIBS@ @XML2_LIBS@
+ods_hsmutil_LDADD = libhsm.a @LDNS_LIBS@ @XML2_LIBS@ $(LIBCOMPAT)
 ods_hsmspeed_SOURCES = hsmspeed.c
-ods_hsmspeed_LDADD = libhsm.a -lpthread @LDNS_LIBS@ @XML2_LIBS@
+ods_hsmspeed_LDADD = libhsm.a -lpthread @LDNS_LIBS@ @XML2_LIBS@ $(LIBCOMPAT)
 all: all-am
 
 .SUFFIXES:

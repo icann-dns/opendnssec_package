@@ -1,5 +1,5 @@
-# $Id: version.m4 6325 2012-05-09 18:54:46Z jakob $
+# $Id: version.m4 7131 2013-05-16 11:05:06Z jerry $
 #
 # this file contains the current OpenDNSSEC version
 
-define([OPENDNSSEC_VERSION], [1.3.9])
+define([OPENDNSSEC_VERSION], [1.3.14])
