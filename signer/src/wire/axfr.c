@@ -417,6 +417,7 @@ ixfr(query_type* q, engine_type* engine)
         buffer_set_limit(q->buffer, BUFFER_PKT_HEADER_SIZE);
         buffer_pkt_set_qdcount(q->buffer, 0);
         query_prepare(q);
+        soa_found = 1;
     }
 
     /* add as many records as fit */
@@ -450,8 +451,8 @@ ixfr(query_type* q, engine_type* engine)
                 ldns_rr_rdf(rr, SE_SOA_RDATA_SERIAL))) {
                 soa_found = 1;
             } else {
-                ods_log_deeebug("[%s] soa not found for rr at line %d",
-                    axfr_str, l);
+                ods_log_deeebug("[%s] soa serial %u not found for rr at line %d",
+                    axfr_str, q->serial, l);
                 continue;
             }
         }
@@ -490,6 +491,8 @@ ixfr(query_type* q, engine_type* engine)
         }
     }
     if (!soa_found) {
+        ods_log_warning("[%s] zone %s journal not found for serial %u",
+            axfr_str, q->zone->name, q->serial);
         goto axfr_fallback;
     }
     ods_log_debug("[%s] ixfr zone %s is done", axfr_str, q->zone->name);

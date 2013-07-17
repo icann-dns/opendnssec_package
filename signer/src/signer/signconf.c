@@ -1,5 +1,5 @@
 /*
- * $Id: signconf.c 7039 2013-02-15 08:10:15Z matthijs $
+ * $Id: signconf.c 7142 2013-06-06 09:03:30Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -185,7 +185,7 @@ signconf_update(signconf_type** signconf, const char* scfile,
         new_sc->last_modified = st_mtime;
         if (signconf_check(new_sc) != ODS_STATUS_OK) {
             ods_log_error("[%s] unable to update signconf: signconf %s has "
-                "errors (%s)", sc_str, scfile, ods_status2str(status));
+                "errors", sc_str, scfile);
             signconf_cleanup(new_sc);
             return ODS_STATUS_CFG_ERR;
         }
@@ -314,8 +314,8 @@ signconf_check(signconf_type* sc)
         status = ODS_STATUS_CFG_ERR;
     }
     if (sc->nsec_type == LDNS_RR_TYPE_NSEC3) {
-        if (sc->nsec3_algo == 0) {
-            ods_log_error("[%s] check failed: no nsec3 algorithm found",
+        if (sc->nsec3_algo != LDNS_SHA1) {
+            ods_log_error("[%s] check failed: invalid nsec3 algorithm",
                 sc_str);
             status = ODS_STATUS_CFG_ERR;
         }
@@ -369,20 +369,20 @@ signconf_compare_denial(signconf_type* a, signconf_type* b)
     ods_log_assert(a);
     ods_log_assert(b);
 
-   if (a->nsec_type != b->nsec_type) {
-       new_task = TASK_NSECIFY;
-   } else if (a->nsec_type == LDNS_RR_TYPE_NSEC3) {
-       if ((ods_strcmp(a->nsec3_salt, b->nsec3_salt) != 0) ||
-           (a->nsec3_algo != b->nsec3_algo) ||
-           (a->nsec3_iterations != b->nsec3_iterations) ||
-           (a->nsec3_optout != b->nsec3_optout)) {
+    if (duration_compare(a->soa_min, b->soa_min)) {
+        new_task = TASK_NSECIFY;
+    } else if (a->nsec_type != b->nsec_type) {
+        new_task = TASK_NSECIFY;
+    } else if (a->nsec_type == LDNS_RR_TYPE_NSEC3) {
+        if ((ods_strcmp(a->nsec3_salt, b->nsec3_salt) != 0) ||
+            (a->nsec3_algo != b->nsec3_algo) ||
+            (a->nsec3_iterations != b->nsec3_iterations) ||
+            (a->nsec3_optout != b->nsec3_optout)) {
 
-           new_task = TASK_NSECIFY;
-       }
-   } else if (duration_compare(a->soa_min, b->soa_min)) {
-       new_task = TASK_NSECIFY;
-   }
-   return new_task;
+            new_task = TASK_NSECIFY;
+        }
+    }
+    return new_task;
 }
 
 

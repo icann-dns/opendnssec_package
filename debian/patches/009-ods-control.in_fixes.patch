@@ -1,5 +1,5 @@
---- a/tools/ods-control.in
-+++ b/tools/ods-control.in
+--- opendnssec.orig/tools/ods-control.in
++++ opendnssec/tools/ods-control.in
 @@ -40,11 +40,13 @@ case "$1" in
  'ksm')
  	shift

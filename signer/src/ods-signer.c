@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signer.c 7083 2013-04-03 13:27:51Z matthijs $
+ * $Id: ods-signer.c 7148 2013-06-11 14:11:43Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -354,8 +354,8 @@ main(int argc, char* argv[])
         exit(1);
     }
 
-    if (argc > 3) {
-        fprintf(stderr,"error, too many arguments\n");
+    if (argc > 5) {
+        fprintf(stderr,"error, too many arguments (%d)\n", argc);
         exit(1);
     }
 

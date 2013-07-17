@@ -1,5 +1,5 @@
---- a/conf/conf.xml.in
-+++ b/conf/conf.xml.in
+--- opendnssec.orig/conf/conf.xml.in
++++ opendnssec/conf/conf.xml.in
 @@ -6,12 +6,14 @@
  
  	<RepositoryList>
@@ -15,25 +15,3 @@
  
  <!--
  		<Repository name="sca6000">
-@@ -48,7 +50,7 @@
- <!--
- 		<WorkerThreads>4</WorkerThreads>
- -->
--		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/kasp.db</SQLite></Datastore>
-+		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/db/kasp.db</SQLite></Datastore>
- 		<Interval>PT3600S</Interval>
- 		<!-- <ManualKeyGeneration/> -->
- 		<!-- <RolloverNotification>P14D</RolloverNotification> -->
-@@ -60,12 +62,10 @@
- 	</Enforcer>
- 
- 	<Signer>
--<!--
- 		<Privileges>
- 			<User>opendnssec</User>
- 			<Group>opendnssec</Group>
- 		</Privileges>
---->
- 
- 		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
- 		<WorkerThreads>4</WorkerThreads>
