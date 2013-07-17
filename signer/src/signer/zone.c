@@ -1,5 +1,5 @@
 /*
- * $Id: zone.c 7039 2013-02-15 08:10:15Z matthijs $
+ * $Id: zone.c 7149 2013-06-12 08:33:21Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -456,8 +456,8 @@ zone_update_serial(zone_type* zone)
             "clone soa rr", zone_str, zone->name);
         return ODS_STATUS_ERR;
     }
-    status = namedb_update_serial(zone->db, zone->signconf->soa_serial,
-        zone->db->inbserial);
+    status = namedb_update_serial(zone->db, zone->name,
+        zone->signconf->soa_serial, zone->db->inbserial);
     if (status != ODS_STATUS_OK) {
         ods_log_error("[%s] unable to update zone %s soa serial: %s",
             zone_str, zone->name, ods_status2str(status));

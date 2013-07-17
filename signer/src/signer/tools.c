@@ -1,5 +1,5 @@
 /*
- * $Id: tools.c 6951 2013-01-16 13:39:12Z matthijs $
+ * $Id: tools.c 7154 2013-06-13 13:56:19Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -141,7 +141,8 @@ tools_input(zone_type* zone)
         namedb_rollback(zone->db, 0);
     }
     end = time(NULL);
-    if (status == ODS_STATUS_OK && zone->stats) {
+    if ((status == ODS_STATUS_OK || status == ODS_STATUS_UNCHANGED)
+        && zone->stats) {
         lock_basic_lock(&zone->stats->stats_lock);
         zone->stats->start_time = start;
         zone->stats->sort_time = (end-start);

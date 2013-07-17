@@ -27,22 +27,16 @@ override_dh_auto_clean:
 	dh_auto_clean -Bbuild-sqlite3
 	dh_auto_clean -Denforcer -Bbuild-mysql/enforcer
 	rm -rf build-mysql build-sqlite3
-	if test -f enforcer/common/config.h.orig; then mv enforcer/common/config.h.orig enforcer/common/config.h; fi
-	if test -f signer/tools/config.h.orig; then mv signer/tools/config.h.orig signer/tools/config.h; fi
 
-COMMON = --disable-rpath \
+COMMON = --disable-rpath --with-ldns=/usr \
 	 --with-cunit=/usr --libexecdir=/usr/lib/opendnssec/ \
-	 --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so \
-	 --with-mysql=/usr --libexecdir=/usr/lib/opendnssec/
+	 --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so
 
 override_dh_auto_configure:
-	if test -f enforcer/common/config.h; then mv enforcer/common/config.h enforcer/common/config.h.orig; fi
-	if test -f signer/tools/config.h; then mv signer/tools/config.h signer/tools/config.h.orig; fi
-
-	dh_auto_configure -Bbuild-sqlite3 -- $(COMMON) --with-database-backend=sqlite3
+	dh_auto_configure -Bbuild-sqlite3 -- $(COMMON) --with-database-backend=sqlite3 --with-sqlite3=/usr
 	mkdir build-mysql
 	ln -s ../build-sqlite3/libhsm build-mysql/libhsm
-	dh_auto_configure -Bbuild-mysql/enforcer -- $(COMMON) --with-database-backend=mysql --disable-signer --disable-doxygen-doc
+	dh_auto_configure -Bbuild-mysql/enforcer -- $(COMMON) --with-database-backend=mysql --disable-signer --disable-doxygen-doc --with-mysql=/usr
 
 override_dh_auto_build-arch:
 	dh_auto_build -Bbuild-sqlite3

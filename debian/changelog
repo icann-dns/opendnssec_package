@@ -1,3 +1,10 @@
+opendnssec (1:1.4.1-1) experimental; urgency=low
+
+  * New upstream version 1.4.1
+  * Refresh patches for 1.4.1 release
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 17 Jul 2013 09:10:53 +0200
+
 opendnssec (1:1.4.0-1) experimental; urgency=low
 
   * Imported Upstream version 1.4.0
@@ -6,8 +13,25 @@ opendnssec (1:1.4.0-1) experimental; urgency=low
   * debian/patches/:
    + Refresh patches for 1.4.0 release
   * Fix couple of lintian warnings
+  * Make generated Doxyfile executable to fix FTBFS
+  * Just add doxygen and graphviz to fix FTBFS in Ubuntu PPA
 
  -- Ondřej Surý <ondrej@debian.org>  Thu, 25 Apr 2013 09:46:06 +0200
+
+opendnssec (1:1.3.14-2) unstable; urgency=low
+
+  * Use dh-autoreconf
+  * Bump build time dependency on libldns to 1.6.14 where strlcpy has
+    disappeared to fix some strange linking problems
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 17 Jul 2013 08:37:21 +0200
+
+opendnssec (1:1.3.14-1) unstable; urgency=low
+
+  * New upstream version 1.3.14
+  * Update patches for 1.3.14 release
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 26 Jun 2013 08:50:26 +0200
 
 opendnssec (1:1.3.10-2) unstable; urgency=low
 

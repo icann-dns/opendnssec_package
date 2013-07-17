@@ -539,7 +539,6 @@ xfrd_dump_packet(xfrd_type* xfrd, buffer_type* buffer)
     }
     lock_basic_lock(&xfrd->rw_lock);
     lock_basic_lock(&xfrd->serial_lock);
-    xfrd->serial_disk_acquired = 0;
     lock_basic_unlock(&xfrd->serial_lock);
 
     fd = ods_fopen(xfrfile, NULL, "a");
@@ -926,7 +925,7 @@ xfrd_parse_packet(xfrd_type* xfrd, buffer_type* buffer)
     status = xfrd_parse_rrs(xfrd, buffer, ancount_todo, &done);
     if (status != ODS_STATUS_OK) {
         ods_log_error("[%s] bad packet: zone %s received bad xfr packet "
-            "(%s)", xfrd_str, zone->name, xfrd->master->address,
+            "from %s (%s)", xfrd_str, zone->name, xfrd->master->address,
             ods_status2str(status));
         return XFRD_PKT_BAD;
     }

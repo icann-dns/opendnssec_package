@@ -1,5 +1,5 @@
---- a/conf/Makefile.am
-+++ b/conf/Makefile.am
+--- opendnssec.orig/conf/Makefile.am
++++ opendnssec/conf/Makefile.am
 @@ -33,7 +33,7 @@ $(TRANG):
  		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)
  	${JAVA} -jar ${TRANG} $< $@
