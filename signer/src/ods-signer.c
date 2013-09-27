@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signer.c 6307 2012-05-04 09:36:03Z jerry $
+ * $Id: ods-signer.c 7266 2013-09-06 12:56:11Z sara $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -341,7 +341,7 @@ main(int argc, char* argv[])
 {
     int c;
     int options_size = 0;
-    const char* options[4];
+    const char* options[5];
     char* cmd = NULL;
     int ret = 0;
     allocator_type* clialloc = allocator_create(malloc, free);
@@ -350,8 +350,8 @@ main(int argc, char* argv[])
         exit(1);
     }
 
-    if (argc > 3) {
-        fprintf(stderr,"error, too many arguments\n");
+    if (argc > 5) {
+        fprintf(stderr,"error, too many arguments (%d)\n", argc);
         exit(1);
     }
 

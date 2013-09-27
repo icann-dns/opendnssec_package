@@ -1,5 +1,5 @@
 /*
- * $Id: locks.h 7124 2013-05-03 09:49:26Z matthijs $
+ * $Id: locks.h 7298 2013-09-11 11:26:35Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -86,6 +86,9 @@
 #define LOCKED_WORKER_SLEEP_UNLESS          53
 #define LOCKED_WORKER_WAKEUP                54
 
+#define LOCKED_ZL_ENGINE_UPDATEZONES        60
+#define LOCKED_ZL_ENGINE_RECOVER            61
+
 #define LOCKED_Q_WORKER(x)                 (300+x)
 #define LOCKED_Q_DRUDGER(x)                (400+x)
 #define LOCKED_SCHEDULE_WORKER(x)          (500+x)
@@ -93,6 +96,8 @@
 #define LOCKED_WORKER_DRUDGER(x)           (700+x)
 #define LOCKED_ZONE_WORKER(x)              (800+x)
 #define LOCKED_STATS_WORKER(x)             (900+x)
+#define LOCKED_SLEEP_WORKER(x)             (1000+x)
+#define LOCKED_SLEEP_DRUDGER(x)            (1100+x)
 
 
 

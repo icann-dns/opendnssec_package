@@ -1,5 +1,5 @@
 /*
- * $Id: zone.c 7124 2013-05-03 09:49:26Z matthijs $
+ * $Id: zone.c 7295 2013-09-11 10:18:25Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -130,8 +130,8 @@ zone_create(char* name, ldns_rr_class klass)
 
     zone->stats = stats_create();
     zone->task = NULL;
-    lock_basic_init(&zone->zone_lock);
     zone->zone_locked = 0;
+    lock_basic_init(&zone->zone_lock);
     return zone;
 }
 
@@ -977,8 +977,8 @@ zone_recover(zone_type* zone)
             lock_basic_lock(&zone->stats->stats_lock);
             zone->stats->stats_locked = LOCKED_STATS_ZONE_RECOVER;
             stats_clear(zone->stats);
-            lock_basic_unlock(&zone->stats->stats_lock);
             zone->stats->stats_locked = 0;
+            lock_basic_unlock(&zone->stats->stats_lock);
         }
         return ODS_STATUS_OK;
     } else {
@@ -1018,8 +1018,8 @@ zone_recover(zone_type* zone)
                 lock_basic_lock(&zone->stats->stats_lock);
                 zone->stats->stats_locked = LOCKED_STATS_ZONE_RECOVER;
                 stats_clear(zone->stats);
-                lock_basic_unlock(&zone->stats->stats_lock);
                 zone->stats->stats_locked = 0;
+                lock_basic_unlock(&zone->stats->stats_lock);
             }
             return ODS_STATUS_UNCHANGED;
         }
@@ -1068,8 +1068,8 @@ recover_error:
        lock_basic_lock(&zone->stats->stats_lock);
        zone->stats->stats_locked = LOCKED_STATS_ZONE_RECOVER;
        stats_clear(zone->stats);
-       lock_basic_unlock(&zone->stats->stats_lock);
        zone->stats->stats_locked = 0;
+       lock_basic_unlock(&zone->stats->stats_lock);
     }
     return ODS_STATUS_ERR;
 }
@@ -1145,6 +1145,49 @@ zone_merge(zone_type* z1, zone_type* z2)
 
 
 /**
+ * Prepare keys for signing.
+ *
+ */
+ods_status
+zone_prepare_keys(zone_type* zone)
+{
+    hsm_ctx_t* ctx = NULL;
+    key_type* key = NULL;
+    ods_status status = ODS_STATUS_OK;
+    if (!zone || !zone->zonedata || !zone->signconf || !zone->signconf->keys) {
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(zone->name);
+    /* hsm access */
+    ctx = hsm_create_context();
+    if (ctx == NULL) {
+        ods_log_error("[%s] unable to prepare signing keys for zone %s: "
+            "error creating libhsm context", zone_str, zone->name);
+        return ODS_STATUS_HSM_ERR;
+    }
+    /* prepare keys */
+    key = zone->signconf->keys->first_key;
+    while (key) {
+        /* get dnskey */
+        status = lhsm_get_key(ctx, zone->dname, key);
+        if (status != ODS_STATUS_OK) {
+            ods_log_error("[%s] unable to prepare signing keys for zone %s: "
+                "error getting dnskey", zone_str, zone->name);
+            break;
+        }
+        ods_log_assert(key->dnskey);
+        ods_log_assert(key->hsmkey);
+        ods_log_assert(key->params);
+        key = key->next;
+    }
+    /* done */
+    hsm_destroy_context(ctx);
+    return status;
+
+}
+
+
+/**
  * Update serial.
  *
  */
@@ -1156,28 +1199,26 @@ zone_update_serial(zone_type* zone)
     rrset_type* rrset = NULL;
     ldns_rdf* serial = NULL;
 
-    if (!zone) {
-        ods_log_error("[%s] unable to update serial: no zone",
-            zone_str);
+    if (!zone || !zone->name) {
+        ods_log_error("[%s] unable to update serial: no zone", zone_str);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(zone);
+    ods_log_assert(zone->name);
 
     if (!zone->signconf) {
-        ods_log_error("[%s] unable to update serial: no signconf",
-            zone_str);
+        ods_log_error("[%s] unable to update serial: no signconf", zone_str);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(zone->signconf);
 
     if (!zone->zonedata) {
-        ods_log_error("[%s] unable to update serial: no zonedata",
-            zone_str);
+        ods_log_error("[%s] unable to update serial: no zonedata", zone_str);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(zone->zonedata);
 
-    status = zonedata_update_serial(zone->zonedata, zone->signconf);
+    status = zonedata_update_serial(zone->zonedata, zone->signconf, zone->name);
     if (status != ODS_STATUS_OK) {
         ods_log_error("[%s] unable to update serial: failed to increment",
             zone_str);
