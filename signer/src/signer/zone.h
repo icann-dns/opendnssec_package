@@ -1,5 +1,5 @@
 /*
- * $Id: zone.h 7124 2013-05-03 09:49:26Z matthijs $
+ * $Id: zone.h 7293 2013-09-10 14:34:07Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -185,6 +185,14 @@ ods_status zone_recover(zone_type* zone);
  *
  */
 void zone_merge(zone_type* z1, zone_type* z2);
+
+/**
+ * Prepare keys for signing.
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status zone_prepare_keys(zone_type* zone);
 
 /**
  * Update serial.

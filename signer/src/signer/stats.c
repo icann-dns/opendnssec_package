@@ -1,5 +1,5 @@
 /*
- * $Id: stats.c 7124 2013-05-03 09:49:26Z matthijs $
+ * $Id: stats.c 7295 2013-09-11 10:18:25Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -43,8 +43,8 @@ stats_create(void)
 {
     stats_type* stats = (stats_type*) malloc(sizeof(stats_type));
     stats_clear(stats);
-    lock_basic_init(&stats->stats_lock);
     stats->stats_locked = 0;
+    lock_basic_init(&stats->stats_lock);
     return stats;
 }
 

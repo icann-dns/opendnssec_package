@@ -1,5 +1,5 @@
 /*
- * $Id: hsmutil.c 6190 2012-02-28 15:29:48Z rb $
+ * $Id: hsmutil.c 7177 2013-07-02 10:12:20Z sara $
  *
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
  * Copyright (c) 2009 NLNet Labs.
@@ -96,14 +96,14 @@ cmd_list (int argc, char *argv[])
            return 1;
         }
 
-        fprintf(stderr, "Listing keys in repository: %s\n", repository);
+        fprintf(stdout, "Listing keys in repository: %s\n", repository);
         keys = hsm_list_keys_repository(NULL, &key_count, repository);
     } else {
-        fprintf(stderr, "Listing keys in all repositories.\n");
+        fprintf(stdout, "Listing keys in all repositories.\n");
         keys = hsm_list_keys(NULL, &key_count);
     }
 
-    fprintf(stderr, "%u %s found.\n\n", (unsigned int) key_count,
+    fprintf(stdout, "%u %s found.\n\n", (unsigned int) key_count,
         (key_count > 1 || key_count == 0 ? "keys" : "key"));
 
     if (!keys) {
@@ -111,8 +111,8 @@ cmd_list (int argc, char *argv[])
     }
 
     /* print fancy header */
-    fprintf(stderr, key_info_format, "Repository", "ID", "Type");
-    fprintf(stderr, key_info_format, "----------", "--", "----");
+    fprintf(stdout, key_info_format, "Repository", "ID", "Type");
+    fprintf(stdout, key_info_format, "----------", "--", "----");
 
     for (i = 0; i < key_count; i++) {
         hsm_key_info_t *key_info;
