@@ -1,2 +1,3 @@
 usr/share/man/man1/ods-ksmutil.1
 usr/share/man/man8/ods-enforcerd.8
+usr/share/opendnssec/convert_database.pl

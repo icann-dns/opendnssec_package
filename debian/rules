@@ -53,7 +53,17 @@ override_dh_auto_install:
 	dh_auto_install -Bbuild-sqlite3 -- DESTDIR=$(CURDIR)/debian/tmp
 	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_sqlite3.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/opendnssec-enforcer-mysql
+	# Install migration scripts
+	install -m 755 $(CURDIR)/enforcer/utils/convert_database.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_mysql.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
+	install -m 644 $(CURDIR)/enforcer/utils/migrate_adapters_1.mysql $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
+	install -m 644 $(CURDIR)/enforcer/utils/migrate_zone_delete.mysql $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
+	install -m 755 $(CURDIR)/enforcer/utils/migrate_to_ng_mysql.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
+	install -m 755 $(CURDIR)/enforcer/utils/migrate_id_mysql.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
+	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_sqlite3.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
+	install -m 644 $(CURDIR)/enforcer/utils/migrate_adapters_1.sqlite3 $(CURDIR)/debian/tmp/usr/share/opendnssec/
+	install -m 755 $(CURDIR)/enforcer/utils/migrate_to_ng_sqlite.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
+	# Remove extra dist files from opendnssec-enforcer-mysql
 	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/ \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/ \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/bin/ods-hsm* \
@@ -88,3 +98,6 @@ override_dh_strip:
 	cp -a $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/lib/debug $(CURDIR)/debian/opendnssec-dbg-mysql/usr/lib/
 	rm -rf $(CURDIR)/debian/opendnssec-enforcer-sqlite3/usr/lib/debug
 	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/lib/debug
+
+override_dh_install:
+	dh_install --fail-missing -Xxml.sample

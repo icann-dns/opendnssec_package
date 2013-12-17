@@ -1,5 +1,5 @@
 /*
- * $Id: signconfparser.c 6660 2012-09-12 09:34:40Z matthijs $
+ * $Id: signconfparser.c 7354 2013-10-09 12:36:03Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -264,6 +264,22 @@ parse_sc_dnskey_ttl(const char* cfgfile)
     const char* str = parse_conf_string(cfgfile,
         "//SignerConfiguration/Zone/Keys/TTL",
         1);
+    if (!str) {
+        return NULL;
+    }
+    duration = duration_create_from_string(str);
+    free((void*)str);
+    return duration;
+}
+
+
+duration_type*
+parse_sc_nsec3param_ttl(const char* cfgfile)
+{
+    duration_type* duration = NULL;
+    const char* str = parse_conf_string(cfgfile,
+        "//SignerConfiguration/Zone/Denial/NSEC3/TTL",
+        0);
     if (!str) {
         return NULL;
     }

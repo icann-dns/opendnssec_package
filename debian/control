@@ -105,9 +105,10 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
 	 opendnssec-enforcer,
 	 libdbd-mysql-perl
 Pre-Depends: dpkg (>= 1.15.7.2~) | dpkg-maintscript-helper
+Breaks: opendnssec-auditor (<< 1.4.0~)
 Provides: opendnssec-enforcer-backend
-Conflicts: opendnssec-enforcer-backend
-Replaces: opendnssec-enforcer-backend
+Conflicts: opendnssec-enforcer-backend, 
+Replaces: opendnssec-enforcer-backend, opendnssec-auditor (<< 1.4.0~)
 Suggests: opendnssec, softhsm
 Description: tool to prepare DNSSEC keys (mysql backend)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
@@ -131,8 +132,9 @@ Depends: ${shlibs:Depends},
 	 sqlite3,
 	 opendnssec-enforcer,
 	 libdbd-sqlite3-perl
+Breaks: opendnssec-auditor (<< 1.4.0~)
 Provides: opendnssec-enforcer-backend
-Conflicts: opendnssec-enforcer-backend
+Conflicts: opendnssec-enforcer-backend, opendnssec-auditor (<< 1.4.0~)
 Replaces: opendnssec-enforcer-backend
 Suggests: opendnssec, softhsm
 Description: tool to prepare DNSSEC keys (sqlite3 backend)
@@ -195,6 +197,7 @@ Recommends: gdb
 Section: debug
 Priority: extra
 Architecture: any
+Conflicts: opendnssec-dbg-sqlite3
 Description: Debug symbols for OpenDNSSEC (Enforcer with MySQL support)
  This package provides the debug symbols for OpenDNSSEC needed for properly
  debugging errors in OpenDNSSEC with gdb.
@@ -213,6 +216,7 @@ Recommends: gdb
 Section: debug
 Priority: extra
 Architecture: any
+Conflicts: opendnssec-dbg-mysql
 Description: Debug symbols for OpenDNSSEC (Enforcer with SQLite3 support)
  This package provides the debug symbols for OpenDNSSEC needed for properly
  debugging errors in OpenDNSSEC with gdb.

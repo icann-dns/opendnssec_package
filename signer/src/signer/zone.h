@@ -1,5 +1,5 @@
 /*
- * $Id: zone.h 6577 2012-08-29 07:41:11Z jerry $
+ * $Id: zone.h 7223 2013-08-20 10:31:08Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -159,6 +159,14 @@ ods_status zone_publish_nsec3param(zone_type* zone);
  *
  */
 void zone_rollback_nsec3param(zone_type* zone);
+
+/**
+ * Prepare keys for signing.
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status zone_prepare_keys(zone_type* zone);
 
 /**
  * Update serial.

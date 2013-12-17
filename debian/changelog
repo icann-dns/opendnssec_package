@@ -1,3 +1,18 @@
+opendnssec (1:1.4.3-1) experimental; urgency=low
+
+  * New upstream version 1.4.3
+  * Override dh_install with --fail-install
+  * Update patches for the 1.4.3 release
+  * Add Replaces&Breaks opendnssec-auditor (<< 1.4.0~) to
+    opendnssec-enforcer-* (Closes: #717980)
+  * Include mysql and sqlite3 migration scripts (Closes: #671185)
+  * Add hard conflict between opendnssec-dbg-mysql and
+    opendnssec-dbg-sqlite3
+  * Fix upstream manpage-section-mismatch
+    usr/share/man/man8/ods-signer(d).8.gz:1 8 != 22
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 17 Dec 2013 17:13:03 +0100
+
 opendnssec (1:1.4.1-1) experimental; urgency=low
 
   * New upstream version 1.4.1

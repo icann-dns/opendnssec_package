@@ -1,5 +1,5 @@
 /*
- * $Id: signconf.h 6215 2012-03-20 13:30:51Z matthijs $
+ * $Id: signconf.h 7354 2013-10-09 12:36:03Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -61,6 +61,7 @@ struct signconf_struct {
     duration_type* sig_jitter;
     duration_type* sig_inception_offset;
     /* Denial of existence */
+    duration_type* nsec3param_ttl;
     ldns_rr_type nsec_type;
     int nsec3_optout;
     uint32_t nsec3_algo;
