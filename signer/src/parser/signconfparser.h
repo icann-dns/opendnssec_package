@@ -1,5 +1,5 @@
 /*
- * $Id: signconfparser.h 5376 2011-08-09 09:01:54Z matthijs $
+ * $Id: signconfparser.h 7347 2013-10-09 09:51:06Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -63,6 +63,7 @@ duration_type* parse_sc_sig_validity_denial(const char* cfgfile);
 duration_type* parse_sc_sig_jitter(const char* cfgfile);
 duration_type* parse_sc_sig_inception_offset(const char* cfgfile);
 duration_type* parse_sc_dnskey_ttl(const char* cfgfile);
+duration_type* parse_sc_nsec3param_ttl(const char* cfgfile);
 duration_type* parse_sc_soa_ttl(const char* cfgfile);
 duration_type* parse_sc_soa_min(const char* cfgfile);
 

@@ -1,5 +1,5 @@
 .TH "ods-enforcerd" "8" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-enforcerd"
-.\" $Id: ods-enforcerd.8.in 2888 2010-02-24 22:55:16Z jakob $
+.\" $Id: ods-enforcerd.8.in 7313 2013-09-13 15:22:06Z sara $
 .SH "NAME"
 .LP
 .B ods\-enforcerd
@@ -11,6 +11,8 @@
 .IR FILE] 
 .RB [ \-d ] 
 .RB [ \-1 ] 
+.RB [ \-p
+.IR POLICY] 
 .RB [ \-P 
 .IR PIDFILE ]
 .RB [ \-v ] 
@@ -36,6 +38,9 @@ Run in debug mode.
 .TP
 .B \-1
 Run once, then exit.
+.TP
+.B \-p\fI POLICY
+Run once processing only the specified policy, then exit.
 .TP
 .B \-P\fI PIDFILE
 Use alternate process-id file.

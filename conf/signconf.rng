@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: signconf.rnc 5133 2011-05-17 14:45:50Z sion $
+  $Id: signconf.rnc 7344 2013-10-09 09:03:39Z matthijs $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -169,6 +169,9 @@
   -->
   <define name="nsec3">
     <element name="NSEC3">
+      <optional>
+        <ref name="ttl"/>
+      </optional>
       <optional>
         <element name="OptOut">
           <empty/>

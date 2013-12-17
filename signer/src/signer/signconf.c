@@ -1,5 +1,5 @@
 /*
- * $Id: signconf.c 7143 2013-06-06 09:18:00Z matthijs $
+ * $Id: signconf.c 7437 2013-11-27 10:20:58Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -79,6 +79,7 @@ signconf_create(void)
     sc->sig_jitter = NULL;
     sc->sig_inception_offset = NULL;
     /* Denial of existence */
+    sc->nsec3param_ttl = NULL;
     sc->nsec_type = 0;
     sc->nsec3_optout = 0;
     sc->nsec3_algo = 0;
@@ -131,6 +132,7 @@ signconf_read(signconf_type* signconf, const char* scfile)
         signconf->sig_inception_offset = parse_sc_sig_inception_offset(scfile);
         signconf->nsec_type = parse_sc_nsec_type(scfile);
         if (signconf->nsec_type == LDNS_RR_TYPE_NSEC3) {
+            signconf->nsec3param_ttl = parse_sc_nsec3param_ttl(scfile);
             signconf->nsec3_optout = parse_sc_nsec3_optout(scfile);
             signconf->nsec3_algo = parse_sc_nsec3_algorithm(scfile);
             signconf->nsec3_iterations = parse_sc_nsec3_iterations(scfile);
@@ -283,7 +285,7 @@ static void
 signconf_backup_duration(FILE* fd, const char* opt, duration_type* duration)
 {
     char* str = duration2string(duration);
-    fprintf(fd, "%s %s ", opt, str);
+    fprintf(fd, "%s %s ", opt, str?str:"(null)");
     free((void*) str);
     return;
 }
@@ -440,20 +442,22 @@ signconf_compare_denial(signconf_type* a, signconf_type* b)
     ods_log_assert(a);
     ods_log_assert(b);
 
-   if (duration_compare(a->soa_min, b->soa_min)) {
-       new_task = TASK_NSECIFY;
-   } else if (a->nsec_type != b->nsec_type) {
-       new_task = TASK_NSECIFY;
-   } else if (a->nsec_type == LDNS_RR_TYPE_NSEC3) {
-       if ((ods_strcmp(a->nsec3_salt, b->nsec3_salt) != 0) ||
-           (a->nsec3_algo != b->nsec3_algo) ||
-           (a->nsec3_iterations != b->nsec3_iterations) ||
-           (a->nsec3_optout != b->nsec3_optout)) {
+    if (duration_compare(a->soa_min, b->soa_min)) {
+        new_task = TASK_NSECIFY;
+    } else if (a->nsec_type != b->nsec_type) {
+        new_task = TASK_NSECIFY;
+    } else if (a->nsec_type == LDNS_RR_TYPE_NSEC3) {
+        if ((ods_strcmp(a->nsec3_salt, b->nsec3_salt) != 0) ||
+            (a->nsec3_algo != b->nsec3_algo) ||
+            (a->nsec3_iterations != b->nsec3_iterations) ||
+            (a->nsec3_optout != b->nsec3_optout)) {
 
-           new_task = TASK_NSECIFY;
-       }
-   }
-   return new_task;
+            new_task = TASK_NSECIFY;
+        } else if (duration_compare(a->nsec3param_ttl, b->nsec3param_ttl)) {
+           new_task = TASK_READ;
+        }
+    }
+    return new_task;
 }
 
 
@@ -461,10 +465,12 @@ signconf_compare_denial(signconf_type* a, signconf_type* b)
  * Compare signer configurations on key material.
  *
  */
-task_id
-signconf_compare_keys(signconf_type* a, signconf_type* b, ldns_rr_list* del)
+ods_status
+signconf_compare_keys(signconf_type* a, signconf_type* b, ldns_rr_list* del,
+    task_id* task)
 {
-   task_id new_task = TASK_NONE;
+    hsm_ctx_t* ctx = NULL;
+    task_id new_task = TASK_NONE;
     ods_status status = ODS_STATUS_OK;
     key_type* walk = NULL;
     key_type* ka = NULL;
@@ -477,6 +483,14 @@ signconf_compare_keys(signconf_type* a, signconf_type* b, ldns_rr_list* del)
     }
     ods_log_assert(a);
     ods_log_assert(b);
+    ods_log_assert(task);
+
+    ctx = hsm_create_context();
+    if (!ctx) {
+        *task = TASK_NONE;
+        return ODS_STATUS_HSM_ERR;
+    }
+    ods_log_assert(ctx);
 
     /* keys deleted? */
     if (a->keys) {
@@ -525,7 +539,7 @@ signconf_compare_keys(signconf_type* a, signconf_type* b, ldns_rr_list* del)
             if (walk->dnskey && !kb->dnskey) {
                 kb->dnskey = walk->dnskey;
                 kb->hsmkey = walk->hsmkey;
-                status = lhsm_get_key(NULL, ldns_rr_owner(walk->dnskey), kb);
+                status = lhsm_get_key(ctx, ldns_rr_owner(walk->dnskey), kb);
                 walk->hsmkey = NULL;
                 walk->dnskey = NULL;
             }
@@ -557,28 +571,9 @@ signconf_compare_keys(signconf_type* a, signconf_type* b, ldns_rr_list* del)
             walk = walk->next;
         }
     }
-   return new_task;
-}
-
-
-/**
- * Compare signer configurations.
- *
- */
-task_id
-signconf_compare(signconf_type* a, signconf_type* b)
-{
-    task_id new_task = TASK_NONE;
-    task_id tmp_task = TASK_NONE;
-
-    new_task = signconf_compare_denial(a, b);
-    tmp_task = signconf_compare_keys(a, b, NULL);
-    if (tmp_task != TASK_NONE) {
-        new_task = tmp_task;
-    }
-    /* not like python: reschedule if resign/refresh differs */
-    /* this needs review, tasks correct on signconf changes? */
-    return new_task;
+    *task = new_task;
+    hsm_destroy_context(ctx);
+    return ODS_STATUS_OK;
 }
 
 
@@ -669,6 +664,11 @@ signconf_print(FILE* out, signconf_type* sc, const char* name)
             fprintf(out, "\t\t\t<NSEC />\n");
         } else if (sc->nsec_type == LDNS_RR_TYPE_NSEC3) {
             fprintf(out, "\t\t\t<NSEC3>\n");
+            if (sc->nsec3param_ttl) {
+                s = duration2string(sc->nsec3param_ttl);
+                fprintf(out, "\t\t\t\t<TTL>%s</TTL>\n", s?s:"(null)");
+                free((void*)s);
+            }
             if (sc->nsec3_optout) {
                 fprintf(out, "\t\t\t\t<OptOut />\n");
             }
@@ -739,6 +739,7 @@ signconf_log(signconf_type* sc, const char* name)
     char* dnskeyttl = NULL;
     char* soattl = NULL;
     char* soamin = NULL;
+    char* paramttl = NULL;
 
     if (sc) {
         resign = duration2string(sc->sig_resign_interval);
@@ -748,21 +749,37 @@ signconf_log(signconf_type* sc, const char* name)
         jitter = duration2string(sc->sig_jitter);
         offset = duration2string(sc->sig_inception_offset);
         dnskeyttl = duration2string(sc->dnskey_ttl);
+        paramttl = duration2string(sc->nsec3param_ttl);
         soattl = duration2string(sc->soa_ttl);
         soamin = duration2string(sc->soa_min);
 
         ods_log_info("[%s] zone %s signconf: RESIGN[%s] REFRESH[%s] "
             "VALIDITY[%s] DENIAL[%s] JITTER[%s] OFFSET[%s] NSEC[%i] "
             "DNSKEYTTL[%s] SOATTL[%s] MINIMUM[%s] SERIAL[%s] AUDIT[%i]",
-            sc_str, name?name:"(null)", resign, refresh, validity, denial,
-            jitter, offset, (int) sc->nsec_type, dnskeyttl, soattl,
-            soamin, sc->soa_serial?sc->soa_serial:"(null)",
+            sc_str,
+            name?name:"(null)",
+            resign?resign:"(null)",
+            refresh?refresh:"(null)",
+            validity?validity:"(null)",
+            denial?denial:"(null)",
+            jitter?jitter:"(null)",
+            offset?offset:"(null)",
+            (int) sc->nsec_type,
+            dnskeyttl?dnskeyttl:"(null)",
+            soattl?soattl:"(null)",
+            soamin?soamin:"(null)",
+            sc->soa_serial?sc->soa_serial:"(null)",
             (int) sc->audit);
 
         if (sc->nsec_type == LDNS_RR_TYPE_NSEC3) {
-            ods_log_info("[%s] zone %s nsec3: OPTOUT[%i] ALGORITHM[%u] "
-                "ITERATIONS[%u] SALT[%s]", sc_str, name, sc->nsec3_optout,
-                sc->nsec3_algo, sc->nsec3_iterations,
+            ods_log_info("[%s] zone %s nsec3: PARAMTTL[%s] OPTOUT[%i] "
+                "ALGORITHM[%u] ITERATIONS[%u] SALT[%s]",
+                sc_str,
+                name?name:"(null)",
+                paramttl?paramttl:"PT0S",
+                sc->nsec3_optout,
+                sc->nsec3_algo,
+                sc->nsec3_iterations,
                 sc->nsec3_salt?sc->nsec3_salt:"(null)");
         }
 
@@ -776,6 +793,7 @@ signconf_log(signconf_type* sc, const char* name)
         free((void*)jitter);
         free((void*)offset);
         free((void*)dnskeyttl);
+        free((void*)paramttl);
         free((void*)soattl);
         free((void*)soamin);
     }

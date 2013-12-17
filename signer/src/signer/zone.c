@@ -1,5 +1,5 @@
 /*
- * $Id: zone.c 7295 2013-09-11 10:18:25Z matthijs $
+ * $Id: zone.c 7437 2013-11-27 10:20:58Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -417,7 +417,13 @@ zone_load_signconf(zone_type* zone, task_id* tbs)
             return ODS_STATUS_MALLOC_ERR;
         }
         denial_what = signconf_compare_denial(zone->signconf, signconf);
-        keys_what = signconf_compare_keys(zone->signconf, signconf, del);
+        status = signconf_compare_keys(zone->signconf, signconf, del, &keys_what);
+        if (status != ODS_STATUS_OK) {
+            ods_log_error("[%s] unable to load signconf: zone %s "
+                "signconf %s: %s", zone_str, zone->name,
+                zone->signconf_filename, ods_status2str(status));
+            return status;
+        }
 
         /* Key Rollover? */
         if (keys_what == TASK_READ) {
@@ -433,9 +439,9 @@ zone_load_signconf(zone_type* zone, task_id* tbs)
         }
 
         /* Denial of Existence Rollover? */
-        if (denial_what == TASK_NSECIFY) {
+        if (denial_what != TASK_NONE) {
             status = ODS_STATUS_OK;
-            if (denial_what == TASK_NSECIFY && zone->nsec3params) {
+            if (zone->nsec3params) {
                 status = nsec3param_withdraw(zone, zone->nsec3params->rr);
             }
             if (status != ODS_STATUS_OK) {
@@ -445,13 +451,17 @@ zone_load_signconf(zone_type* zone, task_id* tbs)
                 zonedata_rollback(zone->zonedata);
                 return status;
             }
-            /* or NSEC -> NSEC3, or NSEC3 -> NSEC, or NSEC3PARAM changed */
             nsec3params_cleanup(zone->nsec3params);
             zone->nsec3params = NULL;
-            /* all NSEC(3)s become invalid */
-            zonedata_wipe_denial(zone->zonedata);
-            zonedata_cleanup_chain(zone->zonedata);
-            zonedata_init_denial(zone->zonedata);
+            if (denial_what == TASK_NSECIFY) {
+                /**
+                 * Or NSEC -> NSEC3, or NSEC3 -> NSEC, or NSEC3 params changed.
+                 * All NSEC(3)s become invalid.
+                 */
+                zonedata_wipe_denial(zone->zonedata);
+                zonedata_cleanup_chain(zone->zonedata);
+                zonedata_init_denial(zone->zonedata);
+            }
         }
 
         /* all ok, switch to new signconf */
@@ -647,6 +657,8 @@ zone_prepare_nsec3(zone_type* zone, int recover)
         nsec3params_rr = ldns_rr_clone(zone->nsec3params->rr);
         status = zone_add_rr(zone, nsec3params_rr, 0);
     } else if (doe_rollover) {
+        uint32_t paramttl =
+            (uint32_t) duration2time(zone->signconf->nsec3param_ttl);
         nsec3params_rr = ldns_rr_new_frm_type(LDNS_RR_TYPE_NSEC3PARAMS);
         if (!nsec3params_rr) {
             ods_log_error("[%s] unable to prepare zone %s for NSEC3: failed "
@@ -658,7 +670,7 @@ zone_prepare_nsec3(zone_type* zone, int recover)
         ods_log_assert(nsec3params_rr);
 
         ldns_rr_set_class(nsec3params_rr, zone->klass);
-        ldns_rr_set_ttl(nsec3params_rr, 0);
+        ldns_rr_set_ttl(nsec3params_rr, paramttl);
         ldns_rr_set_owner(nsec3params_rr, ldns_rdf_clone(zone->dname));
         ldns_nsec3_add_param_rdfs(nsec3params_rr,
             zone->nsec3params->algorithm, 0,
@@ -1207,29 +1219,36 @@ zone_update_serial(zone_type* zone)
     ods_log_assert(zone->name);
 
     if (!zone->signconf) {
-        ods_log_error("[%s] unable to update serial: no signconf", zone_str);
+        ods_log_error("[%s] unable to update serial zone %s: no signconf",
+           zone_str);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(zone->signconf);
 
     if (!zone->zonedata) {
-        ods_log_error("[%s] unable to update serial: no zonedata", zone_str);
+        ods_log_error("[%s] unable to update serial zone %s: no zonedata",
+            zone_str);
         return ODS_STATUS_ASSERT_ERR;
     }
     ods_log_assert(zone->zonedata);
 
     status = zonedata_update_serial(zone->zonedata, zone->signconf, zone->name);
     if (status != ODS_STATUS_OK) {
-        ods_log_error("[%s] unable to update serial: failed to increment",
-            zone_str);
+        ods_log_error("[%s] unable to update serial zone %s: failed to "
+            "increment (%s)", zone_str, zone->name, ods_status2str(status));
+        if (status == ODS_STATUS_CONFLICT_ERR) {
+            ods_log_error("[%s] If this is the result of a key rollover, "
+                "please increment the serial in the unsigned zone %s",
+                zone_str, zone->name);
+        }
         return status;
     }
 
     /* lookup domain */
     domain = zonedata_lookup_domain(zone->zonedata, zone->dname);
     if (!domain) {
-        ods_log_error("[%s] unable to update serial: apex not found",
-            zone_str);
+        ods_log_error("[%s] unable to update serial zone %s: apex not found",
+            zone_str, zone->name);
         return ODS_STATUS_ERR;
     }
     ods_log_assert(domain);
@@ -1237,8 +1256,8 @@ zone_update_serial(zone_type* zone)
     /* lookup RRset */
     rrset = domain_lookup_rrset(domain, LDNS_RR_TYPE_SOA);
     if (!rrset) {
-        ods_log_error("[%s] unable to update serial: SOA RRset not found",
-            zone_str);
+        ods_log_error("[%s] unable to update serial zone %s: SOA RRset not found",
+            zone_str, zone->name);
         return ODS_STATUS_ERR;
     }
     ods_log_assert(rrset);
@@ -1255,8 +1274,8 @@ zone_update_serial(zone_type* zone)
             }
             ldns_rdf_deep_free(serial);
          } else {
-            ods_log_error("[%s] unable to update serial: failed to replace "
-                "SOA SERIAL rdata", zone_str);
+            ods_log_error("[%s] unable to update serial zone %s: failed to "
+                "replace SOA SERIAL rdata", zone_str, zone->name);
             return ODS_STATUS_ERR;
         }
     }
