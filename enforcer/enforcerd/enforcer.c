@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 7028 2013-02-13 11:41:17Z sion $
+ * $Id: enforcer.c 7401 2013-11-14 15:46:25Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -201,8 +201,19 @@ server_main(DAEMONCONFIG *config)
         log_msg(config, LOG_INFO, "Connecting to Database...");
         kaspConnect(config, &dbhandle);
 
-        /* Read all policies */
-        status = KsmPolicyInit(&handle, NULL);
+		/* check if any specific policy was passed as an arg */
+		if (config->policy != NULL) {
+			log_msg(config, LOG_INFO, "Will only process policy \"%s\" as specified on the command line with the --policy option.", config->policy);			
+			status = KsmPolicyExists(config->policy);
+			if (status != 0) {
+				log_msg(config, LOG_ERR, "Policy \"%s\" not found. Exiting.", config->policy);
+				unlink(config->pidfile);
+                exit(1);
+			}				
+		}
+        /* Read all policies.
+ 			If config->policy is NULL this will return all the policies, if not NULL then just that policy */
+        status = KsmPolicyInit(&handle, config->policy);
         if (status == 0) {
             /* get the first policy */
             status = KsmPolicy(handle, policy);
@@ -248,7 +259,10 @@ server_main(DAEMONCONFIG *config)
 
         /* Communicate zones to the signer */
         KsmParameterCollectionCache(1); /* Enable caching of policy parameters while in do_communication() */
-		do_communication(config, policy);
+		/* If config->policy is NULL then we were not passed a policy on the cmd line and all the policies 
+		   should be processed. However if we have a specific policy, then the 'policy' parameter will be 
+		   already set to that when we call do_communiciation and only that policy will be processed. */
+        do_communication(config, policy, (config->policy == NULL));
 		KsmParameterCollectionCache(0);
         
         DbFreeResult(handle);
@@ -384,12 +398,13 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
             log_msg(config, LOG_INFO, "No zones on policy %s, skipping...", policy->name);
             StrFree(rightnow);
             return status; 
-        } 
+		}
     } else {
         log_msg(NULL, LOG_ERR, "Could not count zones on policy %s", policy->name);
         StrFree(rightnow);
         return status; 
     }
+	log_msg(config, LOG_INFO, "%d zone(s) found on policy \"%s\"\n", zone_count, policy->name);
 
     /* Find out how many ksk keys are needed for the POLICY */
     status = KsmKeyPredict(policy->id, KSM_TYPE_KSK, policy->shared_keys, config->interval, &ksks_needed, policy->ksk->rollover_scheme, zone_count);
@@ -403,10 +418,7 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
         log_msg(NULL, LOG_ERR, "Could not count current ksk numbers for policy %s", policy->name);
         /* TODO exit? continue with next policy? */
     }
-    /* Correct for shared keys */
-    if (policy->shared_keys == KSM_KEYS_SHARED) {
-        keys_in_queue /= zone_count;
-    }
+    /* Don't have to adjust the queue for shared keys as the prediction has already taken care of that.*/
 
     new_keys = ksks_needed - keys_in_queue;
     /* fprintf(stderr, "keygen(ksk): new_keys(%d) = keys_needed(%d) - keys_in_queue(%d)\n", new_keys, ksks_needed, keys_in_queue); */
@@ -423,6 +435,12 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
             new_keys = policy->ksk->sm_capacity - current_count;
         }
     }
+	if (new_keys <= 0 ) {
+		log_msg(config, LOG_INFO,"No new KSKs need to be created.\n");
+    }
+    else {
+		log_msg(config, LOG_INFO,"%d new KSK(s) (%d bits) need to be created.\n", new_keys, policy->ksk->bits);
+	}
 
     /* Create the required keys */
     for (i=new_keys ; i > 0 ; i--){
@@ -482,10 +500,7 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
         log_msg(NULL, LOG_ERR, "Could not count current zsk numbers for policy %s", policy->name);
         /* TODO exit? continue with next policy? */
     }
-    /* Correct for shared keys */
-    if (policy->shared_keys == KSM_KEYS_SHARED) {
-        keys_in_queue /= zone_count;
-    }
+    /* Don't have to adjust the queue for shared keys as the prediction has already taken care of that.*/
     /* Might have to account for ksks */
     if (same_keys) {
         keys_in_queue -= ksks_needed;
@@ -506,6 +521,14 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
             new_keys = policy->zsk->sm_capacity - current_count;
         }
     }
+
+	if (new_keys <= 0 ) {
+		/* Don't exit here, just fall through to the end */
+		log_msg(config, LOG_INFO, "No new ZSKs need to be created.\n");
+    }
+    else {
+		log_msg(config, LOG_INFO, "%d new ZSK(s) (%d bits) need to be created.\n", new_keys, policy->zsk->bits);
+	}
 
     /* Create the required keys */
     for (i = new_keys ; i > 0 ; i--) {
@@ -560,7 +583,7 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
     return status;
 }
 
-int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
+int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy, bool all_policies)
 {
     int status = 0;
     int status2 = 0;
@@ -687,6 +710,15 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
                 xmlXPathFreeObject(xpathObj);
 
                 if (strcmp(current_policy, policy->name) != 0) {
+					if ( !all_policies ) {
+						/*Only process zones on the policy we have */
+						log_msg(config, LOG_INFO, "Skipping zone %s as not on specified policy \"%s\".", zone_name, policy->name);
+						/* Move onto the next zone*/
+	                    ret = xmlTextReaderRead(reader);
+	                    StrFree(tag_name);
+                    	StrFree(zone_name);							
+						continue;
+					}
 
                     /* Read new Policy */ 
                     kaspSetPolicyDefaults(policy, current_policy);
@@ -903,6 +935,9 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
     if (policy->denial->version == 3)
     {
         fprintf(file, "\t\t\t<NSEC3>\n");
+		if (policy->denial->ttl != 0) {
+			fprintf(file, "\t\t\t\t<TTL>PT%dS</TTL>\n", policy->denial->ttl);
+		}
         if (policy->denial->optout == 1)
         {
             fprintf(file, "\t\t\t\t<OptOut />\n");

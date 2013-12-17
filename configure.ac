@@ -1,4 +1,4 @@
-# $Id: configure.ac 6930 2013-01-08 12:31:16Z jakob $
+# $Id: configure.ac 7187 2013-07-10 09:52:47Z matthijs $
 
 m4_sinclude([version.m4])
 
@@ -98,7 +98,7 @@ AC_CHECK_FUNCS([setregid setreuid])
 AC_CHECK_FUNCS([chown stat exit time atoi getpid waitpid sigfillset])
 AC_CHECK_FUNCS([malloc calloc realloc free])
 AC_CHECK_FUNCS([strlen strncmp strncat strncpy strerror strncasecmp strdup])
-AC_CHECK_FUNCS([fgetc fopen fclose ferror fprintf vsnprintf fflush])
+AC_CHECK_FUNCS([fgetc fopen fclose ferror fprintf vsnprintf snprintf fflush])
 AC_CHECK_FUNCS([openlog closelog syslog])
 AC_CHECK_FUNCS([openlog_r closelog_r syslog_r vsyslog_r])
 AC_CHECK_FUNCS([chroot getgroups setgroups initgroups])

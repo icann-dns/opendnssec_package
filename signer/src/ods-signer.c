@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signer.c 7148 2013-06-11 14:11:43Z matthijs $
+ * $Id: ods-signer.c 7254 2013-08-30 16:55:54Z sara $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -345,7 +345,7 @@ main(int argc, char* argv[])
 {
     int c;
     int options_size = 0;
-    const char* options[4];
+    const char* options[5];
     char* cmd = NULL;
     int ret = 0;
     allocator_type* clialloc = allocator_create(malloc, free);

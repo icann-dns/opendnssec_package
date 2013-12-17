@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_key.c 7028 2013-02-13 11:41:17Z sion $
+ * $Id: ksm_key.c 7221 2013-08-19 14:37:53Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -790,7 +790,8 @@ int KsmKeyCountStillGood(int policy_id, int sm, int bits, int algorithm, int int
 
     /* Create the SQL command to interrogate the database */ 
  
-    sql = DqsCountInit("KEYDATA_VIEW");
+     /* Use 'distinct location' here so we don't count multiple entries for zones which share keys*/
+    sql = StrStrdup("SELECT COUNT(DISTINCT location) FROM KEYDATA_VIEW");
     if (policy_id != -1) {
         DqsConditionInt(&sql, "policy_id", DQS_COMPARE_EQ, policy_id, where++);
     }

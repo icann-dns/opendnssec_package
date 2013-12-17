@@ -1,5 +1,5 @@
 /*
- * $Id: kc_helper.c 7156 2013-06-17 09:17:58Z matthijs $
+ * $Id: kc_helper.c 7366 2013-10-21 10:41:16Z matthijs $
  *
  * Copyright (c) 2012 Nominet UK. All rights reserved.
  *
@@ -631,7 +631,7 @@ int check_policy(xmlNode *curNode, const char *policy_name, char **repo_list, in
 
 	/* For all policies, check that the "Re-sign" interval is less 
 	 * than the "Refresh" interval. */
-	if (refresh <= resign) {
+	if (refresh && refresh <= resign) {
 		dual_log("ERROR: The Refresh interval (%d seconds) for "
 				"%s Policy in %s is less than or equal to the Resign interval "
 				"(%d seconds)\n", refresh, policy_name, kasp, resign);
@@ -712,12 +712,12 @@ int check_policy(xmlNode *curNode, const char *policy_name, char **repo_list, in
 	else if (nsec == 3) {
 		if (ksk_algo <= 5) {
 			dual_log("ERROR: In policy %s, incompatible algorithm (%d) used for "
-					"KSK NSEC3 in %s.\n", policy_name, ksk_algo, kasp);
+					"KSK NSEC3 in %s. Policy must have id greater than 5.\n", policy_name, ksk_algo, kasp);
 			status++;
 		}
 		if (zsk_algo <= 5) {
 			dual_log("ERROR: In policy %s, incompatible algorithm (%d) used for "
-					"ZSK NSEC3 in %s.\n", policy_name, zsk_algo, kasp);
+					"ZSK NSEC3 in %s. Policy must have id greater than 5.\n", policy_name, zsk_algo, kasp);
 			status++;
 		}
 

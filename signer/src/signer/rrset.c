@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 6870 2012-11-27 13:01:48Z matthijs $
+ * $Id: rrset.c 7400 2013-11-14 13:52:11Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -161,14 +161,21 @@ log_rrset(ldns_rdf* dname, ldns_rr_type type, const char* pre, int level)
 const char*
 rrset_type2str(ldns_rr_type type)
 {
-    const ldns_rr_descriptor* descriptor;
-    descriptor = ldns_rr_descript(type);
-    if (descriptor && descriptor->_name) {
-        return descriptor->_name;
+    if (type == LDNS_RR_TYPE_IXFR) {
+        return "IXFR";
     } else if (type == LDNS_RR_TYPE_AXFR) {
         return "AXFR";
-    } else if (type == LDNS_RR_TYPE_IXFR) {
-        return "IXFR";
+    } else if (type == LDNS_RR_TYPE_MAILB) {
+        return "MAILB";
+    } else if (type == LDNS_RR_TYPE_MAILA) {
+        return "MAILA";
+    } else if (type == LDNS_RR_TYPE_ANY) {
+        return "ANY";
+    } else {
+        const ldns_rr_descriptor* descriptor = ldns_rr_descript(type);
+        if (descriptor && descriptor->_name) {
+            return descriptor->_name;
+        }
     }
     return "TYPE???";
 }
@@ -438,6 +445,9 @@ rrset_del_rrsig(rrset_type* rrset, uint16_t rrnum)
     log_rr(rrset->rrsigs[rrnum].rr, "-RRSIG", LOG_DEEEBUG);
     rrset->rrsigs[rrnum].owner = NULL;
     rrset->rrsigs[rrnum].rr = NULL;
+    allocator_deallocate(zone->allocator,
+        (void*)rrset->rrsigs[rrnum].key_locator);
+    rrset->rrsigs[rrnum].key_locator = NULL;
     while (rrnum < rrset->rrsig_count-1) {
         rrset->rrsigs[rrnum] = rrset->rrsigs[rrnum+1];
         rrnum++;

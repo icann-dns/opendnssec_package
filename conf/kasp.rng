@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: kasp.rnc 6095 2012-01-25 09:45:06Z matthijs $
+  $Id: kasp.rnc 7358 2013-10-11 11:47:27Z matthijs $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -186,6 +186,10 @@
   </define>
   <define name="nsec3">
     <element name="NSEC3">
+      <optional>
+        <!-- what value for NSEC3PARAM TTL to use? Default 0. -->
+        <ref name="ttl"/>
+      </optional>
       <optional>
         <!-- use global NSEC3 opt-out? -->
         <element name="OptOut">
