@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.c 7268 2013-09-06 13:27:28Z sara $
+ * $Id: ksmutil.c 7421 2013-11-21 16:11:40Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -116,10 +116,12 @@ char *o_keytag = NULL;
 static int all_flag = 0;
 static int ds_flag = 0;
 static int retire_flag = 1;
+static int notify_flag = 1;
 static int verbose_flag = 0;
 static int xml_flag = 1;
 static int td_flag = 0;
 static int force_flag = 0;
+static int check_repository_flag = 0;
 
 static int restart_enforcerd(void);
 
@@ -299,6 +301,7 @@ usage_keyimport ()
             "\t--keystate <state>                       aka -e\n"
             "\t--keytype <type>                         aka -t\n"
             "\t--time <time>                            aka -w\n"
+    		"\t[--check-repository]                     aka -C\n"
             "\t[--retire <retire>]                      aka -y\n");
 }
 
@@ -351,7 +354,8 @@ usage_keydsseen ()
             /*"\t--zone <zone> (or --all)                 aka -z\n"*/
             "\t--zone <zone>                            aka -z\n"
             "\t--keytag <keytag> | --cka_id <CKA_ID>    aka -x / -k\n"
-            "\t--no-retire\n");
+            "\t[--no-notify|-l]                         aka -l\n"
+            "\t[--no-retire|-f]                         aka -f\n");
 }
 
     void
@@ -476,6 +480,23 @@ types_help()
 {
     fprintf(stderr,
             "key types:  KSK|ZSK\n");
+}
+
+/*
+ * Check if the file exist.
+ * @param filename: name of file to be checked.
+ * @return: (int) 1 if file exist, 0 otherwise.
+ *
+ */
+static int
+exist_file(const char* filename) {
+	int status = 0;
+	FILE *file = fopen(filename, "r");
+	if(file != NULL){
+		fclose(file);
+		status = 1;
+	}
+	return status;
 }
 
 /* 
@@ -934,6 +955,11 @@ cmd_addzone ()
         StrAppend(&output_name, o_output);
     } else {
         StrAppend(&output_name, o_output);
+    }
+
+    /* validate if the input file exist */
+    if(!exist_file(input_name)){
+       	printf("WARNING: The input file %s for zone %s does not currently exist, or is not readable. The zone will been added to the database anyway. \n",input_name, o_zone);
     }
 
     free(path);
@@ -2882,9 +2908,15 @@ cmd_dsseen()
                 } else {
 					/* ...Unless this looks like a new zone, in which case poke
 					   the enforcerd */
-					if (restart_enforcerd() != 0)
-					{
-						fprintf(stderr, "Could not HUP ods-enforcerd\n");
+					if (notify_flag == 1) {
+						if (restart_enforcerd() != 0) {
+							fprintf(stderr, "Could not HUP ods-enforcerd\n");
+						} else {
+							fprintf(stdout, "Performed a HUP ods-enforcerd\n"); /* too verbose? */
+						}
+					} else {
+						fprintf(stdout, "No HUP ods-enforcerd was performed as the '--no-notify' flag was specified.\n");
+						fprintf(stdout, "Warning: The enforcer must be manually notified or the changes will not take full effect until the next scheduled enforcer run.\n");						
 					}
 					return 0;
 				}
@@ -2903,11 +2935,16 @@ cmd_dsseen()
         }
     }
 
-    /* Need to poke the enforcer to wake it up */
-    if (restart_enforcerd() != 0)
-    {
-        fprintf(stderr, "Could not HUP ods-enforcerd\n");
-    }
+	if (notify_flag == 1) {
+		if (restart_enforcerd() != 0) {
+			fprintf(stderr, "Could not HUP ods-enforcerd\n");
+		} else {
+			fprintf(stdout, "Performed a HUP ods-enforcerd\n"); /* too verbose? */
+		}
+	} else {
+		fprintf(stdout, "No HUP ods-enforcerd was performed as the '--no-notify' flag was specified.\n");
+		fprintf(stdout, "Warning: The enforcer must be manually notified or the changes will not take full effect until the next scheduled enforcer run.\n");						
+	}
 
     /* Release sqlite lock file (if we have it) */
     db_disconnect(lock_fd);
@@ -2959,6 +2996,8 @@ cmd_import ()
 
     int user_certain;           /* Continue ? */
 
+	hsm_key_t *key = NULL;
+
     /* Chech that we got all arguments. */
 
     if (o_cka_id == NULL) {
@@ -2993,6 +3032,27 @@ cmd_import ()
         printf("Error: please specify the time of when the key entered the given state with the --time <time>\n");
         return(1);
     }
+
+    /* Check the key does not exist in the specified HSM */
+	status = hsm_open(config, hsm_prompt_pin, NULL);
+	if (status) {
+		hsm_print_error(NULL);
+		return(1);
+	}
+	key = hsm_find_key_by_id(NULL, o_cka_id);
+	hsm_close();
+	if (!key) {
+		if(check_repository_flag){
+			fprintf(stderr, "Error: No key with the CKA_ID %-33s exists in the repository %s. When the option [--check-repository] is used the key MUST exist in the repository for the key to be imported. \n", o_cka_id,o_repository);
+			return(1);
+		}else{
+			fprintf(stdout, "Warning: No key with the CKA_ID %-33s exists in the repository %s. The key will be imported into the database anyway. \n", o_cka_id,o_repository);
+		}
+	}else{
+		hsm_key_free(key);
+	}
+
+
 
     /* try to connect to the database */
     status = db_connect(&dbhandle, &lock_fd, 1);
@@ -3564,6 +3624,7 @@ main (int argc, char *argv[])
         {"all",     no_argument,       0, 'a'},
         {"bits",    required_argument, 0, 'b'},
         {"config",  required_argument, 0, 'c'},
+        {"check-repository", no_argument, 0, 'C'},
         {"ds",      no_argument,       0, 'd'},
         {"keystate", required_argument, 0, 'e'},
         {"no-retire", no_argument,       0, 'f'},
@@ -3571,6 +3632,7 @@ main (int argc, char *argv[])
         {"help",    no_argument,       0, 'h'},
         {"input",   required_argument, 0, 'i'},
         {"cka_id",  required_argument, 0, 'k'},
+        {"no-notify", no_argument,       0, 'l'},
         {"no-xml",  no_argument,        0, 'm'},
         {"interval",  required_argument, 0, 'n'},
         {"output",  required_argument, 0, 'o'},
@@ -3590,7 +3652,7 @@ main (int argc, char *argv[])
 
     progname = argv[0];
 
-    while ((ch = getopt_long(argc, argv, "ab:c:de:fg:hi:k:n:o:p:r:s:t:vVw:x:y:z:Z", long_options, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "ab:c:de:fg:hi:k:ln:o:p:r:s:t:vVw:x:y:z:Z", long_options, &option_index)) != -1) {
         switch (ch) {
             case 'a':
                 all_flag = 1;
@@ -3601,6 +3663,9 @@ main (int argc, char *argv[])
             case 'c':
                 config = StrStrdup(optarg);
                 break;
+            case 'C':
+            	check_repository_flag = 1;
+            	break;
             case 'd':
                 ds_flag = 1;
                 break;
@@ -3625,6 +3690,9 @@ main (int argc, char *argv[])
                 break;
             case 'k':
                 o_cka_id = StrStrdup(optarg);
+                break;
+            case 'l':
+                notify_flag = 0;
                 break;
             case 'm':
                 xml_flag = 0;
@@ -4316,6 +4384,7 @@ int update_policies(char* kasp_filename)
     xmlNode *childNode2;
     xmlNode *childNode3;
     xmlChar *opt_out_flag = (xmlChar *)"N";
+    xmlChar *nsec3param_ttl = NULL ;
     xmlChar *share_keys_flag = (xmlChar *)"N";
     xmlChar *man_roll_flag = (xmlChar *)"N";
     xmlChar *rfc5011_flag = (xmlChar *)"N";
@@ -4695,6 +4764,9 @@ int update_policies(char* kasp_filename)
                                 else if (xmlStrEqual(childNode2->name, (const xmlChar *)"Resalt")) {
                             SetParamOnPolicy(xmlNodeGetContent(childNode2), "resalt", "denial", policy->denial->resalt, policy->id, DURATION_TYPE);
                                 }
+								else if (xmlStrEqual(childNode2->name, (const xmlChar *)"TTL")) {
+									nsec3param_ttl = xmlNodeGetContent(childNode2);
+                                }
                                 else if (xmlStrEqual(childNode2->name, (const xmlChar *)"Hash")) {
                                     childNode3 = childNode2->children;
                                     while (childNode3){
@@ -4715,6 +4787,10 @@ int update_policies(char* kasp_filename)
                             }
                             /* Set things that we flagged */
                             SetParamOnPolicy(opt_out_flag, "optout", "denial", policy->denial->optout, policy->id, BOOL_TYPE);
+                            if (nsec3param_ttl == NULL)
+                            	nsec3param_ttl = (xmlChar *) StrStrdup("PT0S"); 
+                            SetParamOnPolicy(nsec3param_ttl, "ttl", "denial", policy->denial->ttl, policy->id, DURATION_TYPE);
+                            nsec3param_ttl = NULL;
                         } /* End of NSEC3 */
                         else if (xmlStrEqual(childNode->name, (const xmlChar *)"NSEC")) {
                             status = KsmParameterSet("version", "denial", 1, policy->id);
@@ -6116,6 +6192,10 @@ int append_policy(xmlDocPtr doc, KSM_POLICY *policy)
     else    /* NSEC3 */
     {
         nsec_node = xmlNewTextChild(denial_node, NULL, (const xmlChar *)"NSEC3", NULL);
+		if (policy->denial->ttl != 0) {
+			snprintf(temp_time, 32, "PT%dS", policy->denial->ttl);
+			(void) xmlNewTextChild(nsec_node, NULL, (const xmlChar *)"TTL", (const xmlChar *)temp_time);
+		}
         if (policy->denial->optout == 1)
         {
             (void) xmlNewTextChild(nsec_node, NULL, (const xmlChar *)"OptOut", NULL);
@@ -6126,7 +6206,7 @@ int append_policy(xmlDocPtr doc, KSM_POLICY *policy)
         snprintf(temp_time, 32, "%d", policy->denial->algorithm);
         (void) xmlNewTextChild(hash_node, NULL, (const xmlChar *)"Algorithm", (const xmlChar *)temp_time);
         snprintf(temp_time, 32, "%d", policy->denial->iteration);
-        (void) xmlNewTextChild(hash_node, NULL, (const xmlChar *)"Iteration", (const xmlChar *)temp_time);
+        (void) xmlNewTextChild(hash_node, NULL, (const xmlChar *)"Iterations", (const xmlChar *)temp_time);
         snprintf(temp_time, 32, "%d", policy->denial->saltlength);
         salt_node = xmlNewTextChild(hash_node, NULL, (const xmlChar *)"Salt", NULL);
         (void) xmlNewProp(salt_node, (const xmlChar *)"length", (const xmlChar *)temp_time);

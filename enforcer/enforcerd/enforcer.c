@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 7213 2013-08-09 14:11:22Z sara $
+ * $Id: enforcer.c 7421 2013-11-21 16:11:40Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -199,9 +199,20 @@ server_main(DAEMONCONFIG *config)
 
         log_msg(config, LOG_INFO, "Connecting to Database...");
         kaspConnect(config, &dbhandle);
-
-        /* Read all policies */
-        status = KsmPolicyInit(&handle, NULL);
+		
+		/* check if any specific policy was passed as an arg */
+		if (config->policy != NULL) {
+			log_msg(config, LOG_INFO, "Will only process policy \"%s\" as specified on the command line with the --policy option.", config->policy);			
+			status = KsmPolicyExists(config->policy);
+			if (status != 0) {
+				log_msg(config, LOG_ERR, "Policy \"%s\" not found. Exiting.", config->policy);
+				unlink(config->pidfile);
+                exit(1);
+			}				
+		}
+        /* Read all policies.
+ 			If config->policy is NULL this will return all the policies, if not NULL then just that policy */
+        status = KsmPolicyInit(&handle, config->policy);
         if (status == 0) {
             /* get the first policy */
             status = KsmPolicy(handle, policy);
@@ -247,7 +258,10 @@ server_main(DAEMONCONFIG *config)
 
         /* Communicate zones to the signer */
         KsmParameterCollectionCache(1); /* Enable caching of policy parameters while in do_communication() */
-        do_communication(config, policy);
+		/* If config->policy is NULL then we were not passed a policy on the cmd line and all the policies 
+		   should be processed. However if we have a specific policy, then the 'policy' parameter will be 
+		   already set to that when we call do_communiciation and only that policy will be processed. */
+        do_communication(config, policy, (config->policy == NULL));
         KsmParameterCollectionCache(0);
         
         DbFreeResult(handle);
@@ -569,7 +583,7 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
     return status;
 }
 
-int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
+int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy, bool all_policies)
 {
     int status = 0;
     int status2 = 0;
@@ -696,6 +710,15 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
                 xmlXPathFreeObject(xpathObj);
 
                 if (strcmp(current_policy, policy->name) != 0) {
+					if ( !all_policies ) {
+						/*Only process zones on the policy we have */
+						log_msg(config, LOG_INFO, "Skipping zone %s as not on specified policy \"%s\".", zone_name, policy->name);
+						/* Move onto the next zone*/
+	                    ret = xmlTextReaderRead(reader);
+	                    StrFree(tag_name);
+                    	StrFree(zone_name);							
+						continue;
+					}
 
                     /* Read new Policy */ 
                     kaspSetPolicyDefaults(policy, current_policy);
@@ -910,6 +933,9 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
     if (policy->denial->version == 3)
     {
         fprintf(file, "\t\t\t<NSEC3>\n");
+		if (policy->denial->ttl != 0) {
+			fprintf(file, "\t\t\t\t<TTL>PT%dS</TTL>\n", policy->denial->ttl);
+		}
         if (policy->denial->optout == 1)
         {
             fprintf(file, "\t\t\t\t<OptOut />\n");

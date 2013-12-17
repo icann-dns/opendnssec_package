@@ -1,5 +1,5 @@
 /*
- * $Id: signconf.h 4550 2011-03-11 11:42:01Z matthijs $
+ * $Id: signconf.h 7437 2013-11-27 10:20:58Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -60,6 +60,7 @@ struct signconf_struct {
     duration_type* sig_jitter;
     duration_type* sig_inception_offset;
     /* Denial of existence */
+    duration_type* nsec3param_ttl;
     ldns_rr_type nsec_type;
     int nsec3_optout;
     uint32_t nsec3_algo;
@@ -134,20 +135,12 @@ task_id signconf_compare_denial(signconf_type* a, signconf_type* b);
  * \param[in] a a signer configuration
  * \param[in] b another signer configuration
  * \param[out] del list of DNSKEY RRs that have to be removed
- * \return task_id what task needs to be scheduled
+ * \param[out] task to be scheduled
+ * \return ods_status status
  *
  */
-task_id signconf_compare_keys(signconf_type* a, signconf_type* b,
-    ldns_rr_list* del);
-
-/**
- * Compare signer configurations.
- * \param[in] a a signer configuration
- * \param[in] b another signer configuration
- * \return task_id what task needs to be scheduled
- *
- */
-task_id signconf_compare(signconf_type* a, signconf_type* b);
+ods_status signconf_compare_keys(signconf_type* a, signconf_type* b,
+    ldns_rr_list* del, task_id* task);
 
 /**
  * Clean up signer configuration.

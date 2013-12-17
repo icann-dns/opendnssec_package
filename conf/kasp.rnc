@@ -1,4 +1,4 @@
-# $Id: kasp.rnc 4027 2010-09-29 10:17:08Z sion $
+# $Id: kasp.rnc 7344 2013-10-09 09:03:39Z matthijs $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -149,6 +149,9 @@ serial = element Serial {
 nsec = element NSEC { empty }
 
 nsec3 = element NSEC3 {
+	# what value for NSEC3PARAM TTL to use? Default 0.
+	ttl?,
+
 	# use global NSEC3 opt-out?
 	element OptOut { empty }?,
 

@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_policy.c 4169 2010-11-04 14:24:23Z sion $
+ * $Id: ksm_policy.c 7421 2013-11-21 16:11:40Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -242,6 +242,10 @@ int KsmPolicyRead(KSM_POLICY* policy)
 
     /* status = KsmPolicyExists(policy->name); */
     status = KsmPolicySetIdFromName(policy);
+
+	/* NSEC3PARAM TTL might be null in the database if the policy was imported before the fix
+	 * so default to zero */
+	policy->denial->ttl=0;
 
     if (status == 0) {
 

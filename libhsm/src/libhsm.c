@@ -1,4 +1,4 @@
-/* $Id: libhsm.c 6191 2012-02-28 16:36:01Z rb $ */
+/* $Id: libhsm.c 7438 2013-11-27 10:45:51Z matthijs $ */
 
 /*
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
@@ -1945,6 +1945,9 @@ hsm_sign_params_new()
 {
     hsm_sign_params_t *params;
     params = malloc(sizeof(hsm_sign_params_t));
+    if (!params) {
+        return NULL;
+    }
     params->algorithm = LDNS_SIGN_RSASHA1;
     params->flags = LDNS_KEY_ZONE_KEY;
     params->inception = 0;
@@ -2529,6 +2532,7 @@ hsm_get_dnskey(hsm_ctx_t *ctx,
 
     rdata = hsm_get_key_rdata(ctx, session, key);
     if (rdata == NULL) {
+        ldns_rr_free(dnskey);
         return NULL;
     }
     ldns_rr_push_rdf(dnskey, rdata);

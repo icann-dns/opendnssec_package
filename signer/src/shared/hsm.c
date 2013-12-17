@@ -1,5 +1,5 @@
 /*
- * $Id: hsm.c 7293 2013-09-10 14:34:07Z matthijs $
+ * $Id: hsm.c 7348 2013-10-09 11:12:07Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -223,11 +223,9 @@ ldns_rr*
 lhsm_sign(hsm_ctx_t* ctx, ldns_rr_list* rrset, key_type* key_id,
     ldns_rdf* owner, time_t inception, time_t expiration)
 {
-    ods_status status = ODS_STATUS_OK;
     char* error = NULL;
     ldns_rr* result = NULL;
     hsm_sign_params_t* params = NULL;
-    int retries = 0;
 
     if (!owner || !key_id || !rrset || !inception || !expiration) {
         ods_log_error("[%s] unable to sign: missing required elements",
