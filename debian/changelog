@@ -1,3 +1,16 @@
+opendnssec (1:1.4.3-3) unstable; urgency=medium
+
+  * Add epoch to conflicts/breaks with opendnssec-auditor (Closes: #717980)
+  * opendnssec-auditor has been removed (Closes: #734344, #735587)
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 28 Jan 2014 13:17:29 +0100
+
+opendnssec (1:1.4.3-2) unstable; urgency=low
+
+  * Promote 1.4 branch to Debian unstable
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 28 Jan 2014 12:25:17 +0100
+
 opendnssec (1:1.4.3-1) experimental; urgency=low
 
   * New upstream version 1.4.3
