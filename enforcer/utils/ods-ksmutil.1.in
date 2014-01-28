@@ -8,31 +8,29 @@
 .LP
 .B ods\-ksmutil setup
 .br
-.B ods\-ksmutil start|stop|notify
+.B ods\-ksmutil [ start | stop | notify ]
 .br
-.B ods\-ksmutil update kasp|zonelist|conf|all
+.B ods\-ksmutil update [ kasp | zonelist | conf | all ]
 .br
-.B ods\-ksmutil zone add|delete|list
+.B ods\-ksmutil zone [ add | delete | list ]
 .RB ...
 .br
 .B ods\-ksmutil zonelist import|export
 .br
-.B ods\-ksmutil key 
-.RS
-.B		generate|import|export|list|purge|rollover|ksk\-retire|ds\-seen|delete
+.B ods\-ksmutil key [ generate | import | export | list | purge | rollover | ksk\-retire | ds\-seen | delete ]
 .RB ...
 .RE
 .br
 .B ods\-ksmutil rollover list
 .RB ...
 .br
-.B ods\-ksmutil policy export|import|purge
+.B ods\-ksmutil policy [ export | import | purge ]
 .RB ...
 .br
 .B ods\-ksmutil repository list
 .RB ...
 .br
-.B ods\-ksmutil backup list|prepare|commit|rollback|done
+.B ods\-ksmutil backup [ list | prepare | commit | rollback | done ]
 .br
 .B ods\-ksmutil database backup
 .RB ...
