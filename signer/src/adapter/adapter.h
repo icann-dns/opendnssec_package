@@ -1,6 +1,4 @@
 /*
- * $Id: adapter.h 6449 2012-06-21 09:45:24Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

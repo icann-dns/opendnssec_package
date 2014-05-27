@@ -1,6 +1,4 @@
 /*
- * $Id: signconfparser.h 7409 2013-11-18 12:02:45Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

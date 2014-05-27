@@ -1,6 +1,4 @@
 /*
- * $Id: hsmutil.c 7176 2013-07-02 10:11:26Z sara $
- *
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
  * Copyright (c) 2009 NLNet Labs.
  * All rights reserved.

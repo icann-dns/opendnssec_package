@@ -1,6 +1,4 @@
 /*
- * $Id: database_statement.h 3776 2010-08-24 14:55:39Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

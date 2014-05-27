@@ -1,6 +1,4 @@
 /*
- * $Id: test_routines.h 4639 2011-03-24 13:06:12Z rb $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

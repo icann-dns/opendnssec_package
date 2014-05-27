@@ -1,5 +1,3 @@
-# $Id: README 2288 2009-10-21 08:22:54Z sion $
-
 Solaris scripts to control OpenDNSSEC processes:
 
 Any package for solaris should probably include something like the following:

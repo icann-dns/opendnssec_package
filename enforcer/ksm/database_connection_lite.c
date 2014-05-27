@@ -1,6 +1,4 @@
 /*
- * $Id: database_connection_lite.c 7018 2013-02-05 13:59:43Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

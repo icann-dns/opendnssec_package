@@ -1,6 +1,4 @@
 /*
- * $Id: privdrop.c 6442 2012-06-19 14:13:41Z jerry $
- *
  * Copyright (c) 2009 Nominet UK. All rights reserved.
  *
  * Based heavily on uidswap.c from openssh-5.2p1

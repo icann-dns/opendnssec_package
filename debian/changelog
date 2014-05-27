@@ -1,3 +1,11 @@
+opendnssec (1:1.4.5-1) unstable; urgency=medium
+
+  * New upstream version 1.4.5
+  * Update patches for 1.4.5 release
+  * README is now README.md
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 27 May 2014 15:37:12 +0200
+
 opendnssec (1:1.4.3-3) unstable; urgency=medium
 
   * Add epoch to conflicts/breaks with opendnssec-auditor (Closes: #717980)

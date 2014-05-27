@@ -1,6 +1,6 @@
 --- opendnssec.orig/tools/ods-control.in
 +++ opendnssec/tools/ods-control.in
-@@ -40,11 +40,13 @@ case "$1" in
+@@ -38,11 +38,13 @@ case "$1" in
  'ksm')
  	shift
  	"$bindir/ods-ksmutil" $@
@@ -14,7 +14,7 @@
  	;;
  
  'signer')
-@@ -84,9 +86,15 @@ case "$1" in
+@@ -82,9 +84,15 @@ case "$1" in
  		
  		exit $RETVAL
  		;;
@@ -30,7 +30,7 @@
  		;;
  
  	esac
-@@ -151,7 +159,8 @@ case "$1" in
+@@ -149,7 +157,8 @@ case "$1" in
  		;;
  
  	*)
@@ -40,7 +40,7 @@
  		;;
  
  	esac
-@@ -171,12 +180,13 @@ case "$1" in
+@@ -169,12 +178,13 @@ case "$1" in
  
  'stop')
  	"$0" enforcer stop

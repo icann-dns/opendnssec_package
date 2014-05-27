@@ -1,5 +1,3 @@
-# $Id: Makefile.am 6930 2013-01-08 12:31:16Z jakob $
-
 ACLOCAL_AMFLAGS = -I m4
 
 MAINTAINERCLEANFILES = \
@@ -20,6 +18,7 @@ endif
 EXTRA_DIST =	$(srcdir)/LICENSE \
 		$(srcdir)/KNOWN_ISSUES \
 		$(srcdir)/MIGRATION \
+		$(srcdir)/README.md \
 		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
 
 

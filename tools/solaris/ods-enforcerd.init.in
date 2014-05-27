@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Id: ods-enforcerd.init.in 2892 2010-02-24 23:06:49Z jakob $
-#
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

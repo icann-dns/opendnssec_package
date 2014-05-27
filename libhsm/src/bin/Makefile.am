@@ -1,5 +1,3 @@
-# $Id: Makefile.am 6620 2012-09-05 07:56:36Z matthijs $
-
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 LIBCOMPAT = ${top_builddir}/common/libcompat.a

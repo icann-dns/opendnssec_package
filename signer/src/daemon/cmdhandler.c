@@ -1,6 +1,4 @@
 /*
- * $Id: cmdhandler.c 7416 2013-11-21 08:34:02Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

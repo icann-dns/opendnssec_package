@@ -1,6 +1,4 @@
 /*
- * $Id: ods-signer.c 7254 2013-08-30 16:55:54Z sara $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

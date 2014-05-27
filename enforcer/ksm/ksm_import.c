@@ -1,6 +1,4 @@
 /*
- * $Id: ksm_import.c 7028 2013-02-13 11:41:17Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

@@ -1,6 +1,4 @@
 /*
- * $Id: cfg.c 7083 2013-04-03 13:27:51Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
