@@ -1,6 +1,4 @@
 /*
- * $Id: zonelist.h 5948 2011-11-30 11:56:02Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

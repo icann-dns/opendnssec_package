@@ -1,6 +1,4 @@
 /*
- * $Id: database_support_lite.c 6230 2012-03-29 09:33:04Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

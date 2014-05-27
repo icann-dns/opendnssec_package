@@ -1,5 +1,3 @@
-# $Id: acx_broken_setres.m4 3541 2010-06-23 15:35:39Z jakob $
-
 AC_DEFUN([ACX_BROKEN_SETRES],[
 
 	AC_CHECK_FUNCS(setresuid, [

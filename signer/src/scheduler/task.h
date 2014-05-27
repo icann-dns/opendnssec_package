@@ -1,6 +1,4 @@
 /*
- * $Id: task.h 6181 2012-02-21 14:12:17Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

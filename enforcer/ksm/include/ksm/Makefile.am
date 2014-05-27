@@ -1,5 +1,3 @@
-# $Id: Makefile.am 3165 2010-04-12 08:02:25Z rb $
-
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 BUILT_SOURCES = dbsmsg.h kmemsg.h

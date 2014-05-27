@@ -1,6 +1,4 @@
 /*
- * $Id: zonelistparser.h 5557 2011-09-06 12:52:44Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

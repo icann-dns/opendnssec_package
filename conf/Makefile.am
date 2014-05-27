@@ -1,5 +1,3 @@
-# $Id: Makefile.am 6103 2012-01-26 22:00:03Z jakob $
-
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 RNC =	addns.rnc conf.rnc kasp.rnc zonelist.rnc signconf.rnc enforcerstate.rnc

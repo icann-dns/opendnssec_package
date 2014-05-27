@@ -1,6 +1,4 @@
 /*
- * $Id: kmedef.h 5254 2011-06-28 07:59:04Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

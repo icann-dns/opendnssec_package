@@ -1,5 +1,3 @@
-# $Id: Makefile.am 2233 2009-10-15 12:19:44Z jakob $
-
 MAINTAINERCLEANFILES = \
 	config.log config.status \
 	$(srcdir)/Makefile.in \

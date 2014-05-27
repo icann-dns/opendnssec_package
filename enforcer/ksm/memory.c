@@ -1,6 +1,4 @@
 /*
- * $Id: memory.c 763 2009-05-22 13:03:15Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

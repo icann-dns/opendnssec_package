@@ -1,6 +1,4 @@
 /*
- * $Id: engine.h 7068 2013-03-13 10:42:49Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

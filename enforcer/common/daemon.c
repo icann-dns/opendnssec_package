@@ -1,6 +1,4 @@
 /*
- * $Id: daemon.c 7385 2013-11-05 16:00:17Z sara $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

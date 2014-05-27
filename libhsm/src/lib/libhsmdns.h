@@ -1,5 +1,3 @@
-/* $Id: libhsmdns.h 6560 2012-08-28 06:31:40Z rb $ */
-
 /*
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
  * Copyright (c) 2009 NLNet Labs.

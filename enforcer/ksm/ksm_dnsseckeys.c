@@ -1,6 +1,4 @@
 /*
- * $Id: ksm_dnsseckeys.c 1290 2009-07-15 15:28:23Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

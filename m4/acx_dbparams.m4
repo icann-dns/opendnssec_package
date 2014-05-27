@@ -1,5 +1,3 @@
-# $Id: acx_dbparams.m4 4642 2011-03-24 14:10:21Z rb $
-
 AC_DEFUN([ACX_DBPARAMS],[
 
 	AC_ARG_WITH(dbname,

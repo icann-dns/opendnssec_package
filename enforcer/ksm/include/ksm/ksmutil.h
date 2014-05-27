@@ -1,6 +1,4 @@
 /*
- * $Id: ksmutil.h 6291 2012-04-26 14:35:16Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
