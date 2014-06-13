@@ -1,3 +1,13 @@
+opendnssec (1:1.4.5-2) unstable; urgency=medium
+
+  * Remove circular dependency between opendnssec-enforcer and its
+    backends (Closes: #744838)
+  * Add MariaDB as alternative to MySQL (Closes: #732901)
+  * d/control: Cleanup of conflicts and dependencies
+  * Install all doxygen documentation inside opendnssec-doc directory
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 13 Jun 2014 14:09:43 +0200
+
 opendnssec (1:1.4.5-1) unstable; urgency=medium
 
   * New upstream version 1.4.5
