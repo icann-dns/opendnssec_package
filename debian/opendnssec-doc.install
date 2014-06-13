@@ -1,3 +1,3 @@
-build-sqlite3/signer/doxygen-doc/html /usr/share/doc/opendnssec-signer/
-build-sqlite3/enforcer/doxygen-doc/html /usr/share/doc/opendnssec-enforcer/
-build-sqlite3/libhsm/doxygen-doc/html /usr/share/doc/libhsm-bin/
+build-sqlite3/signer/doxygen-doc/html/* /usr/share/doc/opendnssec-doc/opendnssec-signer/
+build-sqlite3/enforcer/doxygen-doc/html/* /usr/share/doc/opendnssec-doc/opendnssec-enforcer/
+build-sqlite3/libhsm/doxygen-doc/html/* /usr/share/doc/opendnssec-doc/libhsm-bin/

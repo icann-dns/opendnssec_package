@@ -1,3 +1,27 @@
+opendnssec (1:1.4.3-1) experimental; urgency=low
+
+  OpenDNSSEC 1.4 has some kasp database changes to allow for an update
+  to the zonelist.xml schema.  This means that if you want to use this
+  version or any after it with a database created earlier you will
+  need to do one of 2 things...
+
+  1) wipe and recreate your kasp database (run ods-ksmutl setup) which
+     will lose all of your current state.
+  
+  If you need to keep your key information then,
+
+  2) run the sql statements given in:
+
+     /usr/share/opendnssec/migrate_adapters_1.mysql
+  or
+     /usr/share/opendnssec/migrate_adapters_1.sqlite3
+
+  against your existing database.
+
+  These changes allow flexibility in the input and output adapters.
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 17 Dec 2013 16:17:57 +0100
+
 opendnssec (1.4.0~a1-2) unstable; urgency=low
 
   * Upstream has removed Zonefetcher and replaced it with Input and Output
@@ -27,3 +51,15 @@ opendnssec (1.3.7-1) unstable; urgency=low
     leading zeroes and the bug will thus not affect you.
 
  -- Ondřej Surý <ondrej@debian.org>  Tue, 13 Mar 2012 15:23:16 +0100
+
+opendnssec (1.2.1.dfsg-1) unstable; urgency=low
+
+  If you are migrating from 1.1.x release, you need to run migration
+  scripts located in /usr/share/opendnssec/.  There is a script for
+  sqlite called migrate_keyshare_sqlite3.pl and one for mysql called
+  migrate_keyshare_mysql.pl.  It's recommended you backup your data-
+  base before the migration, so it's not run automatically.  You can
+  read more about migration in /usr/share/opendnssec-common/MIGRATION
+  file.
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 19 Mar 2011 16:12:24 +0100

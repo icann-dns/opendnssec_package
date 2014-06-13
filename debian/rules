@@ -55,6 +55,7 @@ override_dh_auto_install:
 	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/opendnssec-enforcer-mysql
 	# Install migration scripts
 	install -m 755 $(CURDIR)/enforcer/utils/convert_database.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
+	install -m 755 $(CURDIR)/enforcer/utils/convert_database.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
 	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_mysql.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
 	install -m 644 $(CURDIR)/enforcer/utils/migrate_adapters_1.mysql $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
 	install -m 644 $(CURDIR)/enforcer/utils/migrate_zone_delete.mysql $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
@@ -64,8 +65,7 @@ override_dh_auto_install:
 	install -m 644 $(CURDIR)/enforcer/utils/migrate_adapters_1.sqlite3 $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	install -m 755 $(CURDIR)/enforcer/utils/migrate_to_ng_sqlite.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	# Remove extra dist files from opendnssec-enforcer-mysql
-	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/ \
-	       $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/ \
+	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/ \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/bin/ods-hsm* \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/bin/ods-kasp2html \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/sbin/ods-control \
@@ -74,13 +74,11 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/etc/opendnssec
 
 override_dh_installdocs-arch:
-	dh_installdocs -popendnssec-common -popendnssec -popendnssec-dbg-mysql -popendnssec-dbg-sqlite3 --link-doc=opendnssec-common
-	dh_installdocs -popendnssec-enforcer -popendnssec-enforcer-sqlite3 -popendnssec-enforcer-mysql --link-doc=opendnssec-enforcer
-	dh_installdocs -plibhsm-bin -popendnssec-signer -popendnssec-doc
-	# Remove extra and unnecessary jquery.js library from generated docs (See #622147)
-	for p in libhsm-bin opendnssec-signer opendnssec-enforcer; do \
-	    rm -f $(CURDIR)/debian/opendnssec-doc/usr/share/doc/$$p/html/jquery.js; \
-	done
+	dh_installdocs -popendnssec-common -popendnssec -popendnssec-dbg-mysql \
+	               -popendnssec-dbg-sqlite3 -popendnssec-enforcer -popendnssec-enforcer-sqlite3 \
+	               -popendnssec-enforcer-mysql -plibhsm-bin -popendnssec-signer \
+	               --link-doc=opendnssec-common
+	dh_installdocs -popendnssec-doc
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS
