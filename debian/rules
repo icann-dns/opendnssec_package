@@ -71,7 +71,11 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/sbin/ods-control \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/*.rn? \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/kasp2html.xsl \
-	       $(CURDIR)/debian/opendnssec-enforcer-mysql/etc/opendnssec
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/etc/opendnssec \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man5 \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man7 \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man8/ods-control.* \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man1/ods-hsm* \
 
 override_dh_installdocs-arch:
 	dh_installdocs -popendnssec-common -popendnssec -popendnssec-dbg-mysql \

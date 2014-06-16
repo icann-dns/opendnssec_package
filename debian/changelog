@@ -1,3 +1,10 @@
+opendnssec (1:1.4.5-3) unstable; urgency=medium
+
+  * Don't install full set of man pages in opendnssec-enforcer-mysql
+    (Closes: #751711, #751712)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 16 Jun 2014 11:27:10 +0200
+
 opendnssec (1:1.4.5-2) unstable; urgency=medium
 
   * Remove circular dependency between opendnssec-enforcer and its
