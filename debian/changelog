@@ -1,3 +1,10 @@
+opendnssec (1:1.4.5-4) unstable; urgency=medium
+
+  * Swap mariadb-client with mysql-client in Build-Depends
+    (Closes: #751912)
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 18 Jun 2014 09:57:50 +0200
+
 opendnssec (1:1.4.5-3) unstable; urgency=medium
 
   * Don't install full set of man pages in opendnssec-enforcer-mysql
