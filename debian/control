@@ -2,9 +2,9 @@ Source: opendnssec
 Section: admin
 Priority: extra
 Maintainer: Ondřej Surý <ondrej@debian.org>
-Build-Depends: debhelper (>= 7.0.50~),
-	       hardening-wrapper,
+Build-Depends: debhelper (>= 9),
 	       dh-autoreconf,
+	       autotools-dev,
 	       libxml2-utils,
 	       xsltproc,
 	       libxml2-dev,
