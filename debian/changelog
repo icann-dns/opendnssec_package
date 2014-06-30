@@ -1,3 +1,9 @@
+opendnssec (1:1.4.5-5) unstable; urgency=medium
+
+  * Switch to debhelper 9 dpkg-buildflags from hardening-wrapper
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 30 Jun 2014 10:24:44 +0200
+
 opendnssec (1:1.4.5-4) unstable; urgency=medium
 
   * Swap mariadb-client with mysql-client in Build-Depends
