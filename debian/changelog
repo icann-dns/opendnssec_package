@@ -1,3 +1,10 @@
+opendnssec (1:1.4.5-6) unstable; urgency=high
+
+  * Set explicit path to libsofthsm.so to avoid M-A dirs creeping in
+    (Closes: #753612)
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 04 Jul 2014 11:23:11 +0200
+
 opendnssec (1:1.4.5-5) unstable; urgency=medium
 
   * Switch to debhelper 9 dpkg-buildflags from hardening-wrapper
