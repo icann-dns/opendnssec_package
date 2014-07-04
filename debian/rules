@@ -23,7 +23,8 @@ override_dh_auto_clean:
 
 COMMON = --disable-rpath --with-ldns=/usr \
 	 --with-cunit=/usr --libexecdir=/usr/lib/opendnssec/ \
-	 --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so
+	 --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so \
+	 --with-pkcs11-softhsm=/usr/lib/softhsm/libsofthsm.so
 
 override_dh_auto_configure:
 	dh_auto_configure -Bbuild-sqlite3 -- $(COMMON) --with-database-backend=sqlite3 --with-sqlite3=/usr
