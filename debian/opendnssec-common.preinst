@@ -15,18 +15,17 @@ case "$1" in
     install|upgrade)
 	if dpkg --compare-versions "$2" le "1.3.6-1"; then
 	    for conf in zonefetch.xml; do
-		[ -e "/etc/opendnssec/$conf" ] || return 0
-		[ -e "/usr/share/opendnssec/$conf" ] || return 0
-
-		md5sum="$(md5sum /etc/opendnssec/$conf | sed -e 's/ .*//')"
-		old_md5sum="$(md5sum /usr/share/opendnssec/$conf | sed -e 's/ .*//')"
-		if [ "$md5sum" != "$old_md5sum" ]; then
-		    echo "Obsolete conffile $conf has been modified by you."
-		    echo "Saving as $conf.dpkg-bak ..."
-		    mv -f "/etc/opendnssec/$conf" "/etc/opendnssec/$conf".dpkg-bak
-		else
-		    echo "Removing obsolete conffile $conf ..."
-		    mv -f "/etc/opendnssec/$conf" "/etc/opendnssec/$conf".dpkg-del
+		if [ -e "/etc/opendnssec/$conf" -a -e "/usr/share/opendnssec/$conf" ]; then
+		    md5sum="$(md5sum /etc/opendnssec/$conf | sed -e 's/ .*//')"
+		    old_md5sum="$(md5sum /usr/share/opendnssec/$conf | sed -e 's/ .*//')"
+		    if [ "$md5sum" != "$old_md5sum" ]; then
+			echo "Obsolete conffile $conf has been modified by you."
+			echo "Saving as $conf.dpkg-bak ..."
+			mv -f "/etc/opendnssec/$conf" "/etc/opendnssec/$conf".dpkg-bak
+		    else
+			echo "Removing obsolete conffile $conf ..."
+			mv -f "/etc/opendnssec/$conf" "/etc/opendnssec/$conf".dpkg-del
+		    fi
 		fi
 	    done
 	fi

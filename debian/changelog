@@ -1,3 +1,13 @@
+opendnssec (1:1.4.6-2) unstable; urgency=high
+
+  * Make opendnssec binNMUable by unlinking the documentation
+    (Closes: #760830)
+  * Fix Vcs-URLs to point to anonscm.debian.org
+  * Fix invalid return usage in opendnssec-common preinst script
+    (Closes: #760852)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 08 Sep 2014 16:27:22 +0200
+
 opendnssec (1:1.4.6-1) unstable; urgency=medium
 
   * New upstream version 1.4.6
