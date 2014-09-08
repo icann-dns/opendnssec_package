@@ -21,8 +21,8 @@ Build-Depends: debhelper (>= 9),
 	       doxygen
 Standards-Version: 3.9.5
 Homepage: http://www.opendnssec.org/
-Vcs-Browser: http://git.debian.org/?p=pkg-nlnetlabs/opendnssec.git
-Vcs-Git: git://git.debian.org/pkg-nlnetlabs/opendnssec.git
+Vcs-Browser: http://anonscm.debian.org/?p=pkg-nlnetlabs/opendnssec.git
+Vcs-Git: git://anonscm.debian.org/pkg-nlnetlabs/opendnssec.git
 
 Package: opendnssec-common
 Section: misc
