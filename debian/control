@@ -46,6 +46,7 @@ Description: common configuration files for OpenDNSSEC suite
 Package: opendnssec
 Section: misc
 Architecture: all
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${misc:Depends},
 	 opendnssec-enforcer,
 	 opendnssec-signer,
@@ -76,6 +77,7 @@ Description: documentation for OpenDNSSEC suite
 Package: opendnssec-enforcer
 Section: admin
 Architecture: all
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${misc:Depends},
 	 opendnssec-enforcer-sqlite3 | opendnssec-enforcer-backend,
 	 procps
@@ -97,11 +99,11 @@ Description: tool to prepare DNSSEC keys (common package)
 Package: opendnssec-enforcer-mysql
 Section: admin
 Architecture: any
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${shlibs:Depends}, ${misc:Depends},
 	 opendnssec-common (= ${source:Version}),
 	 mariadb-client | mysql-client,
 	 libdbd-mysql-perl
-Pre-Depends: dpkg (>= 1.15.7.2~) | dpkg-maintscript-helper
 Breaks: opendnssec-enforcer (<< 1:1.4.5-2~)
 Provides: opendnssec-enforcer-backend
 Conflicts: opendnssec-enforcer-backend
@@ -124,6 +126,7 @@ Description: tool to prepare DNSSEC keys (mysql backend)
 Package: opendnssec-enforcer-sqlite3
 Section: admin
 Architecture: any
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 opendnssec-common (= ${source:Version}),
@@ -150,6 +153,7 @@ Description: tool to prepare DNSSEC keys (sqlite3 backend)
 
 Package: opendnssec-signer
 Architecture: any
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 opendnssec-common (= ${source:Version}),
@@ -170,6 +174,7 @@ Description: daemon to sign DNS zone files periodically
 Package: libhsm-bin
 Section: misc
 Architecture: any
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${shlibs:Depends},
 	 ${misc:Depends},
 	 opendnssec-common (= ${source:Version})
@@ -189,6 +194,7 @@ Description: library for interfacing PKCS#11 Hardware Security Modules
  This package contains command line tools.
 
 Package: opendnssec-dbg-mysql
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${misc:Depends}, opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-mysql
 Recommends: gdb
 Section: debug
@@ -208,6 +214,7 @@ Description: Debug symbols for OpenDNSSEC (Enforcer with MySQL support)
  Enforcer.
 
 Package: opendnssec-dbg-sqlite3
+Pre-Depends: dpkg (>= 1.17.5)
 Depends: ${misc:Depends}, opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-sqlite3
 Recommends: gdb
 Section: debug

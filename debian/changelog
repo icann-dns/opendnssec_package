@@ -1,3 +1,10 @@
+opendnssec (1:1.4.6-3) unstable; urgency=medium
+
+  * Add Pre-Depends: dpkg (>= 1.17.5) for dpkg-maintscript-helper
+    (Closes: #768065)
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 04 Nov 2014 17:38:09 +0100
+
 opendnssec (1:1.4.6-2) unstable; urgency=high
 
   * Make opendnssec binNMUable by unlinking the documentation
