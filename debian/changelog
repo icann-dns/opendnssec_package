@@ -1,3 +1,10 @@
+opendnssec (1:1.4.6-4) unstable; urgency=medium
+
+  * Strip trailing slashes and use ${misc:Pre-Depends} (Closes: #768245)
+  * Drop extra -- "$@" from *.mainscript
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Nov 2014 10:29:27 +0100
+
 opendnssec (1:1.4.6-3) unstable; urgency=medium
 
   * Add Pre-Depends: dpkg (>= 1.17.5) for dpkg-maintscript-helper
