@@ -31,7 +31,7 @@ $(TRANG):
 		(echo "java is required for converting RelaxNG Compact to RelaxNG"; false)
 	${JAVA} -jar ${TRANG} $< $@
 
-regress: $(RNG)
+check: $(RNG)
 	@test -x "${XMLLINT}" || \
 		(echo "xmllint is required for regression tests"; false)
 	@for i in ${XML}; do \
