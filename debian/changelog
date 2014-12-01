@@ -1,3 +1,10 @@
+opendnssec (1:1.4.6-5) unstable; urgency=medium
+
+  * Fix old directory in maintscript helper invocation for
+    opendnssec-enforcer-{mysql,sqlite3} (Closes: #768245)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 01 Dec 2014 17:56:04 +0100
+
 opendnssec (1:1.4.6-4) unstable; urgency=medium
 
   * Strip trailing slashes and use ${misc:Pre-Depends} (Closes: #768245)
