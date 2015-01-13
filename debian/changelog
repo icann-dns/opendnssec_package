@@ -1,3 +1,9 @@
+opendnssec (1:1.4.6-6) unstable; urgency=medium
+
+  * Fix yet another iteration of dh_linkdoc madness (Closes: #768245)
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 13 Jan 2015 14:25:18 +0100
+
 opendnssec (1:1.4.6-5) unstable; urgency=medium
 
   * Fix old directory in maintscript helper invocation for
