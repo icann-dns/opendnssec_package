@@ -1,1 +1,1 @@
-symlink_to_dir /usr/share/doc/opendnssec-dbg-mysql /usr/share/doc/opendnssec-common 1:1.4.6-2~
+symlink_to_dir /usr/share/doc/opendnssec-dbg-mysql opendnssec-common 1:1.4.6-6~
