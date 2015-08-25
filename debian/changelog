@@ -1,3 +1,13 @@
+opendnssec (1:1.4.7-1) unstable; urgency=medium
+
+  * New upstream version 1.4.7
+   - SUPPORT-147: Zone updating via zone transfer can get stuck (Håvard
+     Eidnes)
+   - Crash on 'retransfer' command when not using DNS adapters.
+  * Recommend softhsm2 instead of softhsm
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 25 Aug 2015 14:41:11 +0200
+
 opendnssec (1:1.4.6-5) unstable; urgency=medium
 
   * Fix old directory in maintscript helper invocation for
