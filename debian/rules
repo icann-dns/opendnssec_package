@@ -49,7 +49,8 @@ override_dh_auto_install:
 	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/opendnssec-enforcer-mysql
 	# Install migration scripts
 	install -m 755 $(CURDIR)/enforcer/utils/convert_database.pl $(CURDIR)/debian/tmp/usr/share/opendnssec/
-	install -m 755 $(CURDIR)/enforcer/utils/convert_database.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
+	install -m 755 $(CURDIR)/enforcer/utils/database_create.mysql $(CURDIR)/debian/tmp/usr/share/opendnssec/
+	chmod -x $(CURDIR)/debian/tmp/usr/share/opendnssec/database_create.mysql
 	install -m 755 $(CURDIR)/enforcer/utils/migrate_keyshare_mysql.pl $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
 	install -m 644 $(CURDIR)/enforcer/utils/migrate_adapters_1.mysql $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
 	install -m 644 $(CURDIR)/enforcer/utils/migrate_zone_delete.mysql $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/
@@ -70,6 +71,7 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man7 \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man8/ods-control.* \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man1/ods-hsm* \
+	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/database_create*
 
 override_dh_installdocs-arch:
 	dh_installdocs -popendnssec-common -popendnssec-common\

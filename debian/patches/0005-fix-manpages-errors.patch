@@ -1,5 +1,15 @@
---- opendnssec.orig/enforcer/utils/ods-ksmutil.1.in
-+++ opendnssec/enforcer/utils/ods-ksmutil.1.in
+From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@debian.org>
+Date: Wed, 21 Oct 2015 10:46:05 +0200
+Subject: fix manpages errors
+
+---
+ enforcer/utils/ods-ksmutil.1.in | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/enforcer/utils/ods-ksmutil.1.in b/enforcer/utils/ods-ksmutil.1.in
+index 549b79b..824ee1c 100644
+--- a/enforcer/utils/ods-ksmutil.1.in
++++ b/enforcer/utils/ods-ksmutil.1.in
 @@ -7,28 +7,28 @@
  .LP
  .B ods\-ksmutil setup

@@ -71,6 +71,12 @@
                 <empty/>
               </element>
             </optional>
+            <optional>
+              <!-- Generate extractable keys (CKA_EXTRACTABLE = TRUE) (optional) -->
+              <element name="AllowExtraction">
+                <empty/>
+              </element>
+            </optional>
           </element>
         </zeroOrMore>
       </element>
