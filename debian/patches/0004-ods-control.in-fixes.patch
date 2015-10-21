@@ -1,5 +1,15 @@
---- opendnssec.orig/tools/ods-control.in
-+++ opendnssec/tools/ods-control.in
+From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@debian.org>
+Date: Wed, 21 Oct 2015 10:46:05 +0200
+Subject: ods-control.in fixes
+
+---
+ tools/ods-control.in | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/tools/ods-control.in b/tools/ods-control.in
+index d5c550f..1d0838f 100644
+--- a/tools/ods-control.in
++++ b/tools/ods-control.in
 @@ -42,11 +42,13 @@ case "$1" in
  'ksm')
  	shift

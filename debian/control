@@ -1,7 +1,8 @@
 Source: opendnssec
 Section: admin
 Priority: extra
-Maintainer: Ondřej Surý <ondrej@debian.org>
+Maintainer: Debian DNS Packaging <pkg-dns-devel@lists.alioth.debian.org>
+Uploaders: Ondřej Surý <ondrej@debian.org>
 Build-Depends: debhelper (>= 9),
 	       dh-autoreconf,
 	       autotools-dev,
@@ -33,7 +34,11 @@ Depends: ${misc:Depends},
 Recommends: opendnssec, softhsm2
 Conflicts: opendnssec-auditor (<< 1:1.4.0~),
 	   opendnssec-doc (<< 1:1.4.5-2~)
-Replaces: opendnssec-doc (<< 1:1.4.5.2~)
+Replaces: opendnssec-doc (<< 1:1.4.5.2~),
+	  opendnssec-enforcer-sqlite3 (<< 1:1.4.8.2-1~),
+	  opendnssec-enforcer-mysql (<< 1:1.4.8.2-1~)
+Breaks: opendnssec-enforcer-sqlite3 (<< 1:1.4.8.2-1~),
+	opendnssec-enforcer-mysql (<< 1:1.4.8.2-1~)
 Description: common configuration files for OpenDNSSEC suite
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of

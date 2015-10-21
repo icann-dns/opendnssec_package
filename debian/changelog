@@ -1,3 +1,15 @@
+opendnssec (1:1.4.8.2-1) unstable; urgency=medium
+
+  * Imported Upstream version 1.4.8.2
+  * Refresh patches for 1.4.8.2 release
+  * Move OpenDNSSEC under Pkg DNS umbrella
+  * Install the convert_database.pl and sql schema scripts to
+    opendnssec-common (Closes: #764435)
+  * The fix of failing signing a local zone on ARM was fixed in the new
+    upstream version (Closes: #798518)
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 21 Oct 2015 14:01:37 +0200
+
 opendnssec (1:1.4.7-1) unstable; urgency=medium
 
   * New upstream version 1.4.7

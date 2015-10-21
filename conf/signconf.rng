@@ -112,6 +112,12 @@
                 <empty/>
               </element>
             </optional>
+            <optional>
+              <!-- Ignore DS and use RFC5011 to maintain chain of trust. -->
+              <element name="RFC5011">
+                <empty/>
+              </element>
+            </optional>
           </element>
         </oneOrMore>
       </element>
