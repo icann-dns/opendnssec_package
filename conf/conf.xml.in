@@ -4,6 +4,7 @@
 
 	<RepositoryList>
 
+<!--
 		<Repository name="SoftHSM">
 			<Module>@pkcs11_softhsm_module@</Module>
 			<TokenLabel>OpenDNSSEC</TokenLabel>
@@ -13,6 +14,7 @@
 			<AllowExtraction/>
 			-->
 		</Repository>
+-->
 
 <!--
 		<Repository name="sca6000">
