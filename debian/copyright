@@ -33,7 +33,7 @@ License:
     2. Redistributions in binary form must reproduce the above copyright
        notice, this list of conditions and the following disclaimer in the
        documentation and/or other materials provided with the distribution.
-    
+
     THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
     IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -50,11 +50,11 @@ libhsm/src/cryptoki_compat/pkcs11.h License:
 
     Copyright 2006, 2007 g10 Code GmbH
     Copyright 2006 Andreas Jellinghaus
-    
+
     This file is free software; as a special exception the author gives
     unlimited permission to copy and/or distribute it, with or without
     modifications, as long as this notice is preserved.
-    
+
     This file is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY, to the extent permitted by law; without even
     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -63,11 +63,11 @@ libhsm/src/cryptoki_compat/pkcs11.h License:
 libhsm/src/compat/strl{cat,cpy}.{c,h} License:
 
     Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
-    
+
     Permission to use, copy, modify, and distribute this software for any
     purpose with or without fee is hereby granted, provided that the above
     copyright notice and this permission notice appear in all copies.
-    
+
     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
     WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
     MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -80,5 +80,5 @@ The Debian packaging is:
 
     Copyright (C) 2010 Ondřej Surý <ondrej@debian.org>
 
-and is licensed under the GPL version 3, 
+and is licensed under the GPL version 3,
 see `/usr/share/common-licenses/GPL-3'.

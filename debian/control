@@ -3,23 +3,23 @@ Section: admin
 Priority: extra
 Maintainer: Debian DNS Packaging <pkg-dns-devel@lists.alioth.debian.org>
 Uploaders: Ondřej Surý <ondrej@debian.org>
-Build-Depends: debhelper (>= 9),
-	       dh-autoreconf,
-	       autotools-dev,
-	       libxml2-utils,
-	       xsltproc,
-	       libxml2-dev,
-	       libmysqlclient-dev,
-	       libcurl4-openssl-dev,
-	       mysql-client | mariadb-client,
-	       libsqlite3-dev,
-	       sqlite3,
-	       libldns-dev (>= 1.6.14~),
-	       libcunit1-dev,
-	       opensc,
-	       procps,
-	       graphviz,
-	       doxygen
+Build-Depends: autotools-dev,
+               debhelper (>= 9),
+               dh-autoreconf,
+               doxygen,
+               graphviz,
+               libcunit1-dev,
+               libcurl4-openssl-dev,
+               libldns-dev (>= 1.6.14~),
+               libmysqlclient-dev,
+               libsqlite3-dev,
+               libxml2-dev,
+               libxml2-utils,
+               mysql-client | mariadb-client,
+               opensc,
+               procps,
+               sqlite3,
+               xsltproc
 Standards-Version: 3.9.5
 Homepage: http://www.opendnssec.org/
 Vcs-Browser: http://anonscm.debian.org/?p=pkg-nlnetlabs/opendnssec.git
@@ -28,17 +28,18 @@ Vcs-Git: git://anonscm.debian.org/pkg-nlnetlabs/opendnssec.git
 Package: opendnssec-common
 Section: misc
 Architecture: all
-Depends: ${misc:Depends},
-	 ucf,
-	 adduser
-Recommends: opendnssec, softhsm2
+Depends: adduser,
+         ucf,
+         ${misc:Depends}
+Recommends: opendnssec,
+            softhsm2
 Conflicts: opendnssec-auditor (<< 1:1.4.0~),
-	   opendnssec-doc (<< 1:1.4.5-2~)
+           opendnssec-doc (<< 1:1.4.5-2~)
 Replaces: opendnssec-doc (<< 1:1.4.5.2~),
-	  opendnssec-enforcer-sqlite3 (<< 1:1.4.8.2-1~),
-	  opendnssec-enforcer-mysql (<< 1:1.4.8.2-1~)
-Breaks: opendnssec-enforcer-sqlite3 (<< 1:1.4.8.2-1~),
-	opendnssec-enforcer-mysql (<< 1:1.4.8.2-1~)
+          opendnssec-enforcer-mysql (<< 1:1.4.9-1~),
+          opendnssec-enforcer-sqlite3 (<< 1:1.4.9-1~)
+Breaks: opendnssec-enforcer-mysql (<< 1:1.4.9-1~),
+        opendnssec-enforcer-sqlite3 (<< 1:1.4.9-1~)
 Description: common configuration files for OpenDNSSEC suite
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -52,10 +53,10 @@ Package: opendnssec
 Section: misc
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends},
-	 opendnssec-enforcer,
-	 opendnssec-signer,
-	 libhsm-bin
+Depends: libhsm-bin,
+         opendnssec-enforcer,
+         opendnssec-signer,
+         ${misc:Depends}
 Recommends: softhsm2
 Suggests: opendnssec-doc
 Description: dependency package to install full OpenDNSSEC suite
@@ -83,10 +84,12 @@ Package: opendnssec-enforcer
 Section: admin
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends},
-	 opendnssec-enforcer-sqlite3 | opendnssec-enforcer-backend,
-	 procps
-Recommends: opendnssec-signer, opendnssec, softhsm2
+Depends: opendnssec-enforcer-sqlite3 | opendnssec-enforcer-backend,
+         procps,
+         ${misc:Depends}
+Recommends: opendnssec,
+            opendnssec-signer,
+            softhsm2
 Description: tool to prepare DNSSEC keys (common package)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -105,16 +108,18 @@ Package: opendnssec-enforcer-mysql
 Section: admin
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends}, ${misc:Depends},
-	 opendnssec-common (= ${source:Version}),
-	 mariadb-client | mysql-client,
-	 libdbd-mysql-perl
+Depends: libdbd-mysql-perl,
+         mariadb-client | mysql-client,
+         opendnssec-common (= ${source:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
 Breaks: opendnssec-enforcer (<< 1:1.4.5-2~)
 Provides: opendnssec-enforcer-backend
 Conflicts: opendnssec-enforcer-backend
-Replaces: opendnssec-enforcer-backend,
-	  opendnssec-enforcer (<< 1:1.4.5-2~)
-Recommends: opendnssec, softhsm2
+Replaces: opendnssec-enforcer (<< 1:1.4.5-2~),
+          opendnssec-enforcer-backend
+Recommends: opendnssec,
+            softhsm2
 Description: tool to prepare DNSSEC keys (mysql backend)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -132,17 +137,18 @@ Package: opendnssec-enforcer-sqlite3
 Section: admin
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends},
-	 ${misc:Depends},
-	 opendnssec-common (= ${source:Version}),
-	 sqlite3,
-	 libdbd-sqlite3-perl
+Depends: libdbd-sqlite3-perl,
+         opendnssec-common (= ${source:Version}),
+         sqlite3,
+         ${misc:Depends},
+         ${shlibs:Depends}
 Breaks: opendnssec-enforcer (<< 1:1.4.5-2~)
 Provides: opendnssec-enforcer-backend
 Conflicts: opendnssec-enforcer-backend
-Replaces: opendnssec-enforcer-backend,
-	  opendnssec-enforcer (<< 1:1.4.5-2~)
-Recommends: opendnssec, softhsm2
+Replaces: opendnssec-enforcer (<< 1:1.4.5-2~),
+          opendnssec-enforcer-backend
+Recommends: opendnssec,
+            softhsm2
 Description: tool to prepare DNSSEC keys (sqlite3 backend)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -159,11 +165,13 @@ Description: tool to prepare DNSSEC keys (sqlite3 backend)
 Package: opendnssec-signer
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends},
-	 ${misc:Depends},
-	 opendnssec-common (= ${source:Version}),
-	 libldns1 (>= 1.6.12~)
-Recommends: opendnssec-enforcer, opendnssec, softhsm2
+Depends: libldns1 (>= 1.6.12~),
+         opendnssec-common (= ${source:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: opendnssec,
+            opendnssec-enforcer,
+            softhsm2
 Conflicts: opendnssec-signer-tools (<< 1.2.0~)
 Description: daemon to sign DNS zone files periodically
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
@@ -180,11 +188,13 @@ Package: libhsm-bin
 Section: misc
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends},
-	 ${misc:Depends},
-	 opendnssec-common (= ${source:Version})
-Conflicts: libhsm-dev, libhsm0
-Recommends: opendnssec, softhsm2
+Depends: opendnssec-common (= ${source:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
+Conflicts: libhsm-dev,
+           libhsm0
+Recommends: opendnssec,
+            softhsm2
 Description: library for interfacing PKCS#11 Hardware Security Modules
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -200,7 +210,8 @@ Description: library for interfacing PKCS#11 Hardware Security Modules
 
 Package: opendnssec-dbg-mysql
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-mysql
+Depends: opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-mysql,
+         ${misc:Depends}
 Recommends: gdb
 Section: debug
 Priority: extra
@@ -220,7 +231,8 @@ Description: Debug symbols for OpenDNSSEC (Enforcer with MySQL support)
 
 Package: opendnssec-dbg-sqlite3
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-sqlite3
+Depends: opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-sqlite3,
+         ${misc:Depends}
 Recommends: gdb
 Section: debug
 Priority: extra
