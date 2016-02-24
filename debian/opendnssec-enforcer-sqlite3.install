@@ -1,9 +1,6 @@
+usr/bin/ods-kaspcheck
 usr/bin/ods-ksmutil
 usr/sbin/ods-enforcerd
-usr/bin/ods-kaspcheck
 usr/share/man/man1/ods-kaspcheck.1
-usr/share/opendnssec/migrate_keyshare_sqlite3.pl
-usr/share/opendnssec/migrate_adapters_1.sqlite3
-usr/share/opendnssec/migrate_to_ng_sqlite.pl
 usr/share/man/man1/ods-ksmutil.1
 usr/share/man/man8/ods-enforcerd.8

@@ -1,3 +1,22 @@
+opendnssec (1:1.4.9-1) unstable; urgency=medium
+
+  * OpenDNSSEC 1.4.8 has upgraded the KASP database version again.  This
+    means that if you want to use this version or any after it with a
+    database created earlier you will need to do one of 2 things...
+
+    1) wipe and recreate your kasp database (run ods-ksmutl setup) which
+      will lose all of your current state.
+
+    Or if you need to keep your key information then,
+
+    2) run the sql statements given in:
+
+      /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3}
+
+      against your existing database.
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 24 Feb 2016 14:48:54 +0100
+
 opendnssec (1:1.4.3-1) experimental; urgency=low
 
   OpenDNSSEC 1.4 has some kasp database changes to allow for an update

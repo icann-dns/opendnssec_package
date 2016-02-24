@@ -1,4 +1,4 @@
-usr/sbin/ods-signer*
-usr/share/man/man8/ods-signer*
 usr/bin/ods-getconf
+usr/sbin/ods-signer*
 usr/share/man/man8/ods-getconf.8
+usr/share/man/man8/ods-signer*
