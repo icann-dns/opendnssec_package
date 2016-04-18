@@ -392,7 +392,8 @@ usage(const char* prog)
     fprintf(stderr, "OpenDNSSEC Enforcer version %s\n\n", VERSION);
     fprintf(stderr, "Supported options:\n");
     fprintf(stderr, "  -c <file>    Use alternate conf.xml.\n");
-    fprintf(stderr, "  -d           Debug.\n");
+    fprintf(stderr, "  -D           Debug.\n");
+    fprintf(stderr, "  -d           no-daemonize.\n");
     fprintf(stderr, "  -1           Run once, then exit.\n");
     fprintf(stderr, "  -p <policy>  Run once processing only the specified policy, then exit.\n");
 /*    fprintf(stderr, "  -u user     Change effective uid to the specified user.\n");*/
@@ -627,7 +628,7 @@ cmdlParse(DAEMONCONFIG* config, int *argc, char **argv)
     /*
      * Read the command line
      */
-    while ((c = getopt(*argc, argv, "1c:hdV?u:P:p:")) != -1) {
+    while ((c = getopt(*argc, argv, "1c:hdDV?u:P:p:")) != -1) {
         switch (c) {
             case '1':
                 config->once = true;
@@ -635,8 +636,11 @@ cmdlParse(DAEMONCONFIG* config, int *argc, char **argv)
             case 'c':
                 config->configfile = optarg;
                 break;
-            case 'd':
+            case 'D':
                 config->debug = true;
+                break;
+            case 'd':
+                config->fork = false;
                 break;
             case 'P':
                 config->pidfile = optarg;

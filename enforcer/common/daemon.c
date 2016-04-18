@@ -113,6 +113,7 @@ main(int argc, char *argv[]){
     const char* program;		/* Temporary for program name */
    
     config.debug = false;
+    config.fork = true;
     config.once = false;
 
     config.pidfile = NULL;
@@ -162,7 +163,7 @@ main(int argc, char *argv[]){
     if(config.debug) log_msg(&config, LOG_INFO, "%s DEBUG ON.", PACKAGE_NAME);
 
     /* If we dont debug then fork */
-    if(!config.debug){
+    if(!config.debug && config.fork){
         /* Fork */
         switch ((config.pid = fork())) {
             case 0:
@@ -191,7 +192,7 @@ main(int argc, char *argv[]){
                 (void)close(fd);
         }
         log_msg(&config, LOG_INFO, "%s forked OK...", PACKAGE_NAME);
-    } else {
+    } else if (config.debug) {
         log_msg(&config, LOG_INFO, "%s in debug mode - not forking...", PACKAGE_NAME);
     }
 
