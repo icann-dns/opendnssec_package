@@ -1,0 +1,89 @@
+From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
+Date: Mon, 18 Apr 2016 15:29:29 +0200
+Subject: Change -d to no-daemonize option and add new -D debug option
+
+---
+ enforcer/common/daemon.c      |  5 +++--
+ enforcer/common/daemon.h      |  1 +
+ enforcer/common/daemon_util.c | 10 +++++++---
+ 3 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/enforcer/common/daemon.c b/enforcer/common/daemon.c
+index 260cf46..8a2c8d5 100644
+--- a/enforcer/common/daemon.c
++++ b/enforcer/common/daemon.c
+@@ -113,6 +113,7 @@ main(int argc, char *argv[]){
+     const char* program;		/* Temporary for program name */
+    
+     config.debug = false;
++    config.fork = true;
+     config.once = false;
+ 
+     config.pidfile = NULL;
+@@ -162,7 +163,7 @@ main(int argc, char *argv[]){
+     if(config.debug) log_msg(&config, LOG_INFO, "%s DEBUG ON.", PACKAGE_NAME);
+ 
+     /* If we dont debug then fork */
+-    if(!config.debug){
++    if(!config.debug && config.fork){
+         /* Fork */
+         switch ((config.pid = fork())) {
+             case 0:
+@@ -191,7 +192,7 @@ main(int argc, char *argv[]){
+                 (void)close(fd);
+         }
+         log_msg(&config, LOG_INFO, "%s forked OK...", PACKAGE_NAME);
+-    } else {
++    } else if (config.debug) {
+         log_msg(&config, LOG_INFO, "%s in debug mode - not forking...", PACKAGE_NAME);
+     }
+ 
+diff --git a/enforcer/common/daemon.h b/enforcer/common/daemon.h
+index 9e14ddc..a580979 100644
+--- a/enforcer/common/daemon.h
++++ b/enforcer/common/daemon.h
+@@ -86,6 +86,7 @@ typedef struct
+     /* stuff that daemons always have */
+     const char *program;
+     bool debug;
++    bool fork;
+     bool once;
+     pid_t pid;
+     char *pidfile;
+diff --git a/enforcer/common/daemon_util.c b/enforcer/common/daemon_util.c
+index 6a7acca..e21fc2e 100644
+--- a/enforcer/common/daemon_util.c
++++ b/enforcer/common/daemon_util.c
+@@ -392,7 +392,8 @@ usage(const char* prog)
+     fprintf(stderr, "OpenDNSSEC Enforcer version %s\n\n", VERSION);
+     fprintf(stderr, "Supported options:\n");
+     fprintf(stderr, "  -c <file>    Use alternate conf.xml.\n");
+-    fprintf(stderr, "  -d           Debug.\n");
++    fprintf(stderr, "  -D           Debug.\n");
++    fprintf(stderr, "  -d           no-daemonize.\n");
+     fprintf(stderr, "  -1           Run once, then exit.\n");
+     fprintf(stderr, "  -p <policy>  Run once processing only the specified policy, then exit.\n");
+ /*    fprintf(stderr, "  -u user     Change effective uid to the specified user.\n");*/
+@@ -627,7 +628,7 @@ cmdlParse(DAEMONCONFIG* config, int *argc, char **argv)
+     /*
+      * Read the command line
+      */
+-    while ((c = getopt(*argc, argv, "1c:hdV?u:P:p:")) != -1) {
++    while ((c = getopt(*argc, argv, "1c:hdDV?u:P:p:")) != -1) {
+         switch (c) {
+             case '1':
+                 config->once = true;
+@@ -635,9 +636,12 @@ cmdlParse(DAEMONCONFIG* config, int *argc, char **argv)
+             case 'c':
+                 config->configfile = optarg;
+                 break;
+-            case 'd':
++            case 'D':
+                 config->debug = true;
+                 break;
++            case 'd':
++                config->fork = false;
++                break;
+             case 'P':
+                 config->pidfile = optarg;
+                 config->pidfile_set = 1;

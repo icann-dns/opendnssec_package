@@ -1,3 +1,25 @@
+opendnssec (1:1.4.9-2) unstable; urgency=medium
+
+  [ Timo Aaltonen + Ondřej Surý ]
+  * Add systemd service files and default config (original work by )
+    (Closes: #817142)
+  [ Ondřej Surý ]
+  * The default file is useless, use overrides (systemctl edit <foo>) to
+    make changes to service files
+  * Remove obsolete maintscripts
+  * Convert sysvrc scripts to /lib/init/init-d-script snippets
+  * Fix the invalid XML in the default conf.xml
+  * Change the Vcs-* to pkg-dns
+  * Bump the standards to 3.9.7 (no change)
+  * The migrate_1_4_8.sqlite3 is now present (Closes #802669)
+  * Add silent support for parsing /etc/default/opendnssec for FreeIPA
+    support
+  * Add patches to enforcerd to fail gracefully when no HSM repositories
+    are available and change -d to no-daemon and -D to debug
+  * Migrate to dbgsym debug packages
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 18 Apr 2016 15:57:21 +0200
+
 opendnssec (1:1.4.9-1) unstable; urgency=medium
 
   * Install migrate_1_4_8 SQL scripts into opendnsec-common package

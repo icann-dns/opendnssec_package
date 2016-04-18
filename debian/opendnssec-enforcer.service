@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenDNSSEC Enforcer daemon
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/opendnssec
+EnvironmentFile=-/etc/default/opendnssec-enforcer
+ExecStart=/usr/sbin/ods-enforcerd -d $DAEMON_ARGS $ODS_ENFORCERD_OPT
+
+[Install]
+WantedBy=multi-user.target
