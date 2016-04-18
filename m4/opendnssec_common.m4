@@ -16,8 +16,8 @@ OPENDNSSEC_LIB_DIR=$full_libdir/opendnssec
 OPENDNSSEC_LIBEXEC_DIR=$full_libexecdir/opendnssec
 OPENDNSSEC_DATA_DIR=$full_datadir/opendnssec
 OPENDNSSEC_SYSCONF_DIR=$full_sysconfdir/opendnssec
-OPENDNSSEC_LOCALSTATE_DIR="$full_localstatedir/opendnssec"
-OPENDNSSEC_PID_DIR="$full_localstatedir/run/opendnssec"
+OPENDNSSEC_LOCALSTATE_DIR="$full_localstatedir/lib/opendnssec"
+OPENDNSSEC_PID_DIR="/run/opendnssec"
 
 AC_SUBST([OPENDNSSEC_BIN_DIR])
 AC_SUBST([OPENDNSSEC_SBIN_DIR])
