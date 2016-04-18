@@ -10,9 +10,6 @@
 			<TokenLabel>OpenDNSSEC</TokenLabel>
 			<PIN>1234</PIN>
 			<SkipPublicKey/>
-			<!--
-			<AllowExtraction/>
-			-->
 		</Repository>
 -->
 

@@ -6,6 +6,7 @@ Uploaders: Ondřej Surý <ondrej@debian.org>
 Build-Depends: autotools-dev,
                debhelper (>= 9),
                dh-autoreconf,
+               dh-systemd,
                doxygen,
                graphviz,
                libcunit1-dev,
@@ -15,15 +16,16 @@ Build-Depends: autotools-dev,
                libsqlite3-dev,
                libxml2-dev,
                libxml2-utils,
+	       lsb-base (>= 3.2-14),
                mysql-client | mariadb-client,
                opensc,
                procps,
                sqlite3,
                xsltproc
-Standards-Version: 3.9.5
+Standards-Version: 3.9.7
 Homepage: http://www.opendnssec.org/
-Vcs-Browser: http://anonscm.debian.org/?p=pkg-nlnetlabs/opendnssec.git
-Vcs-Git: git://anonscm.debian.org/pkg-nlnetlabs/opendnssec.git
+Vcs-Browser: http://anonscm.debian.org/cgit/pkg-dns/opendnssec.git/
+Vcs-Git: git://anonscm.debian.org/pkg-dns/opendnssec.git
 
 Package: opendnssec-common
 Section: misc
@@ -207,45 +209,3 @@ Description: library for interfacing PKCS#11 Hardware Security Modules
  in software), SCA6000, Aladdin eToken, OpenSC, nCipher or AEP Keyper.
  .
  This package contains command line tools.
-
-Package: opendnssec-dbg-mysql
-Pre-Depends: ${misc:Pre-Depends}
-Depends: opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-mysql,
-         ${misc:Depends}
-Recommends: gdb
-Section: debug
-Priority: extra
-Architecture: any
-Conflicts: opendnssec-dbg-sqlite3
-Description: Debug symbols for OpenDNSSEC (Enforcer with MySQL support)
- This package provides the debug symbols for OpenDNSSEC needed for properly
- debugging errors in OpenDNSSEC with gdb.
- .
- OpenDNSSEC is a complete DNSSEC zone signing system which is very
- easy to use with stability and security in mind.  There are a lot of
- details in signing zone files with DNSSEC and OpenDNSSEC covers most
- of it.
- .
- This package contains debugging symbols for MySQL variant of OpenDNSSEC
- Enforcer.
-
-Package: opendnssec-dbg-sqlite3
-Pre-Depends: ${misc:Pre-Depends}
-Depends: opendnssec-enforcer | opendnssec-signer | libhsm-bin | opendnssec-enforcer-sqlite3,
-         ${misc:Depends}
-Recommends: gdb
-Section: debug
-Priority: extra
-Architecture: any
-Conflicts: opendnssec-dbg-mysql
-Description: Debug symbols for OpenDNSSEC (Enforcer with SQLite3 support)
- This package provides the debug symbols for OpenDNSSEC needed for properly
- debugging errors in OpenDNSSEC with gdb.
- .
- OpenDNSSEC is a complete DNSSEC zone signing system which is very
- easy to use with stability and security in mind.  There are a lot of
- details in signing zone files with DNSSEC and OpenDNSSEC covers most
- of it.
- .
- This package contains debugging symbols for SQLite3 variant of OpenDNSSEC
- Enforcer.

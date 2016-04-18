@@ -147,7 +147,11 @@ server_main(DAEMONCONFIG *config)
                         log_msg(config, LOG_ERR, "hsm_open() result: %d", result);
                 }
             }
-            exit(1);
+            if (result == HSM_NO_REPOSITORIES) {
+                exit(0);
+	    } else {
+                exit(1);
+            }
         }
         log_msg(config, LOG_INFO, "HSM opened successfully.");
         ctx = hsm_create_context();

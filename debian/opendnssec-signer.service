@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenDNSSEC signer daemon
+After=network.target ods-enforcerd.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/opendnssec
+EnvironmentFile=-/etc/default/opendnssec-signer
+ExecStart=/usr/sbin/ods-signerd -d $DAEMON_ARGS $ODS_SIGNERD_OPT
+
+[Install]
+WantedBy=multi-user.target
