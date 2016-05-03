@@ -1,3 +1,11 @@
+opendnssec (1:1.4.10-1) unstable; urgency=medium
+
+  * Use TLS variant of Vcs-* (Closes: #816179)
+  * Add signature verification to d/watch
+  * Imported Upstream version 1.4.10
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 03 May 2016 19:35:30 +0200
+
 opendnssec (1:1.4.9-2) unstable; urgency=medium
 
   [ Timo Aaltonen + Ondřej Surý ]
