@@ -33,6 +33,10 @@
 #define DAEMON_ENGINE_H
 
 #include "config.h"
+#include <signal.h>
+
+typedef struct engine_struct engine_type;
+
 #include "daemon/cfg.h"
 #include "daemon/cmdhandler.h"
 #include "daemon/dnshandler.h"
@@ -40,20 +44,16 @@
 #include "daemon/worker.h"
 #include "scheduler/fifoq.h"
 #include "scheduler/schedule.h"
-#include "shared/allocator.h"
-#include "shared/locks.h"
+#include "status.h"
+#include "locks.h"
 #include "signer/zonelist.h"
 #include "wire/edns.h"
-
-#include <signal.h>
 
 /**
  * Engine stuff.
  *
  */
-typedef struct engine_struct engine_type;
 struct engine_struct {
-    allocator_type* allocator;
     engineconfig_type* config;
     worker_type** workers;
     worker_type** drudgers;
@@ -86,9 +86,10 @@ struct engine_struct {
  * \param[in] daemonize to run as daemon or not
  * \param[in] info print info and exit
  * \param[in] single_run run once
+ * \return 0 if successful, 1 on error
  *
  */
-void engine_start(const char* cfgfile, int cmdline_verbosity,
+int engine_start(const char* cfgfile, int cmdline_verbosity,
     int daemonize, int info, int single_run);
 
 /**

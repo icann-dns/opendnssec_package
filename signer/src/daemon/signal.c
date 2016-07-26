@@ -32,8 +32,8 @@
 #include "config.h"
 #include "daemon/engine.h"
 #include "daemon/signal.h"
-#include "shared/locks.h"
-#include "shared/log.h"
+#include "locks.h"
+#include "log.h"
 
 #include <signal.h>
 
@@ -51,7 +51,6 @@ void
 signal_set_engine(void* engine)
 {
     signal_engine = (engine_type*) engine;
-    return;
 }
 
 
@@ -59,7 +58,7 @@ signal_set_engine(void* engine)
  * Handle signals.
  *
  */
-void
+void *
 signal_handler(sig_atomic_t sig)
 {
     switch (sig) {
@@ -89,7 +88,7 @@ signal_handler(sig_atomic_t sig)
         default:
             break;
     }
-    return;
+    return NULL;
 }
 
 

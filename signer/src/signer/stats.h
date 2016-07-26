@@ -24,17 +24,10 @@
  *
  */
 
-/**
- * Signer statistics.
- *
- */
-
 #ifndef SIGNER_STATS_H
 #define SIGNER_STATS_H
 
-#include "shared/locks.h"
-
-#include <config.h>
+#include "config.h"
 #include <ctype.h>
 #include <stdint.h>
 #include <time.h>
@@ -47,19 +40,22 @@
 
 #include <ldns/ldns.h>
 
+typedef struct stats_struct stats_type;
+
+#include "locks.h"
+
 /**
  * Statistics structure.
  */
-typedef struct stats_struct stats_type;
 struct stats_struct {
-    int32_t     sort_count;
+    uint32_t    sort_count;
     time_t      sort_time;
     int         sort_done;
-    int32_t     nsec_count;
+    uint32_t    nsec_count;
     time_t      nsec_time;
-    int32_t     sig_count;
-    int32_t     sig_soa_count;
-    int32_t     sig_reuse;
+    uint32_t    sig_count;
+    uint32_t    sig_soa_count;
+    uint32_t    sig_reuse;
     time_t      sig_time;
     time_t      audit_time;
     time_t      start_time;

@@ -35,7 +35,7 @@
 #define WIRE_EDNS_H
 
 #include "config.h"
-#include "shared/allocator.h"
+#include "status.h"
 #include "wire/buffer.h"
 
 #include <ldns/ldns.h>
@@ -74,7 +74,6 @@ typedef enum edns_status_enum edns_status;
  */
 typedef struct edns_rr_struct edns_rr_type;
 struct edns_rr_struct {
-    allocator_type* allocator;
     edns_status status;
     size_t position;
     size_t maxlen;
@@ -96,7 +95,7 @@ void edns_init(edns_data_type* data, uint16_t max_length);
  * \return edns_rr_type* EDNS RR.
  *
  */
-edns_rr_type* edns_rr_create(allocator_type* allocator);
+edns_rr_type* edns_rr_create(void);
 
 
 /**
@@ -122,5 +121,8 @@ int edns_rr_parse(edns_rr_type* err, buffer_type* buffer);
  *
  */
 size_t edns_rr_reserved_space(edns_rr_type* err);
+
+void edns_rr_cleanup(edns_rr_type* err);
+
 
 #endif /* WIRE_EDNS_H */

@@ -31,12 +31,12 @@
 
 #include "daemon/cmdhandler.h"
 #include "daemon/engine.h"
-#include "shared/allocator.h"
-#include "shared/file.h"
-#include "shared/locks.h"
-#include "shared/log.h"
-#include "shared/status.h"
-#include "shared/util.h"
+#include "file.h"
+#include "str.h"
+#include "locks.h"
+#include "log.h"
+#include "status.h"
+#include "util.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -57,12 +57,8 @@
 
 #define SE_CMDH_CMDLEN 7
 
-#ifndef SUN_LEN
-#define SUN_LEN(su)  (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
-
 static int count = 0;
-static char* cmdh_str = "cmdhandler";
+static char const * cmdh_str = "cmdhandler";
 
 
 /**
@@ -110,7 +106,6 @@ cmdhandler_handle_cmd_help(int sockfd)
         "verbosity <nr>              Set verbosity.\n"
     );
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -128,15 +123,15 @@ cmdhandler_handle_cmd_zones(int sockfd, cmdhandler_type* cmdc)
     zone_type* zone = NULL;
     ods_log_assert(cmdc);
     ods_log_assert(cmdc->engine);
-    engine = (engine_type*) cmdc->engine;
+    engine = cmdc->engine;
     if (!engine->zonelist || !engine->zonelist->zones) {
-        (void)snprintf(buf, ODS_SE_MAXLINE, "I have no zones configured\n");
+        (void)snprintf(buf, ODS_SE_MAXLINE, "There are no zones configured\n");
         ods_writen(sockfd, buf, strlen(buf));
         return;
     }
     /* how many zones */
     lock_basic_lock(&engine->zonelist->zl_lock);
-    (void)snprintf(buf, ODS_SE_MAXLINE, "I have %i zones configured\n",
+    (void)snprintf(buf, ODS_SE_MAXLINE, "There are %i zones configured\n",
         (int) engine->zonelist->zones->count);
     ods_writen(sockfd, buf, strlen(buf));
     /* list zones */
@@ -151,7 +146,6 @@ cmdhandler_handle_cmd_zones(int sockfd, cmdhandler_type* cmdc)
         node = ldns_rbtree_next(node);
     }
     lock_basic_unlock(&engine->zonelist->zl_lock);
-    return;
 }
 
 
@@ -171,7 +165,7 @@ cmdhandler_handle_cmd_update(int sockfd, cmdhandler_type* cmdc,
     ods_log_assert(tbd);
     ods_log_assert(cmdc);
     ods_log_assert(cmdc->engine);
-    engine = (engine_type*) cmdc->engine;
+    engine = cmdc->engine;
     ods_log_assert(engine->taskq);
     if (ods_strcmp(tbd, "--all") == 0) {
         lock_basic_lock(&engine->zonelist->zl_lock);
@@ -205,7 +199,6 @@ cmdhandler_handle_cmd_update(int sockfd, cmdhandler_type* cmdc,
               */
             engine_update_zones(engine, ODS_STATUS_OK);
         }
-        return;
     } else {
         /* look up zone */
         lock_basic_lock(&engine->zonelist->zl_lock);
@@ -246,7 +239,6 @@ cmdhandler_handle_cmd_update(int sockfd, cmdhandler_type* cmdc,
             engine_wakeup_workers(engine);
         }
     }
-    return;
 }
 
 
@@ -280,23 +272,21 @@ cmdhandler_handle_cmd_retransfer(int sockfd, cmdhandler_type* cmdc, char* tbd)
         (void)snprintf(buf, ODS_SE_MAXLINE, "Error: Zone %s not found.\n",
             tbd);
         ods_writen(sockfd, buf, strlen(buf));
-        return;
     } else if (zone->adinbound->type != ADAPTER_DNS) {
         (void)snprintf(buf, ODS_SE_MAXLINE,
             "Error: Zone %s not configured to use DNS input adapter.\n",
             tbd);
         ods_writen(sockfd, buf, strlen(buf));
-        return;
+    } else {
+        zone->xfrd->serial_retransfer = 1;
+        xfrd_set_timer_now(zone->xfrd);
+        ods_log_debug("[%s] forward a notify", cmdh_str);
+        dnshandler_fwd_notify(engine->dnshandler,
+            (uint8_t*) ODS_SE_NOTIFY_CMD, strlen(ODS_SE_NOTIFY_CMD));
+        (void)snprintf(buf, ODS_SE_MAXLINE, "Zone %s being retransferred.\n", tbd);
+        ods_writen(sockfd, buf, strlen(buf));
+        ods_log_verbose("[%s] zone %s being retransferred", cmdh_str, tbd);
     }
-    zone->xfrd->serial_retransfer = 1;
-    xfrd_set_timer_now(zone->xfrd);
-    ods_log_debug("[%s] forward a notify", cmdh_str);
-    dnshandler_fwd_notify(engine->dnshandler,
-        (uint8_t*) ODS_SE_NOTIFY_CMD, strlen(ODS_SE_NOTIFY_CMD));
-    (void)snprintf(buf, ODS_SE_MAXLINE, "Zone %s being retransferred.\n", tbd);
-    ods_writen(sockfd, buf, strlen(buf));
-    ods_log_verbose("[%s] zone %s being retransferred", cmdh_str, tbd);
-    return;
 }
 
 
@@ -334,7 +324,6 @@ cmdhandler_handle_cmd_sign(int sockfd, cmdhandler_type* cmdc, const char* tbd)
         ods_writen(sockfd, buf, strlen(buf));
         ods_log_verbose("[%s] all zones scheduled for immediate re-sign",
             cmdh_str);
-        return;
     } else {
         char* delim1 = strchr(tbd, ' ');
         char* delim2 = NULL;
@@ -415,7 +404,6 @@ cmdhandler_handle_cmd_sign(int sockfd, cmdhandler_type* cmdc, const char* tbd)
             engine_wakeup_workers(engine);
         }
     }
-    return;
 }
 
 
@@ -432,7 +420,6 @@ unlink_backup_file(const char* filename, const char* extension)
         unlink(tmpname);
         free((void*)tmpname);
     }
-    return;
 }
 
 /**
@@ -506,7 +493,6 @@ cmdhandler_handle_cmd_clear(int sockfd, cmdhandler_type* cmdc, const char* tbd)
             cmdh_str, tbd?tbd:"(null)");
     }
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -528,7 +514,7 @@ cmdhandler_handle_cmd_queue(int sockfd, cmdhandler_type* cmdc)
     ods_log_assert(cmdc->engine);
     engine = (engine_type*) cmdc->engine;
     if (!engine->taskq || !engine->taskq->tasks) {
-        (void)snprintf(buf, ODS_SE_MAXLINE, "I have no tasks scheduled.\n");
+        (void)snprintf(buf, ODS_SE_MAXLINE, "There are no tasks scheduled.\n");
         ods_writen(sockfd, buf, strlen(buf));
         return;
     }
@@ -551,7 +537,7 @@ cmdhandler_handle_cmd_queue(int sockfd, cmdhandler_type* cmdc)
         }
     }
     /* how many tasks */
-    (void)snprintf(buf, ODS_SE_MAXLINE, "\nI have %i tasks scheduled.\n",
+    (void)snprintf(buf, ODS_SE_MAXLINE, "\nThere are %i tasks scheduled.\n",
         (int) engine->taskq->tasks->count);
     ods_writen(sockfd, buf, strlen(buf));
     /* list tasks */
@@ -566,7 +552,6 @@ cmdhandler_handle_cmd_queue(int sockfd, cmdhandler_type* cmdc)
         node = ldns_rbtree_next(node);
     }
     lock_basic_unlock(&engine->taskq->schedule_lock);
-    return;
 }
 
 
@@ -590,7 +575,6 @@ cmdhandler_handle_cmd_flush(int sockfd, cmdhandler_type* cmdc)
     (void)snprintf(buf, ODS_SE_MAXLINE, "All tasks scheduled immediately.\n");
     ods_writen(sockfd, buf, strlen(buf));
     ods_log_verbose("[%s] all tasks scheduled immediately", cmdh_str);
-    return;
 }
 
 
@@ -613,7 +597,6 @@ cmdhandler_handle_cmd_reload(int sockfd, cmdhandler_type* cmdc)
     lock_basic_unlock(&engine->signal_lock);
     (void)snprintf(buf, ODS_SE_MAXLINE, "Reloading engine.\n");
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -635,7 +618,6 @@ cmdhandler_handle_cmd_stop(int sockfd, cmdhandler_type* cmdc)
     lock_basic_unlock(&engine->signal_lock);
     (void)snprintf(buf, ODS_SE_MAXLINE, ODS_SE_STOP_RESPONSE);
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -649,7 +631,6 @@ cmdhandler_handle_cmd_start(int sockfd)
     char buf[ODS_SE_MAXLINE];
     (void)snprintf(buf, ODS_SE_MAXLINE, "Engine already running.\n");
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -663,7 +644,6 @@ cmdhandler_handle_cmd_running(int sockfd)
     char buf[ODS_SE_MAXLINE];
     (void)snprintf(buf, ODS_SE_MAXLINE, "Engine running.\n");
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -680,11 +660,9 @@ cmdhandler_handle_cmd_verbosity(int sockfd, cmdhandler_type* cmdc, int val)
     ods_log_assert(cmdc->engine);
     engine = (engine_type*) cmdc->engine;
     ods_log_assert(engine->config);
-    ods_log_init(engine->config->log_filename, engine->config->use_syslog,
-        val);
+    ods_log_init("ods-signerd", engine->config->use_syslog, engine->config->log_filename, val);
     (void)snprintf(buf, ODS_SE_MAXLINE, "Verbosity level set to %i.\n", val);
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -698,7 +676,6 @@ cmdhandler_handle_cmd_error(int sockfd, const char* str)
     char buf[ODS_SE_MAXLINE];
     (void)snprintf(buf, ODS_SE_MAXLINE, "Error: %s.\n", str?str:"(null)");
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -713,7 +690,6 @@ cmdhandler_handle_cmd_unknown(int sockfd, const char* str)
     (void)snprintf(buf, ODS_SE_MAXLINE, "Unknown command %s.\n",
         str?str:"(null)");
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
 
 
@@ -726,7 +702,6 @@ cmdhandler_handle_cmd_notimpl(int sockfd, const char* str)
     char buf[ODS_SE_MAXLINE];
     (void)snprintf(buf, ODS_SE_MAXLINE, "Command %s not implemented.\n", str);
     ods_writen(sockfd, buf, strlen(buf));
-    return;
 }
  */
 
@@ -750,8 +725,8 @@ again:
         /* what if this number is smaller than the number of bytes requested? */
         buf[n-1] = '\0';
         n--;
-        ods_log_verbose("[%s] received command %s[%i]", cmdh_str, buf, n);
-        ods_str_trim(buf);
+        ods_log_verbose("[%s] received command %s[%ld]", cmdh_str, buf, (long)n);
+        ods_str_trim(buf,1);
         n = strlen(buf);
 
         if (n == 4 && strncmp(buf, "help", n) == 0) {
@@ -833,7 +808,7 @@ again:
             ods_log_debug("[%s] unknown command", cmdh_str);
             cmdhandler_handle_cmd_unknown(sockfd, buf);
         }
-        ods_log_debug("[%s] done handling command %s[%i]", cmdh_str, buf, n);
+        ods_log_debug("[%s] done handling command %s[%ld]", cmdh_str, buf, (long)n);
         (void)snprintf(buf, SE_CMDH_CMDLEN, "\ncmd> ");
         ods_writen(sockfd, buf, strlen(buf));
     }
@@ -846,7 +821,6 @@ again:
     } else if (n < 0 ) {
         ods_log_error("[%s] read error: %s", cmdh_str, strerror(errno));
     }
-    return;
 }
 
 
@@ -879,7 +853,7 @@ cmdhandler_accept_client(void* arg)
  *
  */
 cmdhandler_type*
-cmdhandler_create(allocator_type* allocator, const char* filename)
+cmdhandler_create(const char* filename)
 {
     cmdhandler_type* cmdh = NULL;
     struct sockaddr_un servaddr;
@@ -887,7 +861,7 @@ cmdhandler_create(allocator_type* allocator, const char* filename)
     int flags = 0;
     int ret = 0;
 
-    if (!allocator || !filename) {
+    if (!filename) {
         return NULL;
     }
     /* new socket */
@@ -924,8 +898,7 @@ cmdhandler_create(allocator_type* allocator, const char* filename)
     servaddr.sun_len = strlen(servaddr.sun_path);
 #endif
     /* bind and listen... */
-    ret = bind(listenfd, (const struct sockaddr*) &servaddr,
-        SUN_LEN(&servaddr));
+    ret = bind(listenfd, (const struct sockaddr*) &servaddr, sizeof(struct sockaddr_un));
     if (ret != 0) {
         ods_log_error("[%s] unable to create cmdhandler: "
             "bind() failed (%s)", cmdh_str, strerror(errno));
@@ -940,15 +913,7 @@ cmdhandler_create(allocator_type* allocator, const char* filename)
         return NULL;
     }
     /* all ok */
-    cmdh = (cmdhandler_type*) allocator_alloc(allocator,
-        sizeof(cmdhandler_type));
-    if (!cmdh) {
-        ods_log_error("[%s] unable to create cmdhandler: "
-            "allocator_alloc() failed", cmdh_str);
-        close(listenfd);
-        return NULL;
-    }
-    cmdh->allocator = allocator;
+    CHECKALLOC(cmdh = (cmdhandler_type*) malloc(sizeof(cmdhandler_type)));
     cmdh->listen_fd = listenfd;
     cmdh->listen_addr = servaddr;
     cmdh->need_to_exit = 0;
@@ -973,7 +938,7 @@ cmdhandler_start(cmdhandler_type* cmdhandler)
     ods_log_assert(cmdhandler);
     ods_log_assert(cmdhandler->engine);
     ods_log_debug("[%s] start", cmdh_str);
-    engine = (engine_type*) cmdhandler->engine;
+    engine = cmdhandler->engine;
     ods_thread_detach(cmdhandler->thread_id);
     FD_ZERO(&rset);
     while (cmdhandler->need_to_exit == 0) {
@@ -1019,7 +984,6 @@ cmdhandler_start(cmdhandler_type* cmdhandler)
     ods_log_debug("[%s] shutdown", cmdh_str);
     engine = cmdhandler->engine;
     engine->cmdhandler_done = 1;
-    return;
 }
 
 
@@ -1030,12 +994,6 @@ cmdhandler_start(cmdhandler_type* cmdhandler)
 void
 cmdhandler_cleanup(cmdhandler_type* cmdhandler)
 {
-    allocator_type* allocator = NULL;
-    if (!cmdhandler) {
-        return;
-    }
-    allocator = cmdhandler->allocator;
-    allocator_deallocate(allocator, (void*) cmdhandler);
-    return;
+    free(cmdhandler);
 }
 

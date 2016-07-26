@@ -31,9 +31,9 @@
 
 #include "adapter/adapter.h"
 #include "parser/zonelistparser.h"
-#include "shared/file.h"
-#include "shared/log.h"
-#include "shared/status.h"
+#include "file.h"
+#include "log.h"
+#include "status.h"
 #include "signer/zonelist.h"
 #include "signer/zone.h"
 
@@ -135,14 +135,15 @@ parse_zonelist_adapter(xmlXPathContextPtr xpathCtx, xmlChar* expr,
                     type = NULL;
                 }
                 if (adapter) {
-                    break;
+		    xmlXPathFreeObject(xpathObj);
+		    return adapter;
                 }
                 curNode = curNode->next;
             }
         }
     }
     xmlXPathFreeObject(xpathObj);
-    return adapter;
+    return NULL;
 }
 
 
@@ -161,7 +162,6 @@ parse_zonelist_adapters(xmlXPathContextPtr xpathCtx, zone_type* zone)
     }
     zone->adinbound  = parse_zonelist_adapter(xpathCtx, i_expr, 1);
     zone->adoutbound = parse_zonelist_adapter(xpathCtx, o_expr, 0);
-    return;
 }
 
 

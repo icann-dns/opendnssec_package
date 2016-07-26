@@ -30,15 +30,12 @@
  */
 
 #include "config.h"
-#include "daemon/cfg.h"
-#include "parser/confparser.h"
-#include "shared/allocator.h"
-#include "shared/file.h"
-#include "shared/log.h"
-#include "shared/status.h"
+#include "status.h"
+#include "file.h"
+#include "log.h"
+#include "str.h"
 
 #include <errno.h>
-#include <getopt.h>
 #include <fcntl.h> /* fcntl() */
 #include <stdio.h> /* fprintf() */
 #include <string.h> /* strerror(), strncmp(), strlen(), strcpy(), strncat() */
@@ -61,32 +58,16 @@ static const char* cli_str = "client";
  *
  */
 static void
-usage(FILE* out)
+usage(char* argv0, FILE* out)
 {
-    fprintf(out, "Usage: %s [<cmd>]\n", "ods-signer");
+    fprintf(out, "Usage: %s [<cmd>]\n", argv0);
     fprintf(out, "Simple command line interface to control the signer "
                  "engine daemon.\nIf no cmd is given, the tool is going "
-                 "into interactive mode.\n\n");
-    fprintf(out, "Supported options:\n");
-    fprintf(out, " -c | --config <cfgfile> Read configuration from file.\n");
-    fprintf(out, " -h | --help             Show this help and exit.\n");
-    fprintf(out, " -V | --version          Show version and exit.\n");
+                 "into interactive mode.\n");
     fprintf(out, "\nBSD licensed, see LICENSE in source package for "
                  "details.\n");
     fprintf(out, "Version %s. Report bugs to <%s>.\n",
         PACKAGE_VERSION, PACKAGE_BUGREPORT);
-}
-
-
-/**
- * Prints version.
- *
- */
-static void
-version(FILE* out)
-{
-    fprintf(out, "%s version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
-    exit(0);
 }
 
 
@@ -119,7 +100,6 @@ interface_run(FILE* fp, int sockfd, char* cmd)
     fd_set rset;
     char buf[ODS_SE_MAXLINE];
 
-    stdineof = 0;
     FD_ZERO(&rset);
     for(;;) {
         /* prepare */
@@ -147,6 +127,11 @@ interface_run(FILE* fp, int sockfd, char* cmd)
             /* Clear the interactive mode / stdin fd from the set */
             FD_CLR(fileno(fp), &rset);
             continue;
+        }
+
+        if (cmd && cmd_written && cmd_response) {
+            /* normal termination */
+            return 0;
         }
 
         if (FD_ISSET(sockfd, &rset)) {
@@ -267,7 +252,7 @@ interface_run(FILE* fp, int sockfd, char* cmd)
                 strncmp(buf, "quit", 4) == 0) {
                 return 0;
             }
-            ods_str_trim(buf);
+            ods_str_trim(buf, 1);
             n = strlen(buf);
             ods_writen(sockfd, buf, n);
         }
@@ -281,15 +266,13 @@ interface_run(FILE* fp, int sockfd, char* cmd)
  *
  */
 static int
-interface_start(char* cmd, engineconfig_type* config)
+interface_start(char* cmd)
 {
     int sockfd, ret, flags;
     struct sockaddr_un servaddr;
-    const char* servsock_filename = config->clisock_filename;
-    char start_cmd[256];
+    const char* servsock_filename = ODS_SE_SOCKFILE;
 
-    /* client ignores syslog facility or log filename */
-    ods_log_init(NULL, 0, config->verbosity);
+    ods_log_init("ods-signerd", 0, NULL, 0);
 
     /* new socket */
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -302,25 +285,19 @@ interface_start(char* cmd, engineconfig_type* config)
     /* no suprises */
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sun_family = AF_UNIX;
-    strncpy(servaddr.sun_path, servsock_filename,
-        sizeof(servaddr.sun_path) - 1);
+    strncpy(servaddr.sun_path, servsock_filename, sizeof(servaddr.sun_path)-1);
 
     /* connect */
     ret = connect(sockfd, (const struct sockaddr*) &servaddr,
         sizeof(servaddr));
     if (ret != 0) {
         if (cmd && ods_strcmp(cmd, "start\n") == 0) {
-            size_t len = strlen(ODS_SE_ENGINE) + strlen(config->cfg_filename) + 5;
-            if (len < 256) {
-                (void) snprintf(start_cmd, len, "%s -c %s", ODS_SE_ENGINE,
-                    config->cfg_filename);
-                close(sockfd);
-                return system(start_cmd);
-            } else {
-                fprintf(stderr, "Unable to start engine: cmd too long\n");
-                close(sockfd);
+            close(sockfd);
+            if (system(ODS_SE_ENGINE)) {
+                fprintf(stderr, "Failed to start signer engine\n");
                 return 1;
             }
+            return 0;
         }
 
         if (cmd && ods_strcmp(cmd, "running\n") == 0) {
@@ -371,86 +348,55 @@ main(int argc, char* argv[])
 {
     int c;
     int options_size = 0;
-    int options_count = 0;
-    const char* options[10];
-    const char* cfgfile = ODS_SE_CFGFILE;
-    int cfgfile_expected = 0;
-    engineconfig_type* config = NULL;
-    allocator_type* clialloc = NULL;
-    ods_status status;
+    const char* options[5];
+    char* argv0;
     char* cmd = NULL;
     int ret = 0;
 
-    /* command line options */
-    if (argc > 10) {
+    /* Get the name of the program */
+    if((argv0 = strrchr(argv[0],'/')) == NULL)
+        argv0 = argv[0];
+    else
+        ++argv0;
+
+    if (argc > 5) {
         fprintf(stderr,"error, too many arguments (%d)\n", argc);
         exit(1);
     }
-    for (c = 1; c < argc; c++) {
-        /* leave out --options */
-        if (cfgfile_expected) {
-            cfgfile = argv[c];
-            cfgfile_expected = 0;
-        } else if (!ods_strcmp(argv[c], "-h")) {
-            usage(stdout);
-            exit(0);
-        } else if (!ods_strcmp(argv[c], "--help")) {
-            usage(stdout);
-            exit(0);
-        } else if (!ods_strcmp(argv[c], "-V")) {
-            version(stdout);
-            exit(0);
-        } else if (!ods_strcmp(argv[c], "--version")) {
-            version(stdout);
-            exit(0);
-        } else if (!ods_strcmp(argv[c], "-c")) {
-            cfgfile_expected = 1;
-        } else if (!ods_strcmp(argv[c], "--cfgfile")) {
-            cfgfile_expected = 1;
-        } else {
-            options[options_count] = argv[c];
+
+    /* command line options */
+    for (c = 0; c < argc; c++) {
+        options[c] = argv[c];
+        if (c > 0) {
             options_size += strlen(argv[c]) + 1;
-            options_count++;
         }
     }
-    if (cfgfile_expected) {
-        fprintf(stderr,"error, missing config file\n");
-        exit(1);
-    }
-    clialloc = allocator_create(malloc, free);
-    if (!clialloc) {
-        fprintf(stderr,"error, malloc failed for client\n");
-        exit(1);
-    }
-    /* create signer command */
-    if (options_count) {
-        cmd = (char*) allocator_alloc(clialloc, (options_size+2)*sizeof(char));
+    if (argc > 1) {
+        CHECKALLOC(cmd = (char*) malloc((options_size+2)*sizeof(char)));
         if (!cmd) {
-            fprintf(stderr, "error, memory allocation failed\n");
+            fprintf(stderr, "memory allocation failed\n");
             exit(1);
         }
         (void)strncpy(cmd, "", 1);
-        for (c = 0; c < options_count; c++) {
+        for (c = 1; c < argc; c++) {
             (void)strncat(cmd, options[c], strlen(options[c]));
             (void)strncat(cmd, " ", 1);
         }
         cmd[options_size-1] = '\n';
     }
-    /* parse conf */
-    config = engine_config(clialloc, cfgfile, 0);
-    status = engine_config_check(config);
-    if (status != ODS_STATUS_OK) {
-        ods_log_error("[%s] cfgfile %s has errors", cli_str, cfgfile);
-        engine_config_cleanup(config);
-        if (cmd) allocator_deallocate(clialloc, (void*) cmd);
-        allocator_cleanup(clialloc);
-        return 1;
-    }
+
     /* main stuff */
-    ret = interface_start(cmd, config);
+    if (cmd && ods_strcmp(cmd, "-h\n") == 0) {
+        usage(argv0, stdout);
+        ret = 1;
+    } else if (cmd && ods_strcmp(cmd, "--help\n") == 0) {
+        usage(argv0, stdout);
+        ret = 1;
+    } else {
+        ret = interface_start(cmd);
+    }
+
     /* done */
-    engine_config_cleanup(config);
-    if (cmd) allocator_deallocate(clialloc, (void*) cmd);
-    allocator_cleanup(clialloc);
+    free(cmd);
     return ret;
 }

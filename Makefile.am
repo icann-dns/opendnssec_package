@@ -9,23 +9,30 @@ MAINTAINERCLEANFILES = \
 	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
 	$(srcdir)/config.guess $(srcdir)/config.sub
 
-SUBDIRS = common libhsm enforcer conf tools
+SUBDIRS = common libhsm conf tools
 
 if ENABLE_SIGNER
 SUBDIRS += signer
 endif
 
+if ENABLE_ENFORCER
+SUBDIRS += enforcer
+endif
+
 EXTRA_DIST =	$(srcdir)/LICENSE \
-		$(srcdir)/KNOWN_ISSUES \
 		$(srcdir)/MIGRATION \
 		$(srcdir)/README.md \
-		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
+		$(srcdir)/contrib/ods-sequencer/ods-sequencer \
+		$(srcdir)/contrib/ods-sequencer/ods-sequencer.md \
+		$(srcdir)/contrib/ods-sequencer/ods-sequencer-submit.sh \
+		$(srcdir)/contrib/simple-dnskey-mailer/simple-dnskey-mailer.sh
 
 
 install-data-hook:
 	$(INSTALL) -d $(DESTDIR)$(localstatedir)
 	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec
-	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/tmp
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signer
+	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/enforcer
 	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signconf
 	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/unsigned
 	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signed
@@ -34,5 +41,10 @@ install-data-hook:
 
 docs:
 	(cd libhsm; $(MAKE) doxygen)
+if ENABLE_ENFORCER
 	(cd enforcer; $(MAKE) doxygen)
+endif
+if ENABLE_SIGNER
 	(cd signer; $(MAKE) doxygen)
+endif
+

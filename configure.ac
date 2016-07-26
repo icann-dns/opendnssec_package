@@ -2,10 +2,10 @@ m4_sinclude([version.m4])
 
 AC_PREREQ(2.61)
 AC_INIT([opendnssec], OPENDNSSEC_VERSION, [http://bugs.opendnssec.org/])
-
-AM_INIT_AUTOMAKE
+AM_DEFAULT_VERBOSITY="0"
+AC_SUBST([AM_DEFAULT_VERBOSITY])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE(foreign)
 ACX_PREFIXHACK
 
 OPENDNSSEC_COMMON
@@ -18,7 +18,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
+AC_PROG_CXX
 
 # additional programs
 AC_PATH_PROG(XMLLINT, xmllint)
@@ -27,28 +27,15 @@ AC_PATH_PROG(JAVA, java)
 AC_PATH_PROG(CP, cp)
 AC_DEFINE_UNQUOTED(CP_COMMAND, "$CP", [System cp(3) command])
 
-# building
+# building, compiler flags
+AC_PROG_CC_STDC
+#AC_PROG_CC_C99
+ACX_PEDANTIC
+AX_COMPILER_FLAGS_CFLAGS
+AX_C___ATTRIBUTE__
 ACX_ARG_RPATH
 ACX_RUNTIME_PATH_ADD
-ACX_PEDANTIC
-ACX_STRICT
-
-# compiler flags
-CHECK_COMPILER_FLAG(std=c99, [C99FLAG="-std=c99"])
-CHECK_COMPILER_FLAG(xc99, [C99FLAG="-xc99"])
-CHECK_COMPILER_FLAG_NEEDED($C99FLAG, [#include <stdbool.h>], [CFLAGS="$CFLAGS $C99FLAG"])
-CHECK_COMPILER_FLAG_NEEDED(-D__EXTENSIONS__,
-[
-#include "confdefs.h"
-#include <stdlib.h>
-#include <unistd.h>
-int test() {
-	int a;
-	char **opts = NULL;
-	a = getopt(2, opts, "a");
-	return a;
-}
-], [CFLAGS="-D__EXTENSIONS__ $CFLAGS"])
+AX_CFLAGS_WARN_ALL
 
 # checks for header files
 AC_HEADER_STDC
@@ -82,9 +69,13 @@ else
 fi
 
 # pthread
-ACX_PTHREAD
+ACX_PTHREAD(
+  [AC_DEFINE([HAVE_PTHREAD], [1],
+    [Define if you have POSIX threads libraries and header files.])
+    LDFLAGS="$CFLAGS $PTHREAD_CFLAGS $LDFLAGS $PTHREAD_LIBS $LIBS"])
+
 LIBS="$PTHREAD_LIBS $LIBS"
-CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS $WARN_CFLAGS"
 CC="$PTHREAD_CC"
 
 # checks for library functions
@@ -129,8 +120,11 @@ case "$host" in
 *-*-darwin*)
     AC_DEFINE(SETEUID_BREAKS_SETUID, 1,
 	    [Define if your platform breaks doing a seteuid before a setuid])
-	AC_DEFINE(BROKEN_SETREUID, 1, [Define if your setreuid() is broken])
-	AC_DEFINE(BROKEN_SETREGID, 1, [Define if your setregid() is broken])
+    AC_DEFINE(BROKEN_SETREUID, 1, [Define if your setreuid() is broken])
+    AC_DEFINE(BROKEN_SETREGID, 1, [Define if your setregid() is broken])
+    ;;
+*-*-netbsd*)
+    AC_DEFINE(_NETBSD_SOURCE, 1, [Enable functions on BSD])
     ;;
 esac
 
@@ -142,46 +136,36 @@ AC_CHECK_MEMBER([struct sockaddr_un.sun_len],
       #include <sys/un.h>
     ])
 
-# timeshift
-AC_ARG_ENABLE(timeshift,
-	AC_HELP_STRING([--enable-timeshift], [Enable timeshift debug]),
-		[enable_timeshift="${enableval}"],
-		[enable_timeshift="no"])
-AC_MSG_CHECKING(if we should enable timeshift debugging)
-if test "x${enable_timeshift}" = "xyes"; then
-	AC_MSG_RESULT(yes)
-	AC_DEFINE_UNQUOTED(ENFORCER_TIMESHIFT, 1, [timeshift debug])
-else
-	AC_MSG_RESULT(no)
-fi
-
 # common dependencies
 ACX_LIBXML2
-ACX_LDNS(1,6,12)
+ACX_LDNS(1,6,17)
 ACX_LDNS_NOT(1,6,14, [binary incompatibility, see http://open.nlnetlabs.nl/pipermail/ldns-users/2012-October/000564.html])
 ACX_LDNS_NOT(1,6,15, [fail to create NSEC3 bitmap for empty non-terminals, see http://www.nlnetlabs.nl/pipermail/ldns-users/2012-November/000565.html])
 ACX_PKCS11_MODULES
 ACX_RT
 ACX_LIBC
 ACX_SSL
+ACX_CUNIT
+
+# cunit
+AM_CONDITIONAL([WITH_CUNIT], [test "${with_cunit}" != "no" -a -n "$CUNIT_LIBS"])
 
 # libhsm
 ACX_DLOPEN
 AC_DEFINE_UNQUOTED([HSM_DEFAULT_CONFIG],["$OPENDNSSEC_CONFIG_FILE"],[Default configuration file.])
 
 # enforcer
-AC_PATH_PROG(PERL, perl)
-if test -z "$PERL"; then
-   AC_MSG_ERROR([perl not found])
+AC_ARG_ENABLE(enforcer,
+	AC_HELP_STRING([--disable-enforcer],
+		[Disable enforcer build (default enabled)]),
+		[enable_enforcer="${enableval}"],
+		[enable_enforcer="yes"])
+if test "x${enable_enforcer}" = "xyes"; then
+	AC_DEFINE_UNQUOTED(SIGNER_CLI_UPDATE, "$OPENDNSSEC_SIGNER_CLI update", [Path to the OpenDNSSEC signer engine cli])
+	ACX_ENFORCER_DATABASE
+	ACX_LIBREADLINE
 fi
-ACX_DBPARAMS
-ACX_DATABASE_BACKEND
-ACX_CUNIT
-AC_DEFINE_UNQUOTED(SIGNER_CLI_UPDATE, "$OPENDNSSEC_SIGNER_CLI update", [Path to the OpenDNSSEC signer engine cli])
-AM_CONDITIONAL([ENABLE_ENFORCER], [test "${enable_signer}" = "yes"])
-
-# cunit
-AM_CONDITIONAL([WITH_CUNIT], [test "${with_cunit}" != "no" -a -n "$CUNIT_LIBS"])
+AM_CONDITIONAL([ENABLE_ENFORCER], [test "${enable_enforcer}" = "yes"])
 
 # signer
 AC_ARG_ENABLE(signer,
@@ -192,15 +176,15 @@ AC_ARG_ENABLE(signer,
 AH_BOTTOM([
 	/* define before includes as it specifies what standard to use. */
 	#if (defined(HAVE_PSELECT) && !defined (HAVE_PSELECT_PROTO)) \
-	        || !defined (HAVE_CTIME_R_PROTO) \
-	        || defined (STRPTIME_NEEDS_DEFINES)
+		|| !defined (HAVE_CTIME_R_PROTO) \
+		|| defined (STRPTIME_NEEDS_DEFINES)
 	#  ifndef _BSD_SOURCE
 	#    define _BSD_SOURCE 1
 	#  endif
 	#  ifndef __EXTENSIONS__
 	#    define __EXTENSIONS__ 1
 	#  endif
-	#  ifndef _STDC_C99
+	#  if !defined(_STDC_C99) && !defined(__cplusplus)
 	#    define _STDC_C99 1
 	#  endif
 	#  ifndef _ALL_SOURCE
@@ -209,12 +193,6 @@ AH_BOTTOM([
 	#endif
 ])
 AM_CONDITIONAL([ENABLE_SIGNER], [test "${enable_signer}" = "yes"])
-
-# check for a green cucumber (but only if we can shift time)
-if test "x${enable_timeshift}" = "xyes"; then
-	AC_PATH_PROG(CUCUMBER, cucumber)
-fi
-AM_CONDITIONAL([WITH_CUCUMBER], [test -x "${CUCUMBER}"])
 
 # doxygen
 DX_PDF_FEATURE(OFF)
@@ -236,23 +214,13 @@ AC_CONFIG_FILES([
 	conf/signconf.xml
 	conf/zonelist.xml
 	enforcer/Makefile
-	enforcer/common/Makefile
-	enforcer/enforcerd/Makefile
-	enforcer/enforcerd/ods-enforcerd.8
-	enforcer/ksm/Makefile
-	enforcer/ksm/include/Makefile
-	enforcer/ksm/include/ksm/Makefile
-	enforcer/test/Makefile
-	enforcer/test/cucumber/Makefile
-	enforcer/test/cucumber/c_conf.xml
-	enforcer/test/cucumber/c_kasp.xml
-	enforcer/test/cucumber/c_zonelist.base.xml
-	enforcer/test/cunit/Makefile
-	enforcer/test/cunit/database_setup_mysql.sh
-	enforcer/test/cunit/database_setup_sqlite3.sh
-	enforcer/utils/Makefile
-	enforcer/utils/ods-kaspcheck.1
-	enforcer/utils/ods-ksmutil.1
+	enforcer/src/Makefile
+	enforcer/man/Makefile
+	enforcer/src/db/test/Makefile
+	enforcer/man/ods-enforcer.8
+	enforcer/man/ods-enforcer-db-setup.8
+	enforcer/man/ods-enforcerd.8
+	enforcer/man/ods-ksmutil.1
 	libhsm/Makefile
 	libhsm/src/Makefile
 	libhsm/src/bin/Makefile
@@ -269,7 +237,6 @@ AC_CONFIG_FILES([
 	libhsm/checks/conf-aepkeyper.xml
 	signer/Makefile
 	signer/man/Makefile
-	signer/man/ods-getconf.8
 	signer/man/ods-signer.8
 	signer/man/ods-signerd.8
 	signer/src/Makefile
@@ -279,6 +246,7 @@ AC_CONFIG_FILES([
 	tools/solaris/ods-enforcerd.init
 	tools/solaris/ods-signerd.init
 	tools/ods-timing.5
+	tools/ods-kasp.5
 	tools/opendnssec.7
 	tools/ods-control.8
 	tools/ods-kasp2html

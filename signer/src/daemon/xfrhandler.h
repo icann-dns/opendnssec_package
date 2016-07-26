@@ -33,24 +33,26 @@
 #define DAEMON_XFRHANDLER_H
 
 #include "config.h"
-#include "shared/allocator.h"
-#include "shared/locks.h"
+
+typedef struct xfrhandler_struct xfrhandler_type;
+
+#include "status.h"
+#include "locks.h"
 #include "wire/buffer.h"
 #include "wire/netio.h"
 #include "wire/notify.h"
 #include "wire/tcpset.h"
 #include "wire/xfrd.h"
+#include "engine.h"
 
 /**
  * Zone transfer handler.
  *
  */
-typedef struct xfrhandler_struct xfrhandler_type;
 struct xfrhandler_struct {
-    allocator_type* allocator;
     /* Engine reference */
     ods_thread_type thread_id;
-    void* engine;
+    engine_type* engine;
     /* Start time */
     time_t start_time;
     time_t current_time;
@@ -77,7 +79,7 @@ struct xfrhandler_struct {
  * \return xfrhandler_type* created zoned transfer handler
  *
  */
-xfrhandler_type* xfrhandler_create(allocator_type* allocator);
+xfrhandler_type* xfrhandler_create(void);
 
 /**
  * Start zone transfer handler.

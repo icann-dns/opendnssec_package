@@ -32,11 +32,10 @@
 #include "config.h"
 #include "parser/confparser.h"
 #include "parser/zonelistparser.h"
-#include "shared/allocator.h"
-#include "shared/duration.h"
-#include "shared/file.h"
-#include "shared/log.h"
-#include "shared/status.h"
+#include "duration.h"
+#include "file.h"
+#include "log.h"
+#include "status.h"
 #include "signer/zone.h"
 #include "signer/zonelist.h"
 
@@ -72,23 +71,20 @@ zone_compare(const void* a, const void* b)
  *
  */
 zonelist_type*
-zonelist_create(allocator_type* allocator)
+zonelist_create()
 {
     zonelist_type* zlist = NULL;
-    if (allocator) {
-        zlist = (zonelist_type*) allocator_alloc(allocator, sizeof(zonelist_type));
-    }
+        CHECKALLOC(zlist = (zonelist_type*) malloc(sizeof(zonelist_type)));
     if (!zlist) {
         ods_log_error("[%s] unable to create zonelist: allocator_alloc() "
             "failed", zl_str);
         return NULL;
     }
-    zlist->allocator = allocator;
     zlist->zones = ldns_rbtree_create(zone_compare);
     if (!zlist->zones) {
         ods_log_error("[%s] unable to create zonelist: ldns_rbtree_create() "
             "failed", zl_str);
-        allocator_deallocate(allocator, (void*) zlist);
+        free(zlist);
         return NULL;
     }
     zlist->last_modified = 0;
@@ -338,7 +334,6 @@ zonelist_merge(zonelist_type* zl1, zonelist_type* zl2)
         n1 = ldns_rbtree_next(n1);
     }
     zl1->last_modified = zl2->last_modified;
-    return;
 }
 
 
@@ -350,7 +345,6 @@ ods_status
 zonelist_update(zonelist_type* zl, const char* zlfile)
 {
     zonelist_type* new_zlist = NULL;
-    allocator_type* tmp_alloc = NULL;
     time_t st_mtime = 0;
     ods_status status = ODS_STATUS_OK;
     char* datestamp = NULL;
@@ -360,6 +354,9 @@ zonelist_update(zonelist_type* zl, const char* zlfile)
         return ODS_STATUS_ASSERT_ERR;
     }
     /* is the file updated? */
+    /* OPENDNSSEC-686: changes happening within one second will not be
+     * seen
+     */
     st_mtime = ods_file_lastmodified(zlfile);
     if (st_mtime <= zl->last_modified) {
         (void)time_datestamp(zl->last_modified, "%Y-%m-%d %T", &datestamp);
@@ -369,15 +366,10 @@ zonelist_update(zonelist_type* zl, const char* zlfile)
         return ODS_STATUS_UNCHANGED;
     }
     /* create new zonelist */
-    tmp_alloc = allocator_create(malloc, free);
-    if (!tmp_alloc) {
-        return ODS_STATUS_MALLOC_ERR;
-    }
-    new_zlist = zonelist_create(tmp_alloc);
+    new_zlist = zonelist_create();
     if (!new_zlist) {
         ods_log_error("[%s] unable to update zonelist: zonelist_create() "
             "failed", zl_str);
-        allocator_cleanup(tmp_alloc);
         return ODS_STATUS_ERR;
     }
     /* read zonelist */
@@ -397,7 +389,6 @@ zonelist_update(zonelist_type* zl, const char* zlfile)
             "(%s)", zl_str, zlfile, ods_status2str(status));
     }
     zonelist_free(new_zlist);
-    allocator_cleanup(tmp_alloc);
     return status;
 }
 
@@ -418,7 +409,6 @@ zone_delfunc(ldns_rbnode_t* elem)
         zone_cleanup(zone);
         free((void*)elem);
     }
-    return;
 }
 
 
@@ -434,7 +424,6 @@ node_delfunc(ldns_rbnode_t* elem)
         node_delfunc(elem->right);
         free((void*)elem);
     }
-    return;
 }
 
 
@@ -445,8 +434,6 @@ node_delfunc(ldns_rbnode_t* elem)
 void
 zonelist_cleanup(zonelist_type* zl)
 {
-    allocator_type* allocator;
-    lock_basic_type zl_lock;
     if (!zl) {
         return;
     }
@@ -456,11 +443,8 @@ zonelist_cleanup(zonelist_type* zl)
         ldns_rbtree_free(zl->zones);
         zl->zones = NULL;
     }
-    allocator = zl->allocator;
-    zl_lock = zl->zl_lock;
-    allocator_deallocate(allocator, (void*) zl);
-    lock_basic_destroy(&zl_lock);
-    return;
+    lock_basic_destroy(&zl->zl_lock);
+    free(zl);
 }
 
 
@@ -471,8 +455,6 @@ zonelist_cleanup(zonelist_type* zl)
 void
 zonelist_free(zonelist_type* zl)
 {
-    allocator_type* allocator;
-    lock_basic_type zl_lock;
     if (!zl) {
         return;
     }
@@ -481,9 +463,6 @@ zonelist_free(zonelist_type* zl)
         ldns_rbtree_free(zl->zones);
         zl->zones = NULL;
     }
-    allocator = zl->allocator;
-    zl_lock = zl->zl_lock;
-    allocator_deallocate(allocator, (void*) zl);
-    lock_basic_destroy(&zl_lock);
-    return;
+    lock_basic_destroy(&zl->zl_lock);
+    free(zl);
 }

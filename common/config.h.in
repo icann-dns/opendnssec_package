@@ -15,8 +15,29 @@
 /* System cp(3) command */
 #undef CP_COMMAND
 
-/* timeshift debug */
-#undef ENFORCER_TIMESHIFT
+/* Using MySQL for database backend */
+#undef ENFORCER_DATABASE_MYSQL
+
+/* Using SQLite3 for database backend */
+#undef ENFORCER_DATABASE_SQLITE3
+
+/* Database to use when testing the Enforcer database backend */
+#undef ENFORCER_DB_DATABASE
+
+/* Host to use when testing the Enforcer database backend */
+#undef ENFORCER_DB_HOST
+
+/* Password to use when testing the Enforcer database backend */
+#undef ENFORCER_DB_PASSWORD
+
+/* Port to use when testing the Enforcer database backend */
+#undef ENFORCER_DB_PORT
+
+/* Port to use when testing the Enforcer database backend */
+#undef ENFORCER_DB_PORT_TEXT
+
+/* Username to use when testing the Enforcer database backend */
+#undef ENFORCER_DB_USERNAME
 
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
@@ -147,9 +168,6 @@
 /* Define to 1 if you have the `ldns' library (-lldns). */
 #undef HAVE_LIBLDNS
 
-/* Define to 1 if you have the `sqlite3' library (-lsqlite3). */
-#undef HAVE_LIBSQLITE3
-
 /* Define to 1 if you have the `xml2' library (-lxml2). */
 #undef HAVE_LIBXML2
 
@@ -184,8 +202,8 @@
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
 
-/* Define to 1 if you have the <mysql.h> header file. */
-#undef HAVE_MYSQL_H
+/* Define to 1 if MySQL libraries are available */
+#undef HAVE_MYSQL
 
 /* Define to 1 if you have the `openlog' function. */
 #undef HAVE_OPENLOG
@@ -244,6 +262,9 @@
 /* Define to 1 if you have the `pthread_sigmask' function. */
 #undef HAVE_PTHREAD_SIGMASK
 
+/* Define to 1 if readline libraries are available */
+#undef HAVE_READLINE
+
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
 #undef HAVE_REALLOC
@@ -281,8 +302,8 @@
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
-/* Define to 1 if you have the <sqlite3.h> header file. */
-#undef HAVE_SQLITE3_H
+/* Have the SQLITE3 library */
+#undef HAVE_SQLITE3
 
 /* Define if you have the SSL libraries installed. */
 #undef HAVE_SSL
@@ -431,21 +452,35 @@
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
+/* define if your compiler has __attribute__ */
+#undef HAVE___ATTRIBUTE__
+
 /* Default configuration file. */
 #undef HSM_DEFAULT_CONFIG
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Path to the OpenDNSSEC ods-control binary */
 #undef ODS_EN_CONTROL
+
+/* Path to the OpenDNSSEC enforcer engine binary */
+#undef ODS_EN_ENGINE
+
+/* File magic for storing backups from the OpenDNSSEC enforcer */
+#undef ODS_EN_FILE_MAGIC
 
 /* Path to the OpenDNSSEC kaspcheck binary */
 #undef ODS_EN_KASPCHECK
 
 /* Command to send a SIGHUP to the ods-enforcerd process */
 #undef ODS_EN_NOTIFY
+
+/* Start message for enforcer client */
+#undef ODS_EN_START_RESPONSE
+
+/* Default verbosity */
+#undef ODS_EN_VERBOSITY
 
 /* Path to the OpenDNSSEC config file */
 #undef ODS_SE_CFGFILE
@@ -504,6 +539,18 @@
 
 /* Path to the OpenDNSSEC enforcer pid file */
 #undef OPENDNSSEC_ENFORCER_PIDFILE
+
+/* Path to the OpenDNSSEC enforcer socket */
+#undef OPENDNSSEC_ENFORCER_SOCKETFILE
+
+/* Number of worker threads for the enforcer */
+#undef OPENDNSSEC_ENFORCER_WORKERTHREADS
+
+/* Path to the OpenDNSSEC enforcer engine working directory */
+#undef OPENDNSSEC_ENFORCER_WORKINGDIR
+
+/* Path to the OpenDNSSEC internal zone list */
+#undef OPENDNSSEC_ENFORCER_ZONELIST
 
 /* Path to the OpenDNSSEC zone fetcher pid file */
 #undef OPENDNSSEC_FETCH_PIDFILE
@@ -566,12 +613,6 @@
 /* Path to the OpenDNSSEC signer engine cli */
 #undef SIGNER_CLI_UPDATE
 
-/* database binary */
-#undef SQL_BIN
-
-/* database setup script */
-#undef SQL_SETUP
-
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -608,6 +649,9 @@
 
 /* Define to 1 if on MINIX. */
 #undef _MINIX
+
+/* Enable functions on BSD */
+#undef _NETBSD_SOURCE
 
 /* Define to 2 if the system does not provide POSIX.1 features except with
    this defined. */
@@ -647,15 +691,15 @@
 
 	/* define before includes as it specifies what standard to use. */
 	#if (defined(HAVE_PSELECT) && !defined (HAVE_PSELECT_PROTO)) \
-	        || !defined (HAVE_CTIME_R_PROTO) \
-	        || defined (STRPTIME_NEEDS_DEFINES)
+		|| !defined (HAVE_CTIME_R_PROTO) \
+		|| defined (STRPTIME_NEEDS_DEFINES)
 	#  ifndef _BSD_SOURCE
 	#    define _BSD_SOURCE 1
 	#  endif
 	#  ifndef __EXTENSIONS__
 	#    define __EXTENSIONS__ 1
 	#  endif
-	#  ifndef _STDC_C99
+	#  if !defined(_STDC_C99) && !defined(__cplusplus)
 	#    define _STDC_C99 1
 	#  endif
 	#  ifndef _ALL_SOURCE

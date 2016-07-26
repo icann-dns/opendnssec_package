@@ -33,8 +33,7 @@
 #define PARSER_ZONELISTPARSER_H
 
 #include "adapter/adapter.h"
-#include "shared/allocator.h"
-#include "shared/status.h"
+#include "status.h"
 
 #include <libxml/xpath.h>
 #include <libxml/xmlreader.h>

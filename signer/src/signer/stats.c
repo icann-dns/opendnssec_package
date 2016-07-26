@@ -29,7 +29,7 @@
  *
  */
 
-#include "shared/log.h"
+#include "log.h"
 #include "signer/stats.h"
 
 /**
@@ -85,17 +85,16 @@ stats_log(stats_type* stats, const char* name, uint32_t serial,
     if (stats->sig_time) {
         avsign = (uint32_t) (stats->sig_count/stats->sig_time);
     }
-    ods_log_info("[STATS] %s %u RR[count=%d time=%u(sec)] "
-        "NSEC%s[count=%d time=%u(sec)] "
-        "RRSIG[new=%d reused=%d time=%u(sec) avg=%u(sig/sec)] "
+    ods_log_info("[STATS] %s %u RR[count=%u time=%lu(sec)] "
+        "NSEC%s[count=%u time=%lu(sec)] "
+        "RRSIG[new=%u reused=%u time=%lu(sec) avg=%u(sig/sec)] "
         "TOTAL[time=%u(sec)] ",
         name?name:"(null)", (unsigned) serial,
-        stats->sort_count, stats->sort_time,
+        stats->sort_count, (unsigned long)stats->sort_time,
         nsec_type==LDNS_RR_TYPE_NSEC3?"3":"", stats->nsec_count,
-        stats->nsec_time, stats->sig_count, stats->sig_reuse,
-        stats->sig_time, avsign,
+        (unsigned long)stats->nsec_time, stats->sig_count, stats->sig_reuse,
+        (unsigned long)stats->sig_time, avsign,
         (uint32_t) (stats->end_time - stats->start_time));
-    return;
 }
 
 
@@ -108,5 +107,4 @@ stats_cleanup(stats_type* stats)
 {
     lock_basic_destroy(&stats->stats_lock);
     free((void*) stats);
-    return;
 }

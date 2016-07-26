@@ -31,10 +31,10 @@
 
 #include "config.h"
 #include "adapter/adapi.h"
-#include "shared/duration.h"
-#include "shared/log.h"
-#include "shared/status.h"
-#include "shared/util.h"
+#include "duration.h"
+#include "log.h"
+#include "status.h"
+#include "util.h"
 #include "signer/zone.h"
 
 #include <ldns/ldns.h>
@@ -67,7 +67,6 @@ adapi_set_serial(zone_type* zone, uint32_t serial)
         return;
     }
     zone->db->inbserial = serial;
-    return;
 }
 
 
@@ -82,20 +81,6 @@ adapi_get_origin(zone_type* zone)
         return NULL;
     }
     return zone->apex;
-}
-
-
-/**
- * Get class.
- *
- */
-ldns_rr_class
-adapi_get_class(zone_type* zone)
-{
-    if (!zone) {
-        return LDNS_RR_CLASS_IN;
-    }
-    return zone->klass;
 }
 
 
@@ -147,7 +132,6 @@ adapi_trans_full(zone_type* zone, unsigned more_coming)
         zone->stats->nsec_count = num_added;
         lock_basic_unlock(&zone->stats->stats_lock);
     }
-    return;
 }
 
 
@@ -185,7 +169,6 @@ adapi_trans_diff(zone_type* zone, unsigned more_coming)
         zone->stats->nsec_count = num_added;
         lock_basic_unlock(&zone->stats->stats_lock);
     }
-    return;
 }
 
 
@@ -283,7 +266,6 @@ adapi_process_dnskey(zone_type* zone, ldns_rr* rr)
     ods_log_verbose("[%s] zone %s set dnskey ttl to %u",
         adapi_str, zone->name, tmp);
     ldns_rr_set_ttl(rr, tmp);
-    return;
 }
 
 
@@ -295,6 +277,7 @@ static ods_status
 adapi_process_rr(zone_type* zone, ldns_rr* rr, int add, int backup)
 {
     ods_status status = ODS_STATUS_OK;
+    uint32_t tmp = 0;
     ods_log_assert(rr);
     ods_log_assert(zone);
     ods_log_assert(zone->name);
@@ -303,7 +286,7 @@ adapi_process_rr(zone_type* zone, ldns_rr* rr, int add, int backup)
     /* We only support IN class */
     if (ldns_rr_get_class(rr) != LDNS_RR_CLASS_IN) {
         ods_log_warning("[%s] only class in is supported, changing class "
-            "to in");
+            "to in", adapi_str);
         ldns_rr_set_class(rr, LDNS_RR_CLASS_IN);
     }
     /* RR processing */
@@ -332,7 +315,28 @@ adapi_process_rr(zone_type* zone, ldns_rr* rr, int add, int backup)
                 "skipping", adapi_str, zone->name,
                 (unsigned) ldns_rr_get_type(rr));
             return ODS_STATUS_UNCHANGED;
+        } else if (zone->signconf->max_zone_ttl) {
+            /* Convert MaxZoneTTL */
+            tmp = (uint32_t) duration2time(zone->signconf->max_zone_ttl);
         }
+    }
+    /* //MaxZoneTTL. Only set for RRtype != SOA && RRtype != DNSKEY */
+    if (tmp && tmp < ldns_rr_ttl(rr)) {
+        char* str = ldns_rdf2str(ldns_rr_owner(rr));
+        if (str) {
+            size_t i = 0;
+            str[(strlen(str))-1] = '\0';
+            /* replace tabs with white space */
+            for (i=0; i < strlen(str); i++) {
+                if (str[i] == '\t') {
+                    str[i] = ' ';
+                }
+            }
+            ods_log_debug("[%s] capping ttl %u to MaxZoneTTL %u for rrset "
+                "<%s,%s>", adapi_str, ldns_rr_ttl(rr), tmp, str,
+                rrset_type2str(ldns_rr_get_type(rr)));
+        }
+        ldns_rr_set_ttl(rr, tmp);
     }
 
     /* TODO: DNAME and CNAME checks */
