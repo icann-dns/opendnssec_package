@@ -1,5 +1,5 @@
-.TH "ods-ksmutil" "8" "October 2012" "OpenDNSSEC" "OpenDNSSEC ods-ksmutil"
-.\" $Id: ods-ksmutil.8.in 5470 2012-10-17 09:44:09Z vanrein $
+.TH "ods-ksmutil" "1" "October 2012" "OpenDNSSEC" "OpenDNSSEC ods-ksmutil"
+.\" $Id: ods-ksmutil.1.in 5470 2012-10-17 09:44:09Z vanrein $
 .SH "NAME"
 .B ods\-ksmutil 
 \- OpenDNSSEC enforcer Engine client
