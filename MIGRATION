@@ -1,119 +1,20 @@
-This file gives you instructions on how to migrate from one version of
-OpenDNSSEC to another.
+A migration is needed to migration from 1.4 to 2.0.
 
-*** Migrating from 1.4.X to 1.4.8 ***
+First migrate to at least the 1.4.10 release if you have not already done
+so.
+Review the documentation on the OpenDNSSEC site.  This can be updated in
+between releases to provide more help.
+Especially if you have tooling around OpenDNSSEC you should be aware that
+some command line utilities have changed.  A fair amount of backward
+compatibility has been respected, but changes are present.
 
-As of 1.4.8 the database has changes slightly. To migrate between databases
-run the SQL statements given in:
+The signer does not require any migration.  Backward compatibility is
+respected from earlier 1.4 release.  The signer should not require a
+full resign of your zone when upgrading, however if you decide to downgrade
+a full resign is needed.
 
-    enforcer/utils/migrate_1_4_8.sqlite3
-  or
-    enforcer/utils/migrate_1_4_8.mysql
-
-  against your existing database.
-
-*** Fix for MySQL zone delete issue ***
-
-  As reported in:
-    https://issues.opendnssec.org/browse/OPENDNSSEC-338
-
-  This effects MySQL databases created after 1.4.0a3 or 1.3.9 where zone deletion was changed.
-
-  If you wish to fix this without losing any existing information then run the sql statements
-  given in:
-
-    enforcer/utils/migrate_zone_delete.mysql
-
-  against your database.
-
-  Note that sqlite is not effected as we do not enforce any constraints.
-
-
-*** Migrating from 1.3 to trunk/1.4 ***
-
-  r5914 has some kasp database changes to allow for an update to the zonelist.xml schema. 
-  This means that if you want to use this version or any after it with a database created 
-  earlier you will need to do one of 2 things...
-
-  1) wipe and recreate your kasp database (run ods-ksmutl setup) which will lose all of 
-     your current state.
-  
-  If you need to keep your key information then,
-
-  2) run the sql statements given in:
-
-     enforcer/utils/migrate_adapters_1.mysql
-  or
-     enforcer/utils/migrate_adapters_1.sqlite3
-
-  against your existing database.
-
-  These changes allow flexibility in the input and output adapters.
-
-
-*** Migrating from v1.2 to v1.3 ***
- 
-  There are no migration scripts to run to make this transition.
-
-
-*** Migrating from v1.1 to v1.2 ***
-
-  There is a kasp schema change from the 1.1 branch (or trunk if you built
-  prior to r3823). To make this transition you have 2 options:
-
-  1) Run ods-ksmutil setup again. This will remove _all_ the current
-  information from the kasp database and start you off again with a fresh
-  environment.
-
-  If that is not an option, or you want to try something else then:
-
-  2) run one of the migration scripts
-        enforcer/utils/migrate_keyshare_mysql.pl
-  or
-        enforcer/utils/migrate_keyshare_sqlite3.pl
-  depending on your database.
-
-  NOTE: Although these scripts have been tested it is recommended to make a
-        backup of your database prior to running them.
-
-
-*** Migrating to a larger keypairs(id) field (MySQL ONLY) ***
-
-  The version of the MySQL database that was created with v1.2 (and prior to
-  svn r4465) had a smallint datatype for the keypairs(id) field. This limits
-  the number of keys that the system can store to 32767.
-
-  If this number is not large enough then the script:
-
-  enforcer/utils/migrate_id_mysql.pl
-
-  will increase it to an int, which can store 2147483647 keys.
-
-  NOTES: Although this scripts have been tested it is recommended to make a
-         backup of your database prior to running them.
-
-         This issue only applies to MySQL backends.
-
-
-*** Migrating between SQLite <=> MySQL (same OpenDNSSEC version) ***
-
-  convert_database.pl located in enforcer/utils can be used to convert
-  between SQLite and MySQL on the same OpenDNSSEC version. If you wish to
-  convert to another OpenDNSSEC version you need to migrate existing
-  database to that version first.
-
-  NOTE: You must create the MySQL database and database user manually
-        before converting to MySQL.
-
-  Convert from SQLite to MySQL example:
-  enforcer/utils/convert_database.pl \
-    --from dbi:SQLite:dbname=/var/opendnssec/kasp.db \
-    --to dbi:mysql:database=kasp;host=localhost \
-    --to-username <username> --to-password <password>
-
-  Convert from MySQL to SQLite example:
-  enforcer/utils/convert_database.pl \
-    --from dbi:mysql:database=kasp;host=localhost \
-    --from-username <username> --from-password <password> \
-    --to dbi:SQLite:dbname=/var/opendnssec/kasp.db
-
+The enforcer does require a full migration, as the internal database has
+been completely revised.  See the documentation in the source tree
+enforcer/utils/1.4-2.0_db_convert/README.md for a description.
+Migration scripts are not installed and should be retrieved from the source
+separately.

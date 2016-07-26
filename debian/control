@@ -16,13 +16,13 @@ Build-Depends: autotools-dev,
                libsqlite3-dev,
                libxml2-dev,
                libxml2-utils,
-	       lsb-base (>= 3.2-14),
+               lsb-base (>= 3.2-14),
                mysql-client | mariadb-client,
                opensc,
                procps,
                sqlite3,
                xsltproc
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Homepage: http://www.opendnssec.org/
 Vcs-Browser: https://anonscm.debian.org/git/pkg-dns/opendnssec.git/
 Vcs-Git: git://anonscm.debian.org/pkg-dns/opendnssec.git

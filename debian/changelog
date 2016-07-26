@@ -1,3 +1,11 @@
+opendnssec (1:2.0.1-1) experimental; urgency=medium
+
+  * Imported Upstream version 2.0.1
+  * Update packaging for OpenDNSSEC 2.0.0
+  * Rebase patches on top of OpenDNSSEC 2.0.1
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 26 Jul 2016 10:07:56 +0200
+
 opendnssec (1:1.4.10-1) unstable; urgency=medium
 
   * Use TLS variant of Vcs-* (Closes: #816179)

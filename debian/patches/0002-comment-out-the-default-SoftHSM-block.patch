@@ -3,26 +3,24 @@ Date: Wed, 21 Oct 2015 10:46:05 +0200
 Subject: comment out the default SoftHSM block
 
 ---
- conf/conf.xml.in | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ conf/conf.xml.in | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/conf/conf.xml.in b/conf/conf.xml.in
-index 0536681..3bdfaf6 100644
+index 76ff39d..d71255b 100644
 --- a/conf/conf.xml.in
 +++ b/conf/conf.xml.in
-@@ -4,15 +4,14 @@
+@@ -4,12 +4,14 @@
  
  	<RepositoryList>
  
+-		<Repository name="SoftHSM">
 +<!--
- 		<Repository name="SoftHSM">
++	  <Repository name="SoftHSM">
  			<Module>@pkcs11_softhsm_module@</Module>
  			<TokenLabel>OpenDNSSEC</TokenLabel>
  			<PIN>1234</PIN>
  			<SkipPublicKey/>
--			<!--
--			<AllowExtraction/>
--			-->
  		</Repository>
 +-->
  

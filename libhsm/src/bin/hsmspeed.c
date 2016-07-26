@@ -32,8 +32,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include <libhsm.h>
+#include "libhsm.h"
 #include <libhsmdns.h>
+
+extern hsm_repository_t* parse_conf_repositories(const char* cfgfile);
 
 #define HSMSPEED_THREADS_MAX 2048
 
@@ -47,11 +49,11 @@ char *progname = NULL;
 typedef struct {
     unsigned int id;
     hsm_ctx_t *ctx;
-    hsm_key_t *key;
+    libhsm_key_t *key;
     unsigned int iterations;
 } sign_arg_t;
 
-void
+static void
 usage ()
 {
     fprintf(stderr,
@@ -60,11 +62,11 @@ usage ()
         progname);
 }
 
-void *
+static void *
 sign (void *arg)
 {
     hsm_ctx_t *ctx = NULL;
-    hsm_key_t *key = NULL;
+    libhsm_key_t *key = NULL;
 
     size_t i;
     unsigned int iterations = 0;
@@ -127,7 +129,7 @@ main (int argc, char *argv[])
     int result;
 
     hsm_ctx_t *ctx = NULL;
-    hsm_key_t *key = NULL;
+    libhsm_key_t *key = NULL;
     unsigned int keysize = 1024;
     unsigned int iterations = 1;
     unsigned int threads = 1;
@@ -191,7 +193,7 @@ main (int argc, char *argv[])
 
     /* Open HSM library */
     fprintf(stderr, "Opening HSM Library...\n");
-    result = hsm_open(config?config:HSM_DEFAULT_CONFIG, hsm_prompt_pin);
+    result = hsm_open2(parse_conf_repositories(config?config:HSM_DEFAULT_CONFIG), hsm_prompt_pin);
     if (result != HSM_OK) {
         char* error =  hsm_get_error(NULL);
         if (error != NULL) {
@@ -280,7 +282,7 @@ main (int argc, char *argv[])
 
     /* Clean up */
     hsm_destroy_context(ctx);
-    hsm_close();
+    (void) hsm_close();
     if (config) free(config);
 
     return 0;

@@ -31,14 +31,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <libhsm.h>
+#include "libhsm.h"
 #include <libhsmdns.h>
 
 extern char *optarg;
 char *progname = NULL;
 
+extern hsm_repository_t* parse_conf_repositories(const char* cfgfile);
 
-void
+
+static void
 usage ()
 {
     fprintf(stderr, "usage: %s [-c config] [-gsdr]\n", progname);
@@ -49,8 +51,8 @@ main (int argc, char *argv[])
 {
     int result;
     hsm_ctx_t *ctx;
-    hsm_key_t **keys;
-    hsm_key_t *key = NULL;
+    libhsm_key_t **keys;
+    libhsm_key_t *key = NULL;
     char *id;
     size_t key_count = 0;
     size_t i;
@@ -111,7 +113,7 @@ main (int argc, char *argv[])
      * Open HSM library
      */
     fprintf(stdout, "Starting HSM lib test\n");
-    result = hsm_open(config, hsm_prompt_pin);
+    result = hsm_open2(parse_conf_repositories(config), hsm_prompt_pin);
     if (result != HSM_OK) {
         char* error =  hsm_get_error(NULL);
         if (error != NULL) {
@@ -144,7 +146,7 @@ main (int argc, char *argv[])
         }
     } else if (do_sign || do_delete) {
         keys = hsm_list_keys(ctx, &key_count);
-        printf("I have found %u keys\n", (unsigned int) key_count);
+        printf("Found %u keys\n", (unsigned int) key_count);
 
         /* let's just use the very first key we find and throw away the rest */
         for (i = 0; i < key_count && !key; i++) {
@@ -155,7 +157,7 @@ main (int argc, char *argv[])
 
             if (id) {
                 printf("Using key ID: %s\n", id);
-                if (key) hsm_key_free(key);
+                free(key);
                 key = hsm_find_key_by_id(ctx, id);
                 printf("ptr: 0x%p\n", (void *) key);
                 free(id);
@@ -163,7 +165,7 @@ main (int argc, char *argv[])
                 printf("Got no key ID (broken key?), skipped...\n");
             }
 
-            hsm_key_free(keys[i]);
+            free(keys[i]);
         }
         free(keys);
 
@@ -223,7 +225,7 @@ main (int argc, char *argv[])
         printf("\n");
     }
 
-    if (key) hsm_key_free(key);
+    free(key);
 
     /*
      * Test random{32,64} functions
@@ -246,7 +248,7 @@ main (int argc, char *argv[])
      * Close HSM library
      */
     hsm_close();
-    fprintf(stdout, "all done!\n");
+    fprintf(stdout, "all done! hsm_close result: %d\n", 0);
 
     if (config) free(config);
     

@@ -2,6 +2,4 @@
 0002-comment-out-the-default-SoftHSM-block.patch
 0003-rename-regress-for-autotest.patch
 0004-ods-control.in-fixes.patch
-0005-fix-manpages-errors.patch
-0006-Fail-gracefully-when-no-HSM-repositories-were-found.patch
-0007-Change-d-to-no-daemonize-option-and-add-new-D-debug-.patch
+0005-Fix-manpage-sections.patch

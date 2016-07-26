@@ -3,33 +3,11 @@ Date: Wed, 21 Oct 2015 10:46:05 +0200
 Subject: fix localstate dir
 
 ---
- Makefile.am             | 10 ----------
- m4/opendnssec_common.m4 |  4 ++--
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ m4/opendnssec_common.m4 | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 2e056ff..91e4d89 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -22,16 +22,6 @@ EXTRA_DIST =	$(srcdir)/LICENSE \
- 		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
- 
- 
--install-data-hook:
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/tmp
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signconf
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/unsigned
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)/opendnssec/signed
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)/run
--	$(INSTALL) -d $(DESTDIR)$(localstatedir)/run/opendnssec
--
- docs:
- 	(cd libhsm; $(MAKE) doxygen)
- 	(cd enforcer; $(MAKE) doxygen)
 diff --git a/m4/opendnssec_common.m4 b/m4/opendnssec_common.m4
-index 9c2df7a..7ca8f63 100644
+index b1e375e..db9f56e 100644
 --- a/m4/opendnssec_common.m4
 +++ b/m4/opendnssec_common.m4
 @@ -16,8 +16,8 @@ OPENDNSSEC_LIB_DIR=$full_libdir/opendnssec

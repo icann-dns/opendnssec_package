@@ -31,6 +31,9 @@ start = element KASP {
 		# (short) symbolic name for Policy
 		attribute name { xsd:string },
 
+		# Do not touch contents of zonefile.
+		element Passthrough { empty }?,
+
 		# description of policy (free text)
 		element Description { xsd:string },
 
@@ -50,7 +53,8 @@ start = element KASP {
 			# for how long should a signature be valid?
 			element Validity {
 				element Default { xsd:duration },
-				element Denial { xsd:duration }
+				element Denial { xsd:duration },
+				element Keyset { xsd:duration }?
 			},
 
 			# how much should we jitter the signature expiration time?
@@ -58,7 +62,10 @@ start = element KASP {
 			element Jitter { xsd:duration },
 
 			# how much should we predate the signature inception time?
-			element InceptionOffset { xsd:duration }
+			element InceptionOffset { xsd:duration },
+
+			# Maximum TTL that may be used in a zone.
+			maxzonettl?
 		},
 
 		# use NSEC or NSEC3?
@@ -84,6 +91,8 @@ start = element KASP {
 			element KSK {
 				# generic key definition, see below
 				anykey,
+				# Controlling minimize flags Enforcer
+				element KskRollType { "KskDoubleRRset" | "KskDoubleDS" | "KskDoubleSignature" }?,
 
 				# use RFC 5011 for key rollover?
 				# Not implemented yet
@@ -93,7 +102,21 @@ start = element KASP {
 			# Zone Signing Keys (ZSK) parameters
 			element ZSK {
 				# generic key definition, see below
-				anykey
+				anykey,
+				# Controlling minimize flags Enforcer
+				element ZskRollType { "ZskDoubleSignature" | "ZskPrePublication" | "ZskDoubleRRsig" }?
+			}*,
+
+			# Combined Signing Keys (CSK) parameters
+			element CSK {
+				# generic key definition, see below
+				anykey,
+				# Controlling minimize flags Enforcer
+				element CskRollType { "CskDoubleRRset" | "CskSingleSignature" | "CskDoubleDS" | "CskDoubleSignature" | "CskPrePublication" }?,
+				
+				# use RFC 5011 for key rollover?
+				# Not implemented yet
+				element RFC5011 { empty }?
 			}*
 		},
 
@@ -120,7 +143,10 @@ start = element KASP {
 			element DS { ttl },
 
 			# Expected parent SOA parameters
-			element SOA { anysoa }
+			element SOA { anysoa },
+
+            # Expected time between submit and first publish
+			registrationdelay?
 		}
 	}*
 }
@@ -191,6 +217,10 @@ anykey = element Algorithm {
 
 ttl = element TTL { xsd:duration }
 
+maxzonettl = element MaxZoneTTL { xsd:duration }
+
 propagationdelay = element PropagationDelay { xsd:duration }
+
+registrationdelay = element RegistrationDelay { xsd:duration }
 
 partial = element Partial { empty }

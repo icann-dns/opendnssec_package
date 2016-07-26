@@ -33,24 +33,24 @@
 #define DAEMON_DNSHANDLER_H
 
 #include "config.h"
-#include "shared/allocator.h"
-#include "shared/locks.h"
-#include "shared/status.h"
+#include <stdint.h>
+
+typedef struct dnshandler_struct dnshandler_type;
+
+#include "status.h"
+#include "locks.h"
+#include "status.h"
 #include "wire/listener.h"
 #include "wire/netio.h"
 #include "wire/query.h"
 #include "wire/sock.h"
 
-#include <stdint.h>
-
 #define ODS_SE_NOTIFY_CMD "NOTIFY"
 #define ODS_SE_MAX_HANDLERS 5
 
-typedef struct dnshandler_struct dnshandler_type;
 struct dnshandler_struct {
-    allocator_type* allocator;
     ods_thread_type thread_id;
-    void* engine;
+    engine_type* engine;
     listener_type* interfaces;
     socklist_type* socklist;
     netio_type* netio;
@@ -66,8 +66,7 @@ struct dnshandler_struct {
  * \return dnshandler_type* created dns handler
  *
  */
-dnshandler_type* dnshandler_create(allocator_type* allocator,
-    listener_type* interfaces);
+dnshandler_type* dnshandler_create(listener_type* interfaces);
 
 /**
  * Start dns handler listener.

@@ -24,17 +24,12 @@
  *
  */
 
-/**
- * Zone signing tools.
- *
- */
-
 #ifndef SIGNER_TOOLS_H
 #define SIGNER_TOOLS_H
 
 #include "config.h"
 #include "daemon/engine.h"
-#include "shared/status.h"
+#include "status.h"
 #include "signer/zone.h"
 
 /**

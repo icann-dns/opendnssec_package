@@ -30,7 +30,7 @@
  */
 
 #include "config.h"
-#include "shared/log.h"
+#include "log.h"
 #include "signer/denial.h"
 #include "signer/domain.h"
 #include "signer/zone.h"
@@ -45,22 +45,20 @@ static const char* denial_str = "denial";
  *
  */
 denial_type*
-denial_create(void* zoneptr, ldns_rdf* dname)
+denial_create(zone_type* zone, ldns_rdf* dname)
 {
     denial_type* denial = NULL;
-    zone_type* zone = (zone_type*) zoneptr;
-    if (!dname || !zoneptr) {
+    if (!dname || !zone) {
         return NULL;
     }
-    denial = (denial_type*) allocator_alloc(
-        zone->allocator, sizeof(denial_type));
+    CHECKALLOC(denial = (denial_type*) malloc(sizeof(denial_type)));
     if (!denial) {
         ods_log_error("[%s] unable to create denial: allocator_alloc() "
             "failed", denial_str);
         return NULL;
     }
     denial->dname = dname;
-    denial->zone = zoneptr;
+    denial->zone = zone;
     denial->domain = NULL; /* no back reference yet */
     denial->node = NULL; /* not in db yet */
     denial->rrset = NULL;
@@ -84,7 +82,7 @@ denial_create_bitmap(denial_type* denial, ldns_rr_type types[],
     ods_log_assert(denial);
     ods_log_assert(denial->domain);
 
-    domain = (domain_type*) denial->domain;
+    domain = denial->domain;
     rrset = domain->rrsets;
     while (rrset) {
         ldns_rr_type dstatus = domain_is_occluded(domain);
@@ -101,7 +99,6 @@ denial_create_bitmap(denial_type* denial, ldns_rr_type types[],
         }
         rrset = rrset->next;
     }
-    return;
 }
 
 
@@ -251,7 +248,6 @@ denial_diff(denial_type* denial)
     if (denial && denial->rrset) {
         rrset_diff(denial->rrset, 0, 0);
     }
-    return;
 }
 
 
@@ -288,7 +284,6 @@ denial_add_rr(denial_type* denial, ldns_rr* rr)
     denial_diff(denial);
     denial->bitmap_changed = 0;
     denial->nxt_changed = 0;
-    return;
 }
 
 
@@ -301,15 +296,21 @@ denial_nsecify(denial_type* denial, denial_type* nxt, uint32_t* num_added)
 {
     ldns_rr* nsec_rr = NULL;
     zone_type* zone = NULL;
+    uint32_t ttl = 0;
     ods_log_assert(denial);
     ods_log_assert(nxt);
     zone = (zone_type*) denial->zone;
     ods_log_assert(zone);
     ods_log_assert(zone->signconf);
     if (denial->nxt_changed || denial->bitmap_changed) {
+        ttl = zone->default_ttl;
+        /* SOA MINIMUM */
+        if (zone->signconf->soa_min) {
+            ttl = (uint32_t) duration2time(zone->signconf->soa_min);
+        }
         /* create new NSEC(3) rr */
-        nsec_rr = denial_create_nsec(denial, nxt, zone->default_ttl,
-            zone->klass, zone->signconf->nsec3params);
+        nsec_rr = denial_create_nsec(denial, nxt, ttl, zone->klass,
+            zone->signconf->nsec3params);
         if (!nsec_rr) {
             ods_fatal_exit("[%s] unable to nsecify: denial_create_nsec() "
                 "failed", denial_str);
@@ -319,7 +320,6 @@ denial_nsecify(denial_type* denial, denial_type* nxt, uint32_t* num_added)
             (*num_added)++;
         }
     }
-    return;
 }
 
 
@@ -336,12 +336,9 @@ denial_print(FILE* fd, denial_type* denial, ods_status* status)
                 denial_str);
             *status = ODS_STATUS_ASSERT_ERR;
         }
-        return;
-    }
-    if (denial->rrset) {
+    } else if (denial->rrset) {
         rrset_print(fd, denial->rrset, 0, status);
     }
-    return;
 }
 
 
@@ -352,13 +349,10 @@ denial_print(FILE* fd, denial_type* denial, ods_status* status)
 void
 denial_cleanup(denial_type* denial)
 {
-    zone_type* zone = NULL;
     if (!denial) {
         return;
     }
-    zone = (zone_type*) denial->zone;
     ldns_rdf_deep_free(denial->dname);
     rrset_cleanup(denial->rrset);
-    allocator_deallocate(zone->allocator, (void*) denial);
-    return;
+    free(denial);
 }

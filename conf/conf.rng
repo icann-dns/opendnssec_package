@@ -28,217 +28,240 @@
 <grammar xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
   <start>
     <element name="Configuration">
-      <!-- List of all known Key Repositories (aka HSM:s) -->
-      <element name="RepositoryList">
-        <zeroOrMore>
-          <element name="Repository">
-            <!-- Symbolic name of repository -->
-            <attribute name="name">
-              <data type="string"/>
-            </attribute>
-            <!-- PKCS#11 Module (aka shared library) -->
-            <element name="Module">
+      <interleave>
+        <!-- List of all known Key Repositories (aka HSM:s) -->
+        <element name="RepositoryList">
+          <zeroOrMore>
+            <element name="Repository">
+              <interleave>
+                <!-- Symbolic name of repository -->
+                <attribute name="name">
+                  <data type="string"/>
+                </attribute>
+                <!-- PKCS#11 Module (aka shared library) -->
+                <element name="Module">
+                  <data type="string"/>
+                </element>
+                <!-- PKCS#11 Token Label & -->
+                <element name="TokenLabel">
+                  <data type="string"/>
+                </element>
+                <optional>
+                  <!-- PKCS#11 Login Credentials -->
+                  <element name="PIN">
+                    <data type="string"/>
+                  </element>
+                </optional>
+                <optional>
+                  <!--
+                    Maxmimum number of key pairs in the repository
+                    DEFAULT: infinite
+                  -->
+                  <element name="Capacity">
+                    <data type="positiveInteger"/>
+                  </element>
+                </optional>
+                <optional>
+                  <!-- Require backup of keys before use (optional) -->
+                  <element name="RequireBackup">
+                    <empty/>
+                  </element>
+                </optional>
+                <optional>
+                  <!-- Do not maintain public keys in the repository (optional) -->
+                  <element name="SkipPublicKey">
+                    <empty/>
+                  </element>
+                </optional>
+              </interleave>
+            </element>
+          </zeroOrMore>
+        </element>
+        <!-- Common configuration options -->
+        <element name="Common">
+          <interleave>
+            <optional>
+              <!-- Configuration parameters for logging -->
+              <element name="Logging">
+                <interleave>
+                  <optional>
+                    <element name="Verbosity">
+                      <data type="nonNegativeInteger"/>
+                    </element>
+                  </optional>
+                  <optional>
+                    <element name="Syslog">
+                      <!-- syslog facility -->
+                      <element name="Facility">
+                        <ref name="syslogFacility"/>
+                      </element>
+                    </element>
+                  </optional>
+                </interleave>
+              </element>
+            </optional>
+            <!-- Location to find the KASP file -->
+            <element name="PolicyFile">
               <data type="string"/>
             </element>
-            <!-- PKCS#11 Token Label, -->
-            <element name="TokenLabel">
+            <!-- Location to store the zonelist XML file -->
+            <element name="ZoneListFile">
               <data type="string"/>
+            </element>
+          </interleave>
+        </element>
+        <!-- Configuration parameters for the KASP Enforcer -->
+        <element name="Enforcer">
+          <interleave>
+            <optional>
+              <!-- User & group to drop privs to -->
+              <ref name="privs"/>
+            </optional>
+            <!-- Where to store internal Enforcer state -->
+            <element name="Datastore">
+              <choice>
+                <ref name="mysql"/>
+                <ref name="sqlite"/>
+              </choice>
             </element>
             <optional>
-              <!-- PKCS#11 Login Credentials -->
-              <element name="PIN">
+              <!--
+                Interval between runs of the key rollover procedure
+                This is no longer used in 2.0 and will be deprecated in 2.1
+              -->
+              <element name="Interval">
+                <data type="duration"/>
+              </element>
+            </optional>
+            <optional>
+              <!-- Use manual key generation? -->
+              <element name="ManualKeyGeneration">
+                <empty/>
+              </element>
+            </optional>
+            <optional>
+              <!--
+                Period to automatically pre-generate keys for, when ManualKeyGeneration is not used
+                DEFAULT: P1Y
+              -->
+              <element name="AutomaticKeyGenerationPeriod">
+                <data type="duration"/>
+              </element>
+            </optional>
+            <optional>
+              <!-- How long before a KSK Rollover should we start warning (optional) -->
+              <element name="RolloverNotification">
+                <data type="duration"/>
+              </element>
+            </optional>
+            <optional>
+              <!--
+                Command to use for submitting new DS records to a parent -
+                the command should accept DNSKEY RRsets via STDIN
+              -->
+              <element name="DelegationSignerSubmitCommand">
                 <data type="string"/>
               </element>
             </optional>
             <optional>
               <!--
-                Maxmimum number of key pairs in the repository
-                DEFAULT: infinite
+                Command to use for retracting an existing DS record from the parent -
+                the command should accept DNSKEY RRsets via STDIN
               -->
-              <element name="Capacity">
-                <data type="positiveInteger"/>
+              <element name="DelegationSignerRetractCommand">
+                <data type="string"/>
               </element>
             </optional>
             <optional>
-              <!-- Require backup of keys before use (optional) -->
-              <element name="RequireBackup">
-                <empty/>
+              <!-- File used to detect enforcerd is already running. -->
+              <element name="PidFile">
+                <data type="string"/>
               </element>
             </optional>
             <optional>
-              <!-- Do not maintain public keys in the repository (optional) -->
-              <element name="SkipPublicKey">
-                <empty/>
+              <!-- Socket to use for communicating between enforcer and enforcerd -->
+              <element name="SocketFile">
+                <data type="string"/>
               </element>
             </optional>
             <optional>
-              <!-- Generate extractable keys (CKA_EXTRACTABLE = TRUE) (optional) -->
-              <element name="AllowExtraction">
-                <empty/>
+              <!--
+                Location to store intermediate enforcer information
+                DEFAULT: $(localstatedir)/opendnssec/tmp
+              -->
+              <element name="WorkingDirectory">
+                <data type="string"/>
               </element>
             </optional>
-          </element>
-        </zeroOrMore>
-      </element>
-      <!-- Common configuration options -->
-      <element name="Common">
-        <optional>
-          <!-- Configuration parameters for logging -->
-          <element name="Logging">
             <optional>
-              <element name="Verbosity">
+              <!--
+                Number of Worker Threads
+                DEFAULT: 4
+              -->
+              <element name="WorkerThreads">
                 <data type="nonNegativeInteger"/>
               </element>
             </optional>
-            <optional>
-              <element name="Syslog">
-                <!-- syslog facility -->
-                <element name="Facility">
-                  <ref name="syslogFacility"/>
+          </interleave>
+        </element>
+        <optional>
+          <!-- Configuration parameters for the Signer -->
+          <element name="Signer">
+            <interleave>
+              <optional>
+                <!-- User & group to drop privs to -->
+                <ref name="privs"/>
+              </optional>
+              <optional>
+                <!--
+                  Location to store intermediate zone information
+                  DEFAULT: $(localstatedir)/opendnssec/tmp
+                -->
+                <element name="WorkingDirectory">
+                  <data type="string"/>
                 </element>
-              </element>
-            </optional>
+              </optional>
+              <optional>
+                <!--
+                  Number of Worker Threads
+                  DEFAULT: 4
+                -->
+                <element name="WorkerThreads">
+                  <data type="positiveInteger"/>
+                </element>
+              </optional>
+              <optional>
+                <!--
+                  Number of Signer Threads
+                  DEFAULT: 4
+                -->
+                <element name="SignerThreads">
+                  <data type="positiveInteger"/>
+                </element>
+              </optional>
+              <optional>
+                <!-- Listener -->
+                <element name="Listener">
+                  <zeroOrMore>
+                    <ref name="interface"/>
+                  </zeroOrMore>
+                </element>
+              </optional>
+              <optional>
+                <!--
+                  System command to call after a zone has been (re)signed
+                  
+                  '%zone' in the string will be replaced by the zone name
+                  '%zonefile' in the string will be replaced by the zone file
+                -->
+                <element name="NotifyCommand">
+                  <data type="string"/>
+                </element>
+              </optional>
+            </interleave>
           </element>
         </optional>
-        <!-- Location to find the KASP file -->
-        <element name="PolicyFile">
-          <data type="string"/>
-        </element>
-        <!-- Location to store the zonelist XML file -->
-        <element name="ZoneListFile">
-          <data type="string"/>
-        </element>
-      </element>
-      <!-- Configuration parameters for the KASP Enforcer -->
-      <element name="Enforcer">
-        <optional>
-          <!-- User & group to drop privs to -->
-          <ref name="privs"/>
-        </optional>
-        <optional>
-          <!--
-            Location to store pidfile
-            DEFAULT: $(localstatedir)/run/opendnssec/enforcerd.pid
-          -->
-          <element name="PidFile">
-            <data type="string"/>
-          </element>
-        </optional>
-        <optional>
-          <!--
-            Number of Worker Threads
-            DEFAULT: 1
-          -->
-          <element name="WorkerThreads">
-            <data type="positiveInteger"/>
-          </element>
-        </optional>
-        <!-- Where to store internal Enforcer state -->
-        <element name="Datastore">
-          <choice>
-            <ref name="mysql"/>
-            <ref name="sqlite"/>
-          </choice>
-        </element>
-        <!-- Interval between runs of the key rollover procedure -->
-        <element name="Interval">
-          <data type="duration"/>
-        </element>
-        <optional>
-          <!-- Use manual key generation? -->
-          <element name="ManualKeyGeneration">
-            <empty/>
-          </element>
-        </optional>
-        <optional>
-          <!-- How long before a KSK Rollover should we start warning (optional) -->
-          <element name="RolloverNotification">
-            <data type="duration"/>
-          </element>
-        </optional>
-        <optional>
-          <!--
-            Command to use for submitting new DS records to a parent -
-            the command should accept DNSKEY RRsets via STDIN
-          -->
-          <element name="DelegationSignerSubmitCommand">
-            <data type="string"/>
-          </element>
-        </optional>
-      </element>
-      <optional>
-        <!-- Configuration parameters for the Signer -->
-        <element name="Signer">
-          <optional>
-            <!-- User & group to drop privs to -->
-            <ref name="privs"/>
-          </optional>
-          <optional>
-            <!--
-              Location to store pidfile
-              DEFAULT: $(localstatedir)/run/opendnssec/signerd.pid
-            -->
-            <element name="PidFile">
-              <data type="string"/>
-            </element>
-          </optional>
-          <optional>
-            <!--
-              Location to store commandhandler socket
-              DEFAULT: $(localstatedir)/run/opendnssec/engine.sock
-            -->
-            <element name="SocketFile">
-              <data type="string"/>
-            </element>
-          </optional>
-          <optional>
-            <!--
-              Location to store intermediate zone information
-              DEFAULT: $(localstatedir)/opendnssec/tmp
-            -->
-            <element name="WorkingDirectory">
-              <data type="string"/>
-            </element>
-          </optional>
-          <optional>
-            <!--
-              Number of Worker Threads
-              DEFAULT: 4
-            -->
-            <element name="WorkerThreads">
-              <data type="positiveInteger"/>
-            </element>
-          </optional>
-          <optional>
-            <!--
-              Number of Signer Threads
-              DEFAULT: 4
-            -->
-            <element name="SignerThreads">
-              <data type="positiveInteger"/>
-            </element>
-          </optional>
-          <optional>
-            <!-- Listener -->
-            <element name="Listener">
-              <zeroOrMore>
-                <ref name="interface"/>
-              </zeroOrMore>
-            </element>
-          </optional>
-          <optional>
-            <!--
-              System command to call after a zone has been (re)signed
-              
-              '%zone' in the string will be replaced by the zone name
-              '%zonefile' in the string will be replaced by the zone file
-            -->
-            <element name="NotifyCommand">
-              <data type="string"/>
-            </element>
-          </optional>
-        </element>
-      </optional>
+      </interleave>
     </element>
   </start>
   <define name="syslogFacility">
@@ -264,47 +287,57 @@
   </define>
   <define name="privs">
     <element name="Privileges">
-      <optional>
-        <!-- DEFAULT: do not drop privs -->
-        <element name="User">
-          <data type="string"/>
-        </element>
-      </optional>
-      <optional>
-        <!-- DEFAULT: do not drop privs -->
-        <element name="Group">
-          <data type="string"/>
-        </element>
-      </optional>
+      <interleave>
+        <optional>
+          <!-- DEFAULT: do not drop privs -->
+          <element name="User">
+            <data type="string"/>
+          </element>
+        </optional>
+        <optional>
+          <!-- DEFAULT: do not drop privs -->
+          <element name="Group">
+            <data type="string"/>
+          </element>
+        </optional>
+        <optional>
+          <!-- chroot directory to use -->
+          <element name="Directory">
+            <data type="string"/>
+          </element>
+        </optional>
+      </interleave>
     </element>
   </define>
   <define name="mysql">
     <element name="MySQL">
-      <optional>
-        <element name="Host">
-          <optional>
-            <!-- DEFAULT: 3306 -->
-            <attribute name="port">
-              <data type="positiveInteger">
-                <param name="maxInclusive">65535</param>
-              </data>
-            </attribute>
-          </optional>
-          <!-- DEFAULT: 127.0.0.1 -->
+      <interleave>
+        <optional>
+          <element name="Host">
+            <optional>
+              <!-- DEFAULT: 3306 -->
+              <attribute name="Port">
+                <data type="positiveInteger">
+                  <param name="maxInclusive">65535</param>
+                </data>
+              </attribute>
+            </optional>
+            <!-- DEFAULT: 127.0.0.1 -->
+            <data type="string"/>
+          </element>
+        </optional>
+        <!-- database to use for KASP tables -->
+        <element name="Database">
           <data type="string"/>
         </element>
-      </optional>
-      <!-- database to use for KASP tables -->
-      <element name="Database">
-        <data type="string"/>
-      </element>
-      <!-- username and password used to connect to database -->
-      <element name="Username">
-        <data type="string"/>
-      </element>
-      <element name="Password">
-        <data type="string"/>
-      </element>
+        <!-- username and password used to connect to database -->
+        <element name="Username">
+          <data type="string"/>
+        </element>
+        <element name="Password">
+          <data type="string"/>
+        </element>
+      </interleave>
     </element>
   </define>
   <define name="sqlite">
@@ -314,12 +347,14 @@
   </define>
   <define name="interface">
     <element name="Interface">
-      <optional>
-        <ref name="address"/>
-      </optional>
-      <optional>
-        <ref name="port"/>
-      </optional>
+      <interleave>
+        <optional>
+          <ref name="address"/>
+        </optional>
+        <optional>
+          <ref name="port"/>
+        </optional>
+      </interleave>
     </element>
   </define>
   <define name="address">

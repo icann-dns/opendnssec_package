@@ -36,11 +36,11 @@
 #include "adapter/adutil.h"
 #include "parser/addnsparser.h"
 #include "parser/confparser.h"
-#include "shared/duration.h"
-#include "shared/file.h"
-#include "shared/log.h"
-#include "shared/status.h"
-#include "shared/util.h"
+#include "duration.h"
+#include "file.h"
+#include "log.h"
+#include "status.h"
+#include "util.h"
 #include "signer/zone.h"
 #include "wire/notify.h"
 #include "wire/xfrd.h"
@@ -291,8 +291,8 @@ begin_pkt:
 
                 if (!util_serial_gt(tmp_serial, old_serial) &&
                     zone->db->is_initialized) {
-                    ods_log_error("[%s] bad ixfr for zone %s, bad start serial %u",
-                        adapter_str, zone->name, tmp_serial);
+                    ods_log_error("[%s] bad ixfr for zone %s, bad start serial %lu",
+                        adapter_str, zone->name, (unsigned long)tmp_serial);
                     result = ODS_STATUS_ERR;
                 }
 
@@ -307,8 +307,8 @@ begin_pkt:
                     result = ODS_STATUS_OK;
                     continue;
                 } else {
-                    ods_log_error("[%s] bad ixfr for zone %s, bad soa serial %u",
-                        adapter_str, zone->name, tmp_serial);
+                    ods_log_error("[%s] bad ixfr for zone %s, bad soa serial %lu",
+                        adapter_str, zone->name, (unsigned long) tmp_serial);
                     result = ODS_STATUS_ERR;
                     break;
                 }
@@ -345,18 +345,18 @@ begin_pkt:
         }
         /* [add to/remove from] the zone */
         if (!is_axfr && del_mode) {
-            ods_log_deeebug("[%s] delete RR #%i at line %i: %s",
-                adapter_str, rr_count, l, line);
+            ods_log_deeebug("[%s] delete RR #%lu at line %i: %s",
+                adapter_str, (unsigned long)rr_count, l, line);
             result = adapi_del_rr(zone, rr, 0);
             ldns_rr_free(rr);
             rr = NULL;
         } else {
-            ods_log_deeebug("[%s] add RR #%i at line %i: %s",
-                adapter_str, rr_count, l, line);
+            ods_log_deeebug("[%s] add RR #%lu at line %i: %s",
+                adapter_str, (unsigned long)rr_count, l, line);
             result = adapi_add_rr(zone, rr, 0);
         }
         if (result == ODS_STATUS_UNCHANGED) {
-            ods_log_deeebug("[%s] skipping RR at line %i (%s): %s",
+            ods_log_debug("[%s] skipping RR at line %i (%s): %s",
                 adapter_str, l, del_mode?"not found":"duplicate", line);
             ldns_rr_free(rr);
             rr = NULL;
@@ -502,20 +502,7 @@ dnsin_type*
 dnsin_create(void)
 {
     dnsin_type* addns = NULL;
-    allocator_type* allocator = allocator_create(malloc, free);
-    if (!allocator) {
-        ods_log_error("[%s] unable to create dnsin: allocator_create() "
-            " failed", adapter_str);
-        return NULL;
-    }
-    addns = (dnsin_type*) allocator_alloc(allocator, sizeof(dnsin_type));
-    if (!addns) {
-        ods_log_error("[%s] unable to create dnsin: allocator_alloc() "
-            " failed", adapter_str);
-        allocator_cleanup(allocator);
-        return NULL;
-    }
-    addns->allocator = allocator;
+    CHECKALLOC(addns = (dnsin_type*) malloc(sizeof(dnsin_type)));
     addns->request_xfr = NULL;
     addns->allow_notify = NULL;
     addns->tsig = NULL;
@@ -531,20 +518,7 @@ dnsout_type*
 dnsout_create(void)
 {
     dnsout_type* addns = NULL;
-    allocator_type* allocator = allocator_create(malloc, free);
-    if (!allocator) {
-        ods_log_error("[%s] unable to create dnsout: allocator_create() "
-            " failed", adapter_str);
-        return NULL;
-    }
-    addns = (dnsout_type*) allocator_alloc(allocator, sizeof(dnsout_type));
-    if (!addns) {
-        ods_log_error("[%s] unable to create dnsout: allocator_alloc() "
-            " failed", adapter_str);
-        allocator_cleanup(allocator);
-        return NULL;
-    }
-    addns->allocator = allocator;
+    CHECKALLOC(addns = (dnsout_type*) malloc(sizeof(dnsout_type)));
     addns->provide_xfr = NULL;
     addns->do_notify = NULL;
     addns->tsig = NULL;
@@ -574,11 +548,9 @@ dnsin_read(dnsin_type* addns, const char* filename)
     }
     fd = ods_fopen(filename, NULL, "r");
     if (fd) {
-        addns->tsig = parse_addns_tsig(addns->allocator, filename);
-        addns->request_xfr = parse_addns_request_xfr(addns->allocator,
-            filename, addns->tsig);
-        addns->allow_notify = parse_addns_allow_notify(addns->allocator,
-            filename, addns->tsig);
+        addns->tsig = parse_addns_tsig(filename);
+        addns->request_xfr = parse_addns_request_xfr(filename, addns->tsig);
+        addns->allow_notify = parse_addns_allow_notify(filename, addns->tsig);
         ods_fclose(fd);
         return ODS_STATUS_OK;
     }
@@ -603,20 +575,12 @@ dnsin_update(dnsin_type** addns, const char* filename, time_t* last_mod)
         return ODS_STATUS_UNCHANGED;
     }
     /* read the new signer configuration */
-    new_addns = dnsin_create();
-    if (!new_addns) {
-        ods_log_error("[%s] unable to update dnsin: dnsin_create() "
-            "failed", adapter_str);
-        return ODS_STATUS_ERR;
-    }
-    status = dnsin_read(new_addns, filename);
+    status = dnsin_read(*addns, filename);
     if (status == ODS_STATUS_OK) {
-        *addns = new_addns;
         *last_mod = st_mtime;
     } else {
         ods_log_error("[%s] unable to update dnsin: dnsin_read(%s) "
             "failed (%s)", adapter_str, filename, ods_status2str(status));
-        dnsin_cleanup(new_addns);
     }
     return status;
 }
@@ -643,11 +607,9 @@ dnsout_read(dnsout_type* addns, const char* filename)
     }
     fd = ods_fopen(filename, NULL, "r");
     if (fd) {
-        addns->tsig = parse_addns_tsig(addns->allocator, filename);
-        addns->provide_xfr = parse_addns_provide_xfr(addns->allocator,
-            filename, addns->tsig);
-        addns->do_notify = parse_addns_do_notify(addns->allocator, filename,
-            addns->tsig);
+        addns->tsig = parse_addns_tsig(filename);
+        addns->provide_xfr = parse_addns_provide_xfr(filename, addns->tsig);
+        addns->do_notify = parse_addns_do_notify(filename, addns->tsig);
         ods_fclose(fd);
         return ODS_STATUS_OK;
     }
@@ -664,7 +626,6 @@ dnsout_read(dnsout_type* addns, const char* filename)
 ods_status
 dnsout_update(dnsout_type** addns, const char* filename, time_t* last_mod)
 {
-    dnsout_type* new_addns = NULL;
     time_t st_mtime = 0;
     ods_status status = ODS_STATUS_OK;
 
@@ -672,15 +633,8 @@ dnsout_update(dnsout_type** addns, const char* filename, time_t* last_mod)
         return ODS_STATUS_UNCHANGED;
     }
     /* read the new signer configuration */
-    new_addns = dnsout_create();
-    if (!new_addns) {
-        ods_log_error("[%s] unable to update dnsout: dnsout_create() "
-            "failed", adapter_str);
-        return ODS_STATUS_ERR;
-    }
-    status = dnsout_read(new_addns, filename);
+    status = dnsout_read(*addns, filename);
     if (status == ODS_STATUS_OK) {
-        *addns = new_addns;
         *last_mod = st_mtime;
     } else {
         ods_log_error("[%s] unable to update dnsout: dnsout_read(%s) "
@@ -720,7 +674,6 @@ dnsout_send_notify(void* zone)
     ods_log_assert(rrset);
     soa = ldns_rr_clone(rrset->rrs[0].rr);
     notify_enable(z->notify, soa);
-    return;
 }
 
 
@@ -797,7 +750,7 @@ addns_read(void* zone)
         /* clean up copy of zone transfer */
         if (unlink((const char*) file) != 0) {
             ods_log_error("[%s] unable to unlink zone transfer copy file %s: "
-                " %s", adapter_str, strerror(errno));
+                " %s", adapter_str, file, strerror(errno));
             /* should be no issue */
         }
     }
@@ -907,6 +860,7 @@ addns_write(void* zone)
     {
         ixfrfile = ods_build_path(z->name, ".ixfr", 0, 1);
         if (!ixfrfile) {
+            lock_basic_unlock(&z->xfr_lock);
             free((void*) axfrfile);
             free((void*) atmpfile);
             free((void*) itmpfile);
@@ -938,17 +892,13 @@ addns_write(void* zone)
 void
 dnsin_cleanup(dnsin_type* addns)
 {
-    allocator_type* allocator = NULL;
     if (!addns) {
         return;
     }
-    allocator = addns->allocator;
-    acl_cleanup(addns->request_xfr, allocator);
-    acl_cleanup(addns->allow_notify, allocator);
-    tsig_cleanup(addns->tsig, allocator);
-    allocator_deallocate(allocator, (void*) addns);
-    allocator_cleanup(allocator);
-    return;
+    acl_cleanup(addns->request_xfr);
+    acl_cleanup(addns->allow_notify);
+    tsig_cleanup(addns->tsig);
+    free(addns);
 }
 
 
@@ -959,15 +909,11 @@ dnsin_cleanup(dnsin_type* addns)
 void
 dnsout_cleanup(dnsout_type* addns)
 {
-    allocator_type* allocator = NULL;
     if (!addns) {
         return;
     }
-    allocator = addns->allocator;
-    acl_cleanup(addns->provide_xfr, allocator);
-    acl_cleanup(addns->do_notify, allocator);
-    tsig_cleanup(addns->tsig, allocator);
-    allocator_deallocate(allocator, (void*) addns);
-    allocator_cleanup(allocator);
-    return;
+    acl_cleanup(addns->provide_xfr);
+    acl_cleanup(addns->do_notify);
+    tsig_cleanup(addns->tsig);
+    free(addns);
 }

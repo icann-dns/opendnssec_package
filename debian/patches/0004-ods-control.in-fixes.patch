@@ -3,20 +3,14 @@ Date: Wed, 21 Oct 2015 10:46:05 +0200
 Subject: ods-control.in fixes
 
 ---
- tools/ods-control.in | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ tools/ods-control.in | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/tools/ods-control.in b/tools/ods-control.in
-index d5c550f..1d0838f 100644
+index 5f92d32..f40cd72 100644
 --- a/tools/ods-control.in
 +++ b/tools/ods-control.in
-@@ -42,11 +42,13 @@ case "$1" in
- 'ksm')
- 	shift
- 	"$bindir/ods-ksmutil" $@
-+	exit $?
- 	;;
- 
+@@ -37,6 +37,7 @@ case "$1" in
  'hsm')
  	shift
  	"$bindir/ods-hsmutil" $@
@@ -24,8 +18,8 @@ index d5c550f..1d0838f 100644
  	;;
  
  'signer')
-@@ -86,9 +88,15 @@ case "$1" in
- 
+@@ -66,9 +67,15 @@ case "$1" in
+ 		
  		exit $RETVAL
  		;;
 +	stop)
@@ -40,29 +34,30 @@ index d5c550f..1d0838f 100644
  		;;
  
  	esac
-@@ -153,7 +161,8 @@ case "$1" in
- 		;;
- 
+@@ -106,6 +113,7 @@ case "$1" in
  	*)
--		echo "usage: $progname enforcer start|stop|notify"
-+		echo "usage: $progname enforcer start|stop|notify" >&2
-+		exit 3
+ 		shift
+ 		"$sbindir/ods-enforcer" "$@"
++		exit $?
  		;;
  
  	esac
-@@ -173,12 +182,13 @@ case "$1" in
- 
+@@ -126,12 +134,19 @@ case "$1" in
  'stop')
+ 	echo "Stopping enforcer.."
  	"$0" enforcer stop
--	echo "Stopping signer engine..."
--	"$sbindir/ods-signer" stop
-+	"$0" signer stop
-+	exit $?
++	RETVAL_E=$?
+ 	echo "Stopping signer engine..."
+ 	"$0" signer stop
++	RETVAL_S=$?
++	if [ $RETVAL_E != 0 ]; then
++	    exit $RETVAL_E
++	fi
++	exit $RETVAL_S
  	;;
  
  *)
--	echo "usage: $progname ksm|hsm|signer|enforcer|start|stop ..."
-+	echo "usage: $progname ksm|hsm|signer|enforcer|start|stop ..." >&2
+ 	echo "usage: $progname hsm|signer|enforcer|start|stop ..."
 +	exit 3
  	;;
  

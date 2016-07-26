@@ -1,3 +1,1 @@
-# this file contains the current OpenDNSSEC version
-
-define([OPENDNSSEC_VERSION], [1.4.10])
+define([OPENDNSSEC_VERSION], [2.0.1])

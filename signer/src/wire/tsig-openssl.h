@@ -34,8 +34,7 @@
 
 #ifdef HAVE_SSL
 
-#include "shared/allocator.h"
-#include "shared/status.h"
+#include "status.h"
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 
@@ -45,7 +44,7 @@
  * \return ods_status status
  *
  */
-ods_status tsig_handler_openssl_init(allocator_type* allocator);
+ods_status tsig_handler_openssl_init(void);
 
 /**
  * Finalize OpenSSL support for TSIG.
