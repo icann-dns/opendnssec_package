@@ -1,3 +1,9 @@
+opendnssec (1:2.0.3-2) unstable; urgency=medium
+
+  * Fix default-*mysql* {Build-,}Depends (Closes: #845883)
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 03 Dec 2016 12:48:06 +0100
+
 opendnssec (1:2.0.3-1) unstable; urgency=medium
 
   * Fix OpenSSL 1.1.0 Support (Closes: #828467)
