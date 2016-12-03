@@ -13,12 +13,12 @@ Build-Depends: autotools-dev,
                libcunit1-dev,
                libcurl4-openssl-dev,
                libldns-dev (>= 1.6.14~),
-               libmysqlclient-dev,
+               default-libmysqlclient-dev | libmysqlclient-dev (<< 5.7),
                libsqlite3-dev,
                libxml2-dev,
                libxml2-utils,
                lsb-base (>= 3.2-14),
-               mysql-client | mariadb-client,
+               default-mysql-client | mysql-client,
                opensc,
                procps,
                sqlite3,
@@ -112,7 +112,7 @@ Section: admin
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: libdbd-mysql-perl,
-         mariadb-client | mysql-client,
+         default-mysql-client | mariadb-client | mysql-client,
          opendnssec-common (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
@@ -123,7 +123,7 @@ Replaces: opendnssec-enforcer (<< 1:1.4.5-2~),
           opendnssec-enforcer-backend
 Recommends: opendnssec,
             softhsm2
-Description: tool to prepare DNSSEC keys (mysql backend)
+Description: tool to prepare DNSSEC keys (MySQL backend)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
  details in signing zone files with DNSSEC and OpenDNSSEC covers most
@@ -134,7 +134,7 @@ Description: tool to prepare DNSSEC keys (mysql backend)
  information from the KASP database and turn it into an xml file that
  the signer can use.
  .
- The package contains OpenDNSSEC Enforcer binaries with mysql backend.
+ The package contains OpenDNSSEC Enforcer binaries with MySQL backend.
 
 Package: opendnssec-enforcer-sqlite3
 Section: admin
