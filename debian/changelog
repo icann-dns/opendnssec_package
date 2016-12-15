@@ -1,3 +1,17 @@
+opendnssec (1:2.0.3-4) unstable; urgency=medium
+
+  * Remove libcurl4-openssl-dev from Build-Depends
+  * Add libssl-dev to Build-Depends
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 15 Dec 2016 10:53:50 +0100
+
+opendnssec (1:2.0.3-3) unstable; urgency=medium
+
+  * Introduce empty preinst script to circumvent error with faulty preinst
+    script in jessie (Closes: #848111)
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 14 Dec 2016 12:02:09 +0100
+
 opendnssec (1:2.0.3-2) unstable; urgency=medium
 
   * Fix default-*mysql* {Build-,}Depends (Closes: #845883)
