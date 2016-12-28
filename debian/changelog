@@ -1,3 +1,9 @@
+opendnssec (1:2.0.3-5) unstable; urgency=medium
+
+  * Remove hard dependency on libldns1 (Closes: #849451)
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 28 Dec 2016 13:39:55 +0100
+
 opendnssec (1:2.0.3-4) unstable; urgency=medium
 
   * Remove libcurl4-openssl-dev from Build-Depends
