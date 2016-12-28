@@ -155,8 +155,7 @@ Description: tool to prepare DNSSEC keys (sqlite3 backend)
 Package: opendnssec-signer
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
-Depends: libldns1 (>= 1.6.12~),
-         opendnssec-common (= ${source:Version}),
+Depends: opendnssec-common (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: opendnssec, opendnssec-enforcer, softhsm2
