@@ -1,3 +1,16 @@
+opendnssec (1:2.0.3-6) unstable; urgency=medium
+
+  * Define and use SQLITE3_SONAME macro from d/rules instead of hardcoded
+    libsqlite3.so (Closes: #843590, #849803)
+  * Cleanup old parts of README.Debian for 2.x release
+  * Install schema.sqlite and schema.mysql to /usr/share/opendnssec
+  * Fix schema.sqlite and schema.mysql paths to /usr/share/opendnssec
+    (Closes: #843589)
+  * Add pkg-config to Build-Depends (needed to resolve libsqlite3.so
+    SONAME)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 02 Jan 2017 16:29:55 +0100
+
 opendnssec (1:2.0.3-5) unstable; urgency=medium
 
   * Remove hard dependency on libldns1 (Closes: #849451)
