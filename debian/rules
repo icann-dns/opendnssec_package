@@ -13,10 +13,11 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 # see ENVIRONMENT in dpkg-buildflags(1)
 # package maintainers to append CFLAGS
-export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic -DSQLITE3_SONAME=\\\"$(SQLITE3_SONAME)\\\"
 # package maintainers to append LDFLAGS
 export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
+SQLITE3_SONAME = $(shell objdump -p $$(pkg-config --variable=libdir sqlite3)/libsqlite3.so | sed -ne 's/^[[:space:]]*SONAME[[:space:]]*\(libsqlite3\.so.*\)/\1/p')
 
 # main packaging script based on dh7 syntax
 %:
@@ -60,6 +61,7 @@ override_dh_auto_install:
 	install -m 644 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/README* $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	install -m 644 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/*.sql $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	install -m 755 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/convert_* $(CURDIR)/debian/tmp/usr/share/opendnssec/
+	install -m 644 $(CURDIR)/enforcer/src/db/schema.* $(CURDIR)/debian/tmp/usr/share/opendnssec/
 
 	# Remove extra dist files from opendnssec-enforcer-mysql
 	rm -rf $(CURDIR)/debian/opendnssec-enforcer-mysql/var/run/opendnssec/ \

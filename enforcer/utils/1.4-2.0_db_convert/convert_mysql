@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# This scipt converts a ODS 1.4.9 MySQL database to ODS 2.0. It assumes both
+# This script converts a ODS 1.4.9 MySQL database to ODS 2.0. It assumes both
 # old and new databases live on the same host and are accessable by the same 
 # user.
 
-SCHEMA=../../src/db/schema.mysql
+SCHEMA=/usr/share/opendnssec/schema.mysql
 
 DB_IN=""
 DB_OUT=""

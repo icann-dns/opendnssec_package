@@ -97,7 +97,7 @@ dblayer_sqlite3_initialize(void)
     char const *error;
 
     dlerror();
-    handle = dlopen("libsqlite3.so", RTLD_NOW);
+    handle = dlopen(SQLITE3_SONAME, RTLD_NOW);
     if ((error = dlerror()) != NULL) {
 	    printf("Failed to load sqlite3 library. dlerror(): %s\n", error);
 	    exit(1);
