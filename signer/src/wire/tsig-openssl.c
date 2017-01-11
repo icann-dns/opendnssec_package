@@ -126,7 +126,7 @@ static void
 cleanup_context(void *data)
 {
     HMAC_CTX* context = (HMAC_CTX*) data;
-    HMAC_CTX_free(context);
+    HMAC_CTX_cleanup(context);
 }
 
 static void
@@ -146,7 +146,8 @@ static void*
 create_context()
 {
     HMAC_CTX* context;
-    CHECKALLOC(context = HMAC_CTX_new());
+    CHECKALLOC(context = (HMAC_CTX*) malloc(sizeof(HMAC_CTX)));
+    HMAC_CTX_init(context);
     context_add_cleanup(context);
     return context;
 }
