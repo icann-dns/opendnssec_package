@@ -1,3 +1,11 @@
+opendnssec (1:2.0.3+-1ubuntu1) zesty; urgency=medium
+
+  * Merge from Debian unstable.  Remaining changes:
+    - debian/patches/series: Remove 0006-Fix-OpenSSL-1.1.0-Support.patch, since
+      we don't have OpenSSL 1.1.0 yet.
+
+ -- Bhavani Shankar <bhavi@ubuntu.com>  Wed, 11 Jan 2017 09:21:01 +0530
+
 opendnssec (1:2.0.3+-1) unstable; urgency=medium
 
   * Imported Upstream version 2.0.3 (again from upstream tarball,
@@ -19,11 +27,26 @@ opendnssec (1:2.0.3-6) unstable; urgency=medium
 
  -- Ondřej Surý <ondrej@debian.org>  Mon, 02 Jan 2017 16:29:55 +0100
 
+opendnssec (1:2.0.3-5ubuntu1) zesty; urgency=medium
+
+  * Merge from Debian unstable. Remaining changes:
+    - debian/patches/series: Remove 0006-Fix-OpenSSL-1.1.0-Support.patch, since
+      we don't have OpenSSL 1.1.0 yet.
+
+ -- Logan Rosen <logan@ubuntu.com>  Thu, 29 Dec 2016 14:37:25 -0500
+
 opendnssec (1:2.0.3-5) unstable; urgency=medium
 
   * Remove hard dependency on libldns1 (Closes: #849451)
 
  -- Ondřej Surý <ondrej@debian.org>  Wed, 28 Dec 2016 13:39:55 +0100
+
+opendnssec (1:2.0.3-4ubuntu1) zesty; urgency=medium
+
+  * debian/patches/series: Remove 0006-Fix-OpenSSL-1.1.0-Support.patch, since
+    we don't have OpenSSL 1.1.0 yet.
+
+ -- Logan Rosen <logan@ubuntu.com>  Tue, 27 Dec 2016 01:24:38 -0500
 
 opendnssec (1:2.0.3-4) unstable; urgency=medium
 
@@ -771,3 +794,4 @@ libhsm (1.0.0~rc3-1) unstable; urgency=low
   * Initial release (Closes: #568102)
 
  -- Ondřej Surý <ondrej@debian.org>  Thu, 28 Jan 2010 11:13:21 +0100
+
