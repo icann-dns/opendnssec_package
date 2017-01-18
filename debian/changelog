@@ -1,3 +1,11 @@
+opendnssec (1:2.0.4-1) unstable; urgency=medium
+
+  * Drop (<< 5.7) from libmysqlclient-dev B-D to allow builds on Ubuntu
+  * New upstream version 2.0.4
+  * Remove OpenSSL 1.1 patch as support was merged upstream
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 18 Jan 2017 11:12:18 +0100
+
 opendnssec (1:2.0.3+-1) unstable; urgency=medium
 
   * Imported Upstream version 2.0.3 (again from upstream tarball,
