@@ -1,3 +1,11 @@
+opendnssec (1:2.0.4-2) unstable; urgency=high
+
+  * Also add empty postinst and postrm maintainer scripts to
+    opendnssec-enforcer-mysql package to allow upgrades from jessie
+    (Closes: #848111)
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 01 Feb 2017 10:25:24 +0100
+
 opendnssec (1:2.0.4-1) unstable; urgency=medium
 
   * Drop (<< 5.7) from libmysqlclient-dev B-D to allow builds on Ubuntu
