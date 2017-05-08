@@ -34,7 +34,7 @@ case "$1" in
 	set_perms root opendnssec 0750 /etc/opendnssec
 	set_perms root opendnssec 0750 /var/lib/opendnssec
 
-	for dir in tmp signconf unsigned signed db; do
+	for dir in tmp signconf unsigned signed db signer enforcer; do
 	    set_perms opendnssec opendnssec 0755 /var/lib/opendnssec/$dir
 	done
 

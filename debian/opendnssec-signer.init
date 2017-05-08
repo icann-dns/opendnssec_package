@@ -30,7 +30,7 @@ do_tmpfiles() {
 		chmod "$mode" "$path"
                 chown "$user:$group" "$path"
             fi
-        done
+        done < "$TMPFILES"
     fi
 }
 

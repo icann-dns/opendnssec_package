@@ -1,3 +1,12 @@
+opendnssec (1:2.0.4-3) unstable; urgency=medium
+
+  * Fix reading the tmpfiles (Thanks Michael Biebl for catching that)
+    (Closes: #852059)
+  * Add /var/lib/opendnssec/{signer,enforcer} to the list of managed
+    directories (Closes: #859418)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 08 May 2017 14:47:39 +0200
+
 opendnssec (1:2.0.4-2) unstable; urgency=high
 
   * Also add empty postinst and postrm maintainer scripts to
