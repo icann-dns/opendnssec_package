@@ -12,7 +12,7 @@ case "$1" in
 
 	unset_perms /etc/opendnssec
 
-	for dir in tmp signconf unsigned signed db; do
+	for dir in tmp signconf unsigned signed db signer enforcer; do
 	    unset_perms /var/lib/opendnssec/$dir
 	done
 	unset_perms /var/lib/opendnssec

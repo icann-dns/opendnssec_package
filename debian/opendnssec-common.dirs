@@ -5,4 +5,6 @@
 /var/lib/opendnssec/signconf
 /var/lib/opendnssec/unsigned
 /var/lib/opendnssec/signed
+/var/lib/opendnssec/signer
+/var/lib/opendnssec/enforcer
 /var/lib/opendnssec/db
