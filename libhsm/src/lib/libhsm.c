@@ -176,7 +176,10 @@ ldns_pkcs11_rv_str(CK_RV rv)
             return "CKR_WRAPPING_KEY_TYPE_INCONSISTENT";
         case CKR_RANDOM_SEED_NOT_SUPPORTED:
             return "CKR_RANDOM_SEED_NOT_SUPPORTED";
-        case CKR_VENDOR_DEFINED:
+        /*CKR_VENDOR_DEFINED is not a constant but a macro which expands in to an */
+        /*expression. Which we are not allowed to use in a switch.*/
+        /*case CKR_VENDOR_DEFINED:*/
+        case 0x80000000:
             return "CKR_VENDOR_DEFINED";
         case CKR_BUFFER_TOO_SMALL:
             return "CKR_BUFFER_TOO_SMALL";
@@ -366,7 +369,7 @@ hsm_pkcs11_check_token_name(hsm_ctx_t *ctx,
 
 hsm_repository_t *
 hsm_repository_new(char* name, char* module, char* tokenlabel, char* pin,
-    uint8_t use_pubkey, uint8_t require_backup)
+    uint8_t use_pubkey, uint8_t allowextract, uint8_t require_backup)
 {
     hsm_repository_t* r;
 
@@ -392,6 +395,7 @@ hsm_repository_new(char* name, char* module, char* tokenlabel, char* pin,
         }
     }
     r->use_pubkey = use_pubkey;
+    r->allow_extract = allowextract; 
     r->require_backup = require_backup;
     return r;
 }
@@ -540,6 +544,7 @@ static void
 hsm_config_default(hsm_config_t *config)
 {
     config->use_pubkey = 1;
+    config->allow_extract = 0;
 }
 
 /* creates a session_t structure, and automatically adds and initializes
@@ -678,7 +683,6 @@ hsm_ctx_new()
         memset(ctx->session, 0, HSM_MAX_SESSIONS);
         ctx->session_count = 0;
         ctx->error = 0;
-        keycache_create(ctx);
     }
     return ctx;
 }
@@ -688,7 +692,7 @@ static void
 hsm_ctx_free(hsm_ctx_t *ctx)
 {
     unsigned int i;
-    keycache_destroy(ctx);
+
     if (ctx) {
         for (i = 0; i < ctx->session_count; i++) {
             hsm_session_free(ctx->session[i]);
@@ -747,8 +751,10 @@ hsm_ctx_close(hsm_ctx_t *ctx, int unload)
     if (!ctx) return;
     for (i = 0; i < ctx->session_count; i++) {
         hsm_session_close(ctx, ctx->session[i], unload);
+        ctx->session[i] = NULL;
     }
-    free(ctx);
+    hsm_ctx_free(ctx);
+
 }
 
 
@@ -788,6 +794,8 @@ hsm_ctx_clone(hsm_ctx_t *ctx)
             }
             hsm_ctx_add_session(new_ctx, new_session);
         }
+        new_ctx->keycache = ctx->keycache;
+        new_ctx->keycache_lock = ctx->keycache_lock;
     }
     return new_ctx;
 }
@@ -1843,7 +1851,7 @@ hsm_create_prefix(CK_ULONG digest_len,
     const CK_BYTE RSA_SHA256_ID[] = { 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20 };
     const CK_BYTE RSA_SHA512_ID[] = { 0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05, 0x00, 0x04, 0x40 };
 
-    switch(algorithm) {
+    switch((ldns_signing_algorithm)algorithm) {
         case LDNS_SIGN_RSAMD5:
             *data_size = sizeof(RSA_MD5_ID) + digest_len;
             data = malloc(*data_size);
@@ -1942,7 +1950,7 @@ hsm_sign_buffer(hsm_ctx_t *ctx,
     /* some HSMs don't really handle CKM_SHA1_RSA_PKCS well, so
      * we'll do the hashing manually */
     /* When adding algorithms, remember there is another switch below */
-    switch (algorithm) {
+    switch ((ldns_signing_algorithm)algorithm) {
         case LDNS_SIGN_RSAMD5:
             digest_len = 16;
             digest = hsm_digest_through_hsm(ctx, session,
@@ -2012,7 +2020,7 @@ hsm_sign_buffer(hsm_ctx_t *ctx,
 
     sign_mechanism.pParameter = NULL;
     sign_mechanism.ulParameterLen = 0;
-    switch(algorithm) {
+    switch((ldns_signing_algorithm)algorithm) {
         case LDNS_SIGN_RSAMD5:
         case LDNS_SIGN_RSASHA1:
         case LDNS_SIGN_RSASHA1_NSEC3:
@@ -2194,11 +2202,15 @@ hsm_open2(hsm_repository_t* rlist,
     pthread_mutex_lock(&_hsm_ctx_mutex);
     /* create an internal context with an attached session for each
      * configured HSM. */
-    _hsm_ctx = hsm_ctx_new();
+    if ((_hsm_ctx = hsm_ctx_new())) {
+        keycache_create(_hsm_ctx);
+    }
 
     repo = rlist;
     while (repo) {
         hsm_config_default(&module_config);
+        module_config.use_pubkey = repo->use_pubkey;
+        module_config.allow_extract = repo->allow_extract;
         if (repo->name && repo->module && repo->tokenlabel) {
             if (repo->pin) {
                 result = hsm_attach(repo->name, repo->tokenlabel,
@@ -2247,6 +2259,7 @@ void
 hsm_close()
 {
     pthread_mutex_lock(&_hsm_ctx_mutex);
+    keycache_destroy(_hsm_ctx);
     hsm_ctx_close(_hsm_ctx, 1);
     _hsm_ctx = NULL;
     pthread_mutex_unlock(&_hsm_ctx_mutex);
@@ -2352,6 +2365,13 @@ hsm_sign_params_free(hsm_sign_params_t *params)
     }
 }
 
+void
+libhsm_key_free(libhsm_key_t *key)
+{
+    free(key->modulename);
+    free(key);
+}
+
 libhsm_key_t **
 hsm_list_keys(hsm_ctx_t *ctx, size_t *count)
 {
@@ -2418,7 +2438,7 @@ generate_unique_id(hsm_ctx_t *ctx, unsigned char *buf, size_t bufsize)
     /* check whether this key doesn't happen to exist already */
     hsm_random_buffer(ctx, buf, bufsize);
     while ((key = hsm_find_key_by_id_bin(ctx, buf, bufsize))) {
-	free(key);
+	libhsm_key_free(key);
 	hsm_random_buffer(ctx, buf, bufsize);
     }
 
@@ -2445,9 +2465,11 @@ hsm_generate_rsa_key(hsm_ctx_t *ctx,
     CK_BBOOL ctrue = CK_TRUE;
     CK_BBOOL cfalse = CK_FALSE;
     CK_BBOOL ctoken = CK_TRUE;
+    CK_BBOOL cextractable = CK_FALSE;
 
     session = hsm_find_repository_session(ctx, repository);
     if (!session) return NULL;
+    cextractable = session->module->config->allow_extract ? CK_TRUE : CK_FALSE;
 
     generate_unique_id(ctx, id, 16);
 
@@ -2481,7 +2503,7 @@ hsm_generate_rsa_key(hsm_ctx_t *ctx,
         { CKA_SENSITIVE,   &ctrue,   sizeof (ctrue) },
         { CKA_TOKEN,       &ctrue,   sizeof (ctrue)  },
         { CKA_PRIVATE,     &ctrue,   sizeof (ctrue)  },
-        { CKA_EXTRACTABLE, &cfalse,  sizeof (cfalse) }
+        { CKA_EXTRACTABLE, &cextractable,  sizeof (cextractable) }
     };
 
     rv = ((CK_FUNCTION_LIST_PTR)session->module->sym)->C_GenerateKeyPair(session->session,
@@ -2521,6 +2543,7 @@ hsm_generate_dsa_key(hsm_ctx_t *ctx,
     CK_OBJECT_HANDLE domainPar, publicKey, privateKey;
     CK_BBOOL ctrue = CK_TRUE;
     CK_BBOOL cfalse = CK_FALSE;
+    CK_BBOOL cextractable = CK_FALSE;
 
     /* ids we create are 16 bytes of data */
     unsigned char id[16];
@@ -2529,6 +2552,7 @@ hsm_generate_dsa_key(hsm_ctx_t *ctx,
 
     session = hsm_find_repository_session(ctx, repository);
     if (!session) return NULL;
+    cextractable = session->module->config->allow_extract ? CK_TRUE : CK_FALSE;
 
     generate_unique_id(ctx, id, 16);
 
@@ -2576,8 +2600,10 @@ hsm_generate_dsa_key(hsm_ctx_t *ctx,
         { CKA_SENSITIVE,           &ctrue,   sizeof(ctrue)   },
         { CKA_TOKEN,               &ctrue,   sizeof(ctrue)   },
         { CKA_PRIVATE,             &ctrue,   sizeof(ctrue)   },
-        { CKA_EXTRACTABLE,         &cfalse,  sizeof(cfalse)  }
+        { CKA_EXTRACTABLE, &cextractable,  sizeof (cextractable) }
     };
+
+    cextractable = session->module->config->allow_extract ? CK_TRUE : CK_FALSE;
 
     /* Generate the domain parameters */
 
@@ -2630,6 +2656,7 @@ hsm_generate_gost_key(hsm_ctx_t *ctx,
     CK_OBJECT_HANDLE publicKey, privateKey;
     CK_BBOOL ctrue = CK_TRUE;
     CK_BBOOL cfalse = CK_FALSE;
+    CK_BBOOL cextractable = CK_FALSE;
 
     /* ids we create are 16 bytes of data */
     unsigned char id[16];
@@ -2638,6 +2665,7 @@ hsm_generate_gost_key(hsm_ctx_t *ctx,
 
     session = hsm_find_repository_session(ctx, repository);
     if (!session) return NULL;
+    cextractable = session->module->config->allow_extract ? CK_TRUE : CK_FALSE;
 
     generate_unique_id(ctx, id, 16);
 
@@ -2675,7 +2703,7 @@ hsm_generate_gost_key(hsm_ctx_t *ctx,
         { CKA_SENSITIVE,           &ctrue,   sizeof(ctrue)   },
         { CKA_TOKEN,               &ctrue,   sizeof(ctrue)   },
         { CKA_PRIVATE,             &ctrue,   sizeof(ctrue)   },
-        { CKA_EXTRACTABLE,         &cfalse,  sizeof(cfalse)  }
+        { CKA_EXTRACTABLE,         &cextractable,  sizeof (cextractable) }
     };
 
     /* Generate key pair */
@@ -2709,6 +2737,7 @@ hsm_generate_ecdsa_key(hsm_ctx_t *ctx,
     CK_OBJECT_HANDLE publicKey, privateKey;
     CK_BBOOL ctrue = CK_TRUE;
     CK_BBOOL cfalse = CK_FALSE;
+    CK_BBOOL cextractable = CK_FALSE;
 
     /* ids we create are 16 bytes of data */
     unsigned char id[16];
@@ -2717,6 +2746,7 @@ hsm_generate_ecdsa_key(hsm_ctx_t *ctx,
 
     session = hsm_find_repository_session(ctx, repository);
     if (!session) return NULL;
+    cextractable = session->module->config->allow_extract ? CK_TRUE : CK_FALSE;
 
     generate_unique_id(ctx, id, 16);
 
@@ -2753,7 +2783,7 @@ hsm_generate_ecdsa_key(hsm_ctx_t *ctx,
         { CKA_SENSITIVE,           &ctrue,   sizeof(ctrue)   },
         { CKA_TOKEN,               &ctrue,   sizeof(ctrue)   },
         { CKA_PRIVATE,             &ctrue,   sizeof(ctrue)   },
-        { CKA_EXTRACTABLE,         &cfalse,  sizeof(cfalse)  }
+        { CKA_EXTRACTABLE,         &cextractable,  sizeof (cextractable) }
     };
 
     /* Select the curve */
@@ -2826,8 +2856,7 @@ libhsm_key_list_free(libhsm_key_t **key_list, size_t count)
 {
     size_t i;
     for (i = 0; i < count; i++) {
-        free((void*)key_list[i]->modulename);
-        free(key_list[i]);
+        libhsm_key_free(key_list[i]);
     }
     free(key_list);
 }
@@ -3019,7 +3048,7 @@ hsm_keytag(const char* loc, int alg, int ksk, uint16_t* keytag)
 
 	dnskey_rr = hsm_get_dnskey(hsm_ctx, hsmkey, sign_params);
 	if (!dnskey_rr) {
-		free(hsmkey);
+		libhsm_key_free(hsmkey);
 		hsm_sign_params_free(sign_params);
 		hsm_destroy_context(hsm_ctx);
 		return 1;
@@ -3028,7 +3057,7 @@ hsm_keytag(const char* loc, int alg, int ksk, uint16_t* keytag)
 	tag = ldns_calc_keytag(dnskey_rr);
 
 	ldns_rr_free(dnskey_rr);
-	free(hsmkey);
+	libhsm_key_free(hsmkey);
 	hsm_sign_params_free(sign_params);
 	hsm_destroy_context(hsm_ctx);
 
@@ -3332,6 +3361,7 @@ keycache_delfunc(ldns_rbnode_t* node, void* cargo)
 {
     (void)cargo;
     free((void*)node->key);
+    free(((libhsm_key_t*)node->data)->modulename);
     free((void*)node->data);
     free((void*)node);
 }
@@ -3340,6 +3370,8 @@ void
 keycache_create(hsm_ctx_t* ctx)
 {
     ctx->keycache = ldns_rbtree_create(keycache_cmpfunc);
+    _hsm_ctx->keycache_lock = malloc(sizeof (pthread_mutex_t));
+    pthread_mutex_init(_hsm_ctx->keycache_lock, NULL);
 }
 
 void
@@ -3347,6 +3379,9 @@ keycache_destroy(hsm_ctx_t* ctx)
 {
     ldns_traverse_postorder(ctx->keycache, keycache_delfunc, NULL);
     ldns_rbtree_free(ctx->keycache);
+    pthread_mutex_destroy(ctx->keycache_lock);
+    free(ctx->keycache_lock);
+    ctx->keycache_lock = NULL;
 }
 
 const libhsm_key_t*
@@ -3354,7 +3389,9 @@ keycache_lookup(hsm_ctx_t* ctx, const char* locator)
 {
     ldns_rbnode_t* node;
 
-    node = ldns_rbtree_search(ctx->keycache, locator);
+    pthread_mutex_lock(ctx->keycache_lock);
+        node = ldns_rbtree_search(ctx->keycache, locator);
+    pthread_mutex_unlock(ctx->keycache_lock);
     if (node == LDNS_RBTREE_NULL || node == NULL) {
         libhsm_key_t* key;
         if ((key = hsm_find_key_by_id(ctx, locator)) == NULL) {
@@ -3363,7 +3400,9 @@ keycache_lookup(hsm_ctx_t* ctx, const char* locator)
             node = malloc(sizeof(ldns_rbnode_t));
             node->key = strdup(locator);
             node->data = key;
-            node = ldns_rbtree_insert(ctx->keycache, node);
+            pthread_mutex_lock(ctx->keycache_lock);
+                node = ldns_rbtree_insert(ctx->keycache, node);
+            pthread_mutex_unlock(ctx->keycache_lock);
         }
     }  
 

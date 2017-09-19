@@ -1,3 +1,13 @@
+opendnssec (1:2.1.3-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream release. (Closes: #869091, #870072) (LP: #1703836)
+    - refresh patches
+  * enforcer-*.install: ods-ksmutil was removed, drop from here too.
+  * source/local-options: Ignore files not on the tarball.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 19 Sep 2017 16:08:35 +0300
+
 opendnssec (1:2.0.4-3) unstable; urgency=medium
 
   * Fix reading the tmpfiles (Thanks Michael Biebl for catching that)

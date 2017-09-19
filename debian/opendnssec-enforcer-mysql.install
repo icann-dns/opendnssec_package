@@ -1,11 +1,9 @@
 usr/bin/ods-kaspcheck
-usr/bin/ods-ksmutil
 usr/sbin/ods-enforcer
 usr/sbin/ods-enforcer-db-setup
 usr/sbin/ods-enforcerd
 usr/sbin/ods-migrate
 usr/share/man/man1/ods-kaspcheck.1
-usr/share/man/man1/ods-ksmutil.1
 usr/share/man/man5/ods-kasp.5
 usr/share/man/man8/ods-enforcer-db-setup.8
 usr/share/man/man8/ods-enforcer.8
