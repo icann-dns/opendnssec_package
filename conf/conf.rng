@@ -73,6 +73,12 @@
                     <empty/>
                   </element>
                 </optional>
+                <optional>
+                  <!-- Generate extractable keys (CKA_EXTRACTABLE = TRUE) (optional) -->
+                  <element name="AllowExtract">
+                    <empty/>
+                  </element>
+                </optional>
               </interleave>
             </element>
           </zeroOrMore>
@@ -124,15 +130,6 @@
                 <ref name="sqlite"/>
               </choice>
             </element>
-            <optional>
-              <!--
-                Interval between runs of the key rollover procedure
-                This is no longer used in 2.0 and will be deprecated in 2.1
-              -->
-              <element name="Interval">
-                <data type="duration"/>
-              </element>
-            </optional>
             <optional>
               <!-- Use manual key generation? -->
               <element name="ManualKeyGeneration">
@@ -240,7 +237,10 @@
                 </element>
               </optional>
               <optional>
-                <!-- Listener -->
+                <!--
+                  Listener
+                  DEFAULT PORT: 15354
+                -->
                 <element name="Listener">
                   <zeroOrMore>
                     <ref name="interface"/>

@@ -307,11 +307,9 @@
   <!-- Generic key definition -->
   <define name="anykey">
     <element name="Algorithm">
-      <optional>
-        <attribute name="length">
-          <data type="positiveInteger"/>
-        </attribute>
-      </optional>
+      <attribute name="length">
+        <data type="positiveInteger"/>
+      </attribute>
       <data type="nonNegativeInteger">
         <param name="maxInclusive">255</param>
       </data>

@@ -154,6 +154,7 @@ parse_conf_repositories(const char* cfgfile)
     char* tokenlabel;
     char* pin;
     uint8_t use_pubkey;
+    uint8_t allowextract;
     int require_backup;
     hsm_repository_t* rlist = NULL;
     hsm_repository_t* repo  = NULL;
@@ -192,6 +193,7 @@ parse_conf_repositories(const char* cfgfile)
             tokenlabel = NULL;
             pin = NULL;
             use_pubkey = 1;
+            allowextract = 0;
             require_backup = 0;
 
             curNode = xpathObj->nodesetval->nodeTab[i]->xmlChildrenNode;
@@ -208,12 +210,14 @@ parse_conf_repositories(const char* cfgfile)
                     pin = (char *) xmlNodeGetContent(curNode);
                 if (xmlStrEqual(curNode->name, (const xmlChar *)"SkipPublicKey"))
                     use_pubkey = 0;
+                if (xmlStrEqual(curNode->name, (const xmlChar *)"AllowExtraction"))
+                    allowextract = 1;
 
                 curNode = curNode->next;
             }
             if (name && module && tokenlabel) {
                 repo = hsm_repository_new(name, module, tokenlabel, pin,
-                    use_pubkey, require_backup);
+                    use_pubkey, allowextract, require_backup);
             }
             if (!repo) {
                ods_log_error("[%s] unable to add %s repository: "
@@ -251,7 +255,7 @@ parse_conf_listener(const char* cfgfile)
     interface_type* interface = NULL;
     int i = 0;
     char* address = NULL;
-    char* port = NULL;
+    const char* port = NULL;
     xmlDocPtr doc = NULL;
     xmlXPathContextPtr xpathCtx = NULL;
     xmlXPathObjectPtr xpathObj = NULL;
@@ -288,16 +292,21 @@ parse_conf_listener(const char* cfgfile)
     /* Parse interfaces */
     listener = listener_create();
     ods_log_assert(listener);
+
+    /* If port is not set in Listener in the conf file, default value is used.
+     * default port: 15354
+     */
     if (xpathObj->nodesetval && xpathObj->nodesetval->nodeNr > 0) {
         for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) {
             address = NULL;
-            port = NULL;
+            port = strdup("15354");
 
             curNode = xpathObj->nodesetval->nodeTab[i]->xmlChildrenNode;
             while (curNode) {
                 if (xmlStrEqual(curNode->name, (const xmlChar *)"Address")) {
                     address = (char *) xmlNodeGetContent(curNode);
                 } else if (xmlStrEqual(curNode->name, (const xmlChar *)"Port")) {
+                    free((char *)port);
                     port = (char *) xmlNodeGetContent(curNode);
                 }
                 curNode = curNode->next;
@@ -314,13 +323,19 @@ parse_conf_listener(const char* cfgfile)
             if (!interface) {
                ods_log_error("[%s] unable to add %s:%s interface: "
                    "listener_push() failed", parser_str, address?address:"",
-                   port?port:"");
+                   port);
             } else {
                ods_log_debug("[%s] added %s:%s interface to listener",
-                   parser_str, address?address:"", port?port:"");
+                   parser_str, address?address:"", port);
             }
             free((void*)port);
             free((void*)address);
+        }
+    }
+    else {
+        interface = listener_push(listener, (char *)"", AF_INET, "15354");
+        if (interface) {
+            interface = listener_push(listener, (char *)"", AF_INET6, "15354");
         }
     }
     xmlXPathFreeObject(xpathObj);

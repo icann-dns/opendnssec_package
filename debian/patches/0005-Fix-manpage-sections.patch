@@ -8,20 +8,6 @@ Subject: Fix manpage sections
  signer/man/ods-signerd.8.in   | 2 +-
  3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/enforcer/man/ods-ksmutil.1.in b/enforcer/man/ods-ksmutil.1.in
-index 0f9d184..a99b3a7 100644
---- a/enforcer/man/ods-ksmutil.1.in
-+++ b/enforcer/man/ods-ksmutil.1.in
-@@ -1,5 +1,5 @@
--.TH "ods-ksmutil" "8" "October 2012" "OpenDNSSEC" "OpenDNSSEC ods-ksmutil"
--.\" $Id: ods-ksmutil.8.in 5470 2012-10-17 09:44:09Z vanrein $
-+.TH "ods-ksmutil" "1" "October 2012" "OpenDNSSEC" "OpenDNSSEC ods-ksmutil"
-+.\" $Id: ods-ksmutil.1.in 5470 2012-10-17 09:44:09Z vanrein $
- .SH "NAME"
- .B ods\-ksmutil 
- \- OpenDNSSEC enforcer Engine client
-diff --git a/signer/man/ods-signer.8.in b/signer/man/ods-signer.8.in
-index fe1d960..16633a4 100644
 --- a/signer/man/ods-signer.8.in
 +++ b/signer/man/ods-signer.8.in
 @@ -1,4 +1,4 @@
@@ -30,8 +16,6 @@ index fe1d960..16633a4 100644
  .SH "NAME"
  .B ods\-signer 
  \- OpenDNSSEC Signer Engine client
-diff --git a/signer/man/ods-signerd.8.in b/signer/man/ods-signerd.8.in
-index 0767b1b..5c7d6d7 100644
 --- a/signer/man/ods-signerd.8.in
 +++ b/signer/man/ods-signerd.8.in
 @@ -1,4 +1,4 @@
