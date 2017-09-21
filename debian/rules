@@ -79,7 +79,6 @@ override_dh_auto_install:
 
 override_dh_installdocs-arch:
 	dh_installdocs -popendnssec-common -popendnssec-common\
-		-popendnssec-dbg-mysql -popendnssec-dbg-sqlite3 \
 		-popendnssec-enforcer -popendnssec-enforcer-sqlite3 \
 		-popendnssec-enforcer-mysql -plibhsm-bin \
 		-popendnssec-signer -popendnssec-doc 

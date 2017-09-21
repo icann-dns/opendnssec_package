@@ -1,3 +1,11 @@
+opendnssec (1:2.1.3-0.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * rules: Drop handling old dbg packages from dh_installdocs override.
+    (Closes: #876277)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 21 Sep 2017 15:00:10 +0300
+
 opendnssec (1:2.1.3-0.1) unstable; urgency=medium
 
   * Non-maintainer upload.
