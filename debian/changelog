@@ -1,3 +1,9 @@
+opendnssec (1:2.1.3-0.2build1) bionic; urgency=high
+
+  * No change rebuild against openssl1.1.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Wed, 07 Feb 2018 11:35:23 +0000
+
 opendnssec (1:2.1.3-0.2) unstable; urgency=medium
 
   * Non-maintainer upload.
