@@ -21,17 +21,18 @@ SQLITE3_SONAME = $(shell objdump -p $$(pkg-config --variable=libdir sqlite3)/lib
 
 # main packaging script based on dh7 syntax
 %:
-	dh $@ --with autoreconf --with autotools-dev -with systemd
+	dh $@
 
 override_dh_auto_clean:
 	dh_auto_clean -Bbuild-sqlite3
 	dh_auto_clean -Denforcer -Bbuild-mysql/enforcer
+	debconf-updatepo
 	rm -rf build-mysql build-sqlite3
 
 COMMON = --disable-rpath --with-ldns=/usr \
 	 --with-cunit=/usr --libexecdir=/usr/lib/opendnssec/ \
 	 --with-pkcs11-opensc=/usr/lib/pkcs11/opensc-pkcs11.so \
-	 --with-pkcs11-softhsm=/usr/lib/softhsm/libsofthsm.so
+	 --with-pkcs11-softhsm=/usr/lib/softhsm/libsofthsm2.so
 
 override_dh_auto_configure:
 	dh_auto_configure -Bbuild-sqlite3 -- $(COMMON) --with-enforcer-database=sqlite3
@@ -47,10 +48,6 @@ override_dh_auto_build-indep:
 	dh_auto_build -Bbuild-sqlite3 -- docs
 
 override_dh_auto_install:
-	# Comment out example zone after regression testing
-	(cd build-sqlite3; patch -p1 -i $(CURDIR)/debian/signconf.xml.patch)
-	# Remove $Id tags + new line from xml file
-	(cd build-sqlite3; for xml in conf/*.xml; do sed -ie '/<!-- $$Id.*/ N; /<!-- $$Id.*\n/ d;' $$xml; done)
 	dh_auto_install -Bbuild-sqlite3 -- DESTDIR=$(CURDIR)/debian/tmp
 	dh_auto_install -Bbuild-mysql/enforcer -- DESTDIR=$(CURDIR)/debian/tmp-mysql
 	# Install migration scripts
@@ -58,9 +55,9 @@ override_dh_auto_install:
 	install -m 755 $(CURDIR)/enforcer/utils/convert_sqlite_to_mysql $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	install -m 644 $(CURDIR)/debian/migrate_1_4_8.* $(CURDIR)/debian/tmp/usr/share/opendnssec/
 	install -d -m 755 $(CURDIR)/debian/tmp/usr/share/opendnssec/1.4-2.0_db_convert/
-	install -m 644 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/README* $(CURDIR)/debian/tmp/usr/share/opendnssec/
-	install -m 644 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/*.sql $(CURDIR)/debian/tmp/usr/share/opendnssec/
-	install -m 755 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/convert_* $(CURDIR)/debian/tmp/usr/share/opendnssec/
+	install -m 644 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/README* $(CURDIR)/debian/tmp/usr/share/opendnssec/1.4-2.0_db_convert/
+	install -m 644 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/*.sql $(CURDIR)/debian/tmp/usr/share/opendnssec/1.4-2.0_db_convert/
+	install -m 755 $(CURDIR)/enforcer/utils/1.4-2.0_db_convert/convert_* $(CURDIR)/debian/tmp/usr/share/opendnssec/1.4-2.0_db_convert/
 	install -m 644 $(CURDIR)/enforcer/src/db/schema.* $(CURDIR)/debian/tmp/usr/share/opendnssec/
 
 	# Remove extra dist files from opendnssec-enforcer-mysql
@@ -90,5 +87,8 @@ override_dh_strip:
 	dh_strip -O--dbgsym-migration='opendnssec-dbg-mysql (<< 1.4.9-2~), opendnssec-dbg-sqlite3 (<< 1.4.9-2~)'
 
 override_dh_install:
-	dh_install -popendnssec-enforcer-mysql --sourcedir=debian/tmp-mysql -Xxml.sample
-	dh_install -Nopendnssec-enforcer-mysql --fail-missing -Xxml.sample
+	dh_install -popendnssec-enforcer-mysql --sourcedir=debian/tmp-mysql
+	dh_install -Nopendnssec-enforcer-mysql
+
+override_dh_missing:
+	dh_missing -Nopendnssec-enforcer-mysql --fail-missing -Xxml.sample

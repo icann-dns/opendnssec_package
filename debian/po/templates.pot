@@ -1,0 +1,88 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the opendnssec package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: opendnssec\n"
+"Report-Msgid-Bugs-To: opendnssec@packages.debian.org\n"
+"POT-Creation-Date: 2019-02-14 14:49+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid "OpenDNSSEC 2.0.0 database and tools migration"
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"There are two steps in the database migration.  If you are running "
+"OpenDNSSEC 1.4.6 from Debian stable, you need to apply the SQL statements "
+"from /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3} against your "
+"existing database."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"The enforcer does require a full migration, as the internal database has "
+"been completely revised.  See the upstream documentation in the /usr/share/"
+"opendnssec/1.4-2.0_db_convert/README.md for a description."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"You should also review the documentation on the OpenDNSSEC site.  This can "
+"be updated in between releases to provide more help.  Especially if you have "
+"tooling around OpenDNSSEC you should be aware that some command line "
+"utilities have changed.  A fair amount of backward compatibility has been "
+"respected, but changes are present."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid "Manual OpenDNSSEC configuration required"
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid ""
+"OpenDNSSEC requires manual configuration before the signer and enforcer "
+"daemons can be started."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid ""
+"One of these configuration steps consists of installing and configuring a "
+"Hardware Security Module (HSM) that will handle the cryptographic key "
+"operations. Most people will want to use the software HSM implementation "
+"provided by the recommended softhsm2 package, but other options are possible."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid ""
+"The file /etc/opendnssec/prevent-startup is created during fresh "
+"installations and prevents the daemons from being automatically started. You "
+"should remove this file and start the daemons once you have configured "
+"OpenDNSSEC."
+msgstr ""

@@ -1,15 +1,13 @@
 Source: opendnssec
 Section: admin
-Priority: extra
-Maintainer: Debian DNS Packaging <team+dns@tracker.debian.org>
-Uploaders: Ondřej Surý <ondrej@debian.org>
-Build-Depends: autotools-dev,
-               debhelper (>= 9),
+Priority: optional
+Maintainer: Mathieu Mirmont <mat@parad0x.org>
+Uploaders: Timo Aaltonen <tjaalton@debian.org>
+Build-Depends:
+               debhelper (>= 10),
                default-jdk,
                default-libmysqlclient-dev | libmysqlclient-dev,
                default-mysql-client | mysql-client,
-               dh-autoreconf,
-               dh-systemd,
                doxygen,
                graphviz,
                libcunit1-dev,
@@ -21,13 +19,14 @@ Build-Depends: autotools-dev,
                lsb-base (>= 3.2-14),
                opensc,
                pkg-config,
+               po-debconf,
                procps,
                sqlite3,
                xsltproc
-Standards-Version: 3.9.8
+Standards-Version: 4.3.0
 Homepage: http://www.opendnssec.org/
-Vcs-Browser: https://anonscm.debian.org/git/pkg-dns/opendnssec.git/
-Vcs-Git: git://anonscm.debian.org/pkg-dns/opendnssec.git
+Vcs-Browser: https://salsa.debian.org/debian/opendnssec
+Vcs-Git: https://salsa.debian.org/debian/opendnssec.git
 
 Package: opendnssec-common
 Section: misc
@@ -74,6 +73,7 @@ Description: dependency package to install full OpenDNSSEC suite
 Package: opendnssec-doc
 Section: doc
 Architecture: all
+Multi-Arch: foreign
 Depends: ${misc:Depends}
 Suggests: opendnssec
 Description: documentation for OpenDNSSEC suite

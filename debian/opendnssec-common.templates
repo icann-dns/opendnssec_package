@@ -1,6 +1,6 @@
 Template: opendnssec/migration-2.0
 Type: note
-Description: OpenDNSSEC 2.0.0 database and tools migration
+_Description: OpenDNSSEC 2.0.0 database and tools migration
  There are two steps in the database migration.  If you are running
  OpenDNSSEC 1.4.6 from Debian stable, you need to apply the SQL statements
  from /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3} against your
@@ -15,3 +15,20 @@ Description: OpenDNSSEC 2.0.0 database and tools migration
  have tooling around OpenDNSSEC you should be aware that some command line
  utilities have changed.  A fair amount of backward compatibility has been
  respected, but changes are present.
+
+Template: opendnssec/conf-required
+Type: note
+_Description: Manual OpenDNSSEC configuration required
+ OpenDNSSEC requires manual configuration before the signer and
+ enforcer daemons can be started.
+ .
+ One of these configuration steps consists of installing and
+ configuring a Hardware Security Module (HSM) that will handle the
+ cryptographic key operations. Most people will want to use the
+ software HSM implementation provided by the recommended softhsm2
+ package, but other options are possible.
+ .
+ The file /etc/opendnssec/prevent-startup is created during fresh
+ installations and prevents the daemons from being automatically
+ started. You should remove this file and start the daemons once you
+ have configured OpenDNSSEC.

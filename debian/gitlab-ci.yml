@@ -1,0 +1,212 @@
+#
+# Gitlab CI file.
+#
+
+.variables-common: &variables-common
+  DEBFULLNAME: "Salsa Pipeline"
+  DEBEMAIL: "<salsa-pipeline@debian.org>"
+  DEBIAN_FRONTEND: noninteractive
+  WORKING_DIR: debian/output
+
+stages:
+  - build
+  - test
+
+before_script:
+  - echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/no-recommends
+  - echo 'force-unsafe-io' > /etc/dpkg/dpkg.cfg.d/force-unsafe.io
+
+##
+## Build the package.
+##
+build:
+  stage: build
+  image: registry.salsa.debian.org/salsa-ci-team/images/gbp
+  services:
+    - docker:dind
+
+  variables:
+    <<: *variables-common
+    BUILDER_IMAGE: "registry.salsa.debian.org/salsa-ci-team/images/dockerbuilder:unstable"
+    GIT_BUILDER: "docker-build.sh ${BUILDER_IMAGE} --check-command=/bin/true"
+
+  script:
+    - WORKING_DIR="$(pwd)/${WORKING_DIR}"
+    - mkdir -p "${WORKING_DIR}"
+    - uscan -dd --destdir "${WORKING_DIR}" --rename
+    - gbp buildpackage --git-ignore-branch
+                       --git-ignore-new
+                       --git-no-create-orig
+                       --git-export-dir="${WORKING_DIR}"
+                       --git-overlay
+                       --git-postexport='touch ${GBP_TMP_DIR}/conf/*.rng'
+                       --git-builder="${GIT_BUILDER}"
+
+  artifacts:
+    name: "opendnssec-${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}"
+    expire_in: 42 days
+    paths:
+        - ${WORKING_DIR}/
+
+##
+## Run lintian
+##
+lintian:
+  stage: test
+  image: registry.salsa.debian.org/salsa-ci-team/images/lintian
+
+  variables:
+    <<: *variables-common
+
+  script:
+    - lintian ${WORKING_DIR}/*.changes
+      | tee /dev/stderr
+      | /root/go/bin/lintian2junit > ${WORKING_DIR}/lintian.xml
+
+  artifacts:
+    reports:
+      junit: ${WORKING_DIR}/lintian.xml
+    when: always
+
+##
+## Run piuparts
+##
+.piuparts-common: &piuparts-common
+  stage: test
+  image: registry.salsa.debian.org/salsa-ci-team/images/piuparts
+  services:
+    - docker:dind
+
+  script:
+    # Derive the base distribution name
+    - if [ "${PIUPARTS_MODE}" = "upgrade" ]; then DISTRIB="stable"; else DISTRIB="unstable"; fi
+
+    # Build the chroot
+    - CHROOT_PATH=/tmp/debian-chroot
+    - CONTAINER_ID=$(docker run --rm -d debian:${DISTRIB} sleep infinity)
+    - docker exec ${CONTAINER_ID} bash -c "apt-get update && apt-get install eatmydata lsof -y"
+    - mkdir -p ${CHROOT_PATH}
+    - docker export ${CONTAINER_ID} | tar -C ${CHROOT_PATH} -xf -
+    - rm -rf ${CHROOT_PATH}/.zfs
+
+    # Figure out the piuparts command line arguments
+    - PIUPARTS_ARGS="--scriptsdir /etc/piuparts/scripts
+                     --warn-on-leftovers-after-purge
+                     --existing-chroot ${CHROOT_PATH}"
+    - VERSION=$(awk -F '(\(([0-9]*:)?)|\)' '{print $2; exit}' < debian/changelog)
+    - ARCH=$(dpkg --print-architecture)
+    - PACKAGES="${WORKING_DIR}/libhsm-bin_${VERSION}_${ARCH}.deb
+                ${WORKING_DIR}/opendnssec-common_${VERSION}_all.deb
+                ${WORKING_DIR}/opendnssec-doc_${VERSION}_all.deb
+                ${WORKING_DIR}/opendnssec-enforcer-${BACKEND}_${VERSION}_${ARCH}.deb
+                ${WORKING_DIR}/opendnssec-enforcer_${VERSION}_all.deb
+                ${WORKING_DIR}/opendnssec-signer_${VERSION}_${ARCH}.deb
+                ${WORKING_DIR}/opendnssec_${VERSION}_all.deb"
+
+    # Call piuparts, either in install or in upgrade mode
+    - if [ "${PIUPARTS_MODE}" = "upgrade" ]; then
+          piuparts ${PIUPARTS_ARGS}
+                   --distribution stable
+                   --extra-repo "deb http://security.debian.org/debian-security stable/updates main"
+                   --extra-repo "deb http://deb.debian.org/debian stable-updates main"
+                   --distribution unstable
+                   ${PACKAGES};
+      else
+          piuparts ${PIUPARTS_ARGS}
+                   --distribution unstable
+                   ${PACKAGES};
+      fi
+
+# piupart install test using the sqlite3 backend
+piuparts-install-sqlite3:
+  <<: *piuparts-common
+  variables:
+    <<: *variables-common
+    PIUPARTS_MODE: install
+    BACKEND: sqlite3
+
+# piupart install test using the mysql backend
+piuparts-install-mysql:
+  <<: *piuparts-common
+  variables:
+    <<: *variables-common
+    PIUPARTS_MODE: install
+    BACKEND: mysql
+
+# piupart upgrade test using the sqlite3 backend
+piuparts-upgrade-sqlite3:
+  <<: *piuparts-common
+  variables:
+    <<: *variables-common
+    PIUPARTS_MODE: upgrade
+    BACKEND: sqlite3
+
+# piupart upgrade test using the mysql backend
+piuparts-upgrade-mysql:
+  <<: *piuparts-common
+  variables:
+    <<: *variables-common
+    PIUPARTS_MODE: upgrade
+    BACKEND: mysql
+
+##
+## Run reprotest
+##
+reprotest:
+  stage: test
+  image: registry.salsa.debian.org/salsa-ci-team/images/reprotest
+  allow_failure: true
+
+  variables:
+    <<: *variables-common
+    #DEB_BUILD_OPTIONS: nocheck
+
+  script:
+    - apt-get update
+    - apt-get build-dep -y .
+    - reprotest --min-cpus $(nproc) --no-diffoscope --store-dir reprotest
+                ${WORKING_DIR}/opendnssec_*.dsc -- null 2>&1
+      | tee reprotest.log
+
+  artifacts:
+    name: "opendnssec-${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}"
+    paths:
+      - reprotest.log
+      - reprotest/
+    when: always
+
+##
+## Lint the distributed XML files
+##
+xmllint:
+  stage: test
+  image: registry.salsa.debian.org/salsa-ci-team/images/base
+  allow_failure: true
+
+  variables:
+    <<: *variables-common
+
+  script:
+    - apt-get update
+    - apt-get install -y libxml2-utils
+    - apt-get install -y ./${WORKING_DIR}/opendnssec-common_*.deb
+    - dpkg -L opendnssec-common | grep '\.xml$' | xargs xmllint --noout
+
+##
+## Check all packaging scripts
+##
+shellcheck:
+  stage: test
+  image: registry.salsa.debian.org/salsa-ci-team/images/base
+  allow_failure: true
+
+  variables:
+    <<: *variables-common
+
+  script:
+    - apt-get update
+    - apt-get install -y git file shellcheck
+    - git ls-files debian
+          | xargs file
+          | awk '-F:' '/shell script/ {print $1}'
+          | xargs shellcheck --exclude SC1091,SC2230,SC2034,SC2039

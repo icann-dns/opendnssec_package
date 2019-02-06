@@ -7,6 +7,7 @@ Type=simple
 EnvironmentFile=-/etc/default/opendnssec
 EnvironmentFile=-/etc/default/opendnssec-enforcer
 ExecStart=/usr/sbin/ods-enforcerd -d $DAEMON_ARGS $ODS_ENFORCERD_OPT
+ConditionPathExists=!/etc/opendnssec/prevent-startup
 
 [Install]
 WantedBy=multi-user.target

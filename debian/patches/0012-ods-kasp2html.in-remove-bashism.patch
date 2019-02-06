@@ -1,0 +1,34 @@
+From 91f839a4e24976b040f696b18c49202b481cfda6 Mon Sep 17 00:00:00 2001
+From: Mathieu Mirmont <mat@parad0x.org>
+Date: Fri, 18 Jan 2019 23:11:20 +0100
+Subject: ods-kasp2html.in: remove bashism
+
+---
+ tools/ods-kasp2html.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/ods-kasp2html.in b/tools/ods-kasp2html.in
+index 0fbe08ac..350759ff 100644
+--- a/tools/ods-kasp2html.in
++++ b/tools/ods-kasp2html.in
+@@ -28,7 +28,7 @@ XMLLINT=@XMLLINT@
+ XSLTPROC=@XSLTPROC@
+ 
+ if [ ! -x "$XMLLINT" ]; then
+-	XMLLINT=$(find ${PATH//:/ } -maxdepth 1 -name xmllint -print -quit)
++	XMLLINT=$(find $(echo "$PATH" | tr : ' ') -maxdepth 1 -name xmllint -print -quit)
+ 	if [ ! -x "$XMLLINT" ]; then
+ 		echo "error: xmllint required, but not found"
+ 		exit 1
+@@ -36,7 +36,7 @@ if [ ! -x "$XMLLINT" ]; then
+ fi
+ 
+ if [ ! -x "$XSLTPROC" ]; then
+-	XSLTPROC=$(find ${PATH//:/ } -maxdepth 1 -name xsltproc -print -quit)
++	XSLTPROC=$(find $(echo "$PATH" | tr : ' ') -maxdepth 1 -name xsltproc -print -quit)
+ 	if [ ! -x "$XSLTPROC" ]; then
+ 		echo "error: xsltproc required, but not found"
+ 		exit 1
+-- 
+2.20.1
+

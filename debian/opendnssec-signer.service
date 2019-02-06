@@ -7,6 +7,7 @@ Type=simple
 EnvironmentFile=-/etc/default/opendnssec
 EnvironmentFile=-/etc/default/opendnssec-signer
 ExecStart=/usr/sbin/ods-signerd -d $DAEMON_ARGS $ODS_SIGNERD_OPT
+ConditionPathExists=!/etc/opendnssec/prevent-startup
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,22 @@
+.TH "ods-kasp2html" "1" "January 2010" "OpenDNSSEC" "OpenDNSSEC ods-kasp2html"
+.SH NAME
+.B ods\-kasp2html \- Convert the kasp.xml configuration file to HTML
+.SH SYNOPSIS
+.B ods\-kasp2html
+<\fIkasp.xml\fR>
+.SH DESCRIPTION
+Convert the \fBkasp.xml\fP OpenDNSSEC policy configuration file to
+HTML and produce it on standard output. \fBods-kasp2html\fP is a
+simple shell script that uses \fBxmllint(1)\fP and \fBxsltproc(1)\fP.
+.SH FILES
+.LP
+.I /etc/opendnssec/kasp.conf
+Standard OpenDNSSEC policy configuration file.
+.SH SEE ALSO
+.LP
+ods\-enforcerd(8), ods\-kaspcheck(1), opendnssec(7), xsltproc(1),
+.B http://www.opendnssec.org/
+.SH AUTHORS
+.LP
+This manual page was created for the Debian GNU/Linux Distribution,
+because the original package does not have one.

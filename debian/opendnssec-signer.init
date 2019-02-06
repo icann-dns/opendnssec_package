@@ -13,7 +13,7 @@ fi
 # Description:       Daemon to periodically sign DNSSEC zone files.
 ### END INIT INFO
 
-NAME=opendnsec-signer
+NAME=ods-signer
 DAEMON=/usr/sbin/ods-signerd
 DESC="OpenDNSSEC Signer"
 PIDFILE=/run/opendnssec/signerd.pid
@@ -24,17 +24,21 @@ do_tmpfiles() {
     TMPFILES=/usr/lib/tmpfiles.d/$1.conf
 
     if [ -r "$TMPFILES" ]; then
-	while read type path mode user group; do
+        while read -r type path mode user group age arg; do
             if [ "$type" = "d" ]; then
-                mkdir -p "$path"
-		chmod "$mode" "$path"
-                chown "$user:$group" "$path"
+                install -d -m "$mode" -o "$user" -g "$group" "$path"
             fi
         done < "$TMPFILES"
     fi
 }
 
 do_start_prepare() {
-    do_tmpfiles $(basename $0)
+    do_tmpfiles "$(basename "$0")"
     DAEMON_ARGS="$DAEMON_ARGS $ODS_SIGNERD_OPT"
+
+    # Prevent startup if this file exists
+    if [ -e /etc/opendnssec/prevent-startup ]; then
+	log_action_msg "Not starting $DESC (/etc/opendnssec/prevent-startup)"
+	exit 0
+    fi
 }
