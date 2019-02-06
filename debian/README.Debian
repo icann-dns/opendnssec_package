@@ -13,4 +13,21 @@ to add opendnssec user to softhsm group by issuing:
 
   # adduser opendnssec softhsm
 
- -- Ondřej Surý <ondrej@debian.org>, Mon,  2 Jan 2017 15:55:37 +0100
+Manual configuration required
+-----------------------------
+
+OpenDNSSEC requires manual configuration before the signer and
+enforcer daemons can be started.
+
+One of these configuration steps consists in installing and
+configuring a Hardware Security Module (HSM) that will handle the
+cryptographic key operations. Most people will want to use the
+software HSM implementation provided by the recommended softhsm2
+package, but other options are possible.
+
+The file /etc/opendnssec/prevent-startup is created during fresh
+installations and prevents the daemons from being automatically
+started. You should remove this file and start the daemons once you
+have configured OpenDNSSEC.
+
+ -- Mathieu Mirmont <mat@parad0x.org>, Wed, 30 Jan 2019 17:46:07 +0100

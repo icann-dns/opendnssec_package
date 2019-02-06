@@ -3,6 +3,8 @@
 
 set -e
 
+. /usr/share/debconf/confmodule
+
 set_perms() {
     if ! dpkg-statoverride --list "$4" >/dev/null; then
         dpkg-statoverride --quiet --update --add "$@"
@@ -13,16 +15,35 @@ unset_perms() {
     dpkg-statoverride --quiet --remove "$1" || true
 }
 
+disable_autostart() {
+    cat <<-EOF > /etc/opendnssec/prevent-startup
+	OpenDNSSEC requires manual configuration before the signer and enforcer
+	daemons can be started.
+
+	One of these configuration steps involves installing and configuring a
+	Hardware Security Module (HSM) that will handle the cryptographic key
+	operations. Most people will want to use the software HSM
+	implementation provided by the recommended softhsm2 package, but other
+	options are possible.
+
+	The file /etc/opendnssec/prevent-startup (this file) is created during
+	fresh install ations and prevents the daemons from being automatically
+	started. You should remove this file and start the daemons once you
+	have configured OpenDNSSEC.
+	EOF
+}
+
 case "$1" in
     configure)
 
 	if dpkg --compare-versions "$2" le "1.3.6-1"; then
+	    # shellcheck disable=SC2043
 	    for conf in zonefetch.xml; do
 		unset_perms /etc/opendnssec/$conf
                 # and finally clear it out from the ucf database
 		[ -f /etc/opendnssec/$conf.dpkg-del ] && \
 		    rm -f /etc/opendnssec/$conf.dpkg-del
-		ucf --purge /etc/opendnssec/$conf
+		ucf --debconf-ok --purge /etc/opendnssec/$conf
 		ucfr --purge opendnssec /etc/opendnssec/$conf
 	    done
 	fi
@@ -39,11 +60,16 @@ case "$1" in
 	done
 
 	for conf in addns.xml conf.xml kasp.xml zonelist.xml; do
-	    ucf /usr/share/opendnssec/$conf /etc/opendnssec/$conf
+	    ucf --debconf-ok /usr/share/opendnssec/$conf /etc/opendnssec/$conf
 	    ucfr opendnssec /etc/opendnssec/$conf
 	    set_perms root opendnssec 0640 /etc/opendnssec/$conf
 	done
 
+	# Prevent the daemons from being started automatically, but only on
+	# fresh installs.
+	if [ -z "$2" ]; then
+	    disable_autostart
+	fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

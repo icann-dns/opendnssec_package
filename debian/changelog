@@ -1,3 +1,40 @@
+opendnssec (1:2.1.3-1) unstable; urgency=medium
+
+  [ Timo Aaltonen ]
+  * rules: Fix db conversion script install dir. (Closes: #864614)
+  * rules: Use libsofthsm2. (Closes: #868292)
+  * Remove empty maintscripts.
+  * control: Update VCS urls.
+  * control: Priority should be optional, not extra.
+  * compat, control, rules: Bump debhelper to 10.
+  * lintian-overrides: Updated.
+  * control: Bump policy to 4.3.0.
+  * control: Add myself to uploaders, drop Ondřej.
+
+  [ Mathieu Mirmont ]
+  * upstream/signing-key.asc: Update the keys
+  * Fix the enforcer and signer init scripts (Closes: #868368)
+  * Add support for po-debconf
+  * Fix the ods-enforcer.8 man page
+  * gitlab-ci.yml: Add a GitLab CI file
+  * opendnssec-common.post{inst,rm}: Add --debconf-ok to ucf
+  * ods-kasp.5.gz: Suppress the lintian warning
+  * ods-kaspcheck.1: Remove unused manpage
+  * ods-kasp2html.1: Add a simple man page
+  * Strip the build directory from the doxygen docs
+  * ods-kasp2html.in: Remove bashism
+  * opendnssec-common.postrm: Prevent multiple deluser
+  * opendnssec-common.examples: There are no examples
+  * signconf.xml.patch: Remove obsolete file
+  * opendnssec-common.config: Migration warning only if migrating
+  * rules: Use dh_missing for --fail-missing
+  * Shellcheck fixes
+  * control: opendnssec-doc is Multi-Arch: foreign
+  * Fix service crash after installation (Closes: #859419)
+  * control: New maintainer: yours truly
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Wed, 06 Feb 2019 10:47:42 +0100
+
 opendnssec (1:2.1.3-0.3) unstable; urgency=medium
 
   * Non-maintainer upload.

@@ -10,7 +10,7 @@ fi
 tarball=
 
 [ -f "$3" ] && tarball="$3"
-[ -z "$tarball" -a -f "$1" ] && tarball="$1"
+[ -z "$tarball" ] && [ -f "$1" ] && tarball="$1"
 
 fname="$(basename "$tarball")"
 tarball="$(readlink -f "$tarball")"
