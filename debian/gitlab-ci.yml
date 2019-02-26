@@ -9,12 +9,30 @@
   WORKING_DIR: debian/output
 
 stages:
+  - check
   - build
   - test
 
 before_script:
   - echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/no-recommends
   - echo 'force-unsafe-io' > /etc/dpkg/dpkg.cfg.d/force-unsafe.io
+
+##
+## Check for forgotten debconf-updatepo.
+##
+updatepo:
+  stage: check
+  image: registry.salsa.debian.org/salsa-ci-team/images/base
+
+  variables:
+    <<: *variables-common
+
+  script:
+    - apt-get update
+    - apt-get install -y po-debconf git
+    - debconf-updatepo
+    - git diff debian/po/templates.pot
+    - test -z "$(git ls-files -m debian/po/templates.pot)"
 
 ##
 ## Build the package.
@@ -159,7 +177,6 @@ reprotest:
 
   variables:
     <<: *variables-common
-    #DEB_BUILD_OPTIONS: nocheck
 
   script:
     - apt-get update

@@ -1,27 +1,26 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the opendnssec package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Copyright (C) Helge Kreutzmann <debian@helgefjell.de>, 2019.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: opendnssec\n"
+"Project-Id-Version: opendnssec 1:2.1.3-1\n"
 "Report-Msgid-Bugs-To: opendnssec@packages.debian.org\n"
-"POT-Creation-Date: 2019-02-18 21:17+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2019-02-14 14:49+0200\n"
+"PO-Revision-Date: 2019-02-18 18:31+0100\n"
+"Last-Translator: Helge Kreutzmann <debian@helgefjell.de>\n"
+"Language-Team: German <debian-l10n-german@lists.debian.org>\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #. Type: note
 #. Description
 #: ../opendnssec-common.templates:1001
 msgid "OpenDNSSEC 2.0.0 database and tools migration"
-msgstr ""
+msgstr "OpenDNSSEC-2.0.0-Datenbank- und Werkzeugmigration"
 
 #. Type: note
 #. Description
@@ -32,6 +31,10 @@ msgid ""
 "from /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3} against your "
 "existing database."
 msgstr ""
+"Bei der Datenbankmigration gibt es zwei Schritte. Falls Sie OpenDNSSEC 1.4.6 "
+"aus Debian Stable betreiben, müssen Sie die SQL-Anweisungen aus /usr/share/"
+"opendnssec/migrate_1_4_8.{mysql,sqlite3} auf ihre bestehende Datenbank "
+"anwenden."
 
 #. Type: note
 #. Description
@@ -41,6 +44,10 @@ msgid ""
 "been completely revised.  See the upstream documentation in the /usr/share/"
 "opendnssec/1.4-2.0_db_convert/README.md for a description."
 msgstr ""
+"Der Enforcer benötigt eine komplette Migration, da die interne Datenbank "
+"komplett neu gestaltet wurde. Lesen Sie für eine Beschreibung die "
+"Dokumentation der Originalautoren in /usr/share/opendnssec/1.4-2.0_db_convert"
+"/README.md."
 
 #. Type: note
 #. Description
@@ -52,12 +59,19 @@ msgid ""
 "utilities have changed.  A fair amount of backward compatibility has been "
 "respected, but changes are present."
 msgstr ""
+"Sie sollten auch die Dokumentation auf der OpenDNSSEC-Site durchschauen. "
+"Diese kann zwischen Veröffentlichungen aktualisiert werden, um weitere Hilfe "
+"bereitzustellen. Insbesondere falls Sie auf OpenDNSSEC Werkzeuge aufgesetzt "
+"haben, sollten Sie berücksichtigen, dass sich einige "
+"Befehlszeilenhilfswerkzeuge geändert haben. Ein ganzer Teil an "
+"Rückwärtskompatibilität wurde berücksichtigt, es sind aber Änderungen "
+"vorhanden."
 
 #. Type: note
 #. Description
 #: ../opendnssec-common.templates:2001
 msgid "Manual OpenDNSSEC configuration required"
-msgstr ""
+msgstr "Manuelle OpenDNSSEC-Konfiguration notwendig"
 
 #. Type: note
 #. Description
@@ -66,6 +80,8 @@ msgid ""
 "OpenDNSSEC requires manual configuration before the signer and enforcer "
 "daemons can be started."
 msgstr ""
+"OpenDNSSEC benötigt manuelle Konfiguration, bevor die Signer- und Enforcer-"
+"Daemons gestartet werden können."
 
 #. Type: note
 #. Description
@@ -76,6 +92,11 @@ msgid ""
 "operations. Most people will want to use the software HSM implementation "
 "provided by the recommended softhsm2 package, but other options are possible."
 msgstr ""
+"Einer dieser Konfigurationsschritte besteht in der Installation und "
+"Konfiguration eines Hardware Security Modules (HSM), dass die "
+"kryptographischen Schlüsselaktionen durchführt. Die meisten Benutzer werden "
+"die Software-HSM-Implementierung des empfohlenen Pakets softhsm2 verwenden "
+"wollen, aber andere Optionen sind möglich."
 
 #. Type: note
 #. Description
@@ -86,3 +107,7 @@ msgid ""
 "should remove this file and start the daemons once you have configured "
 "OpenDNSSEC."
 msgstr ""
+"Die Datei /etc/opendnssec/prevent-startup wird während einer frischen "
+"Installation erstellt und verhindert, dass die Daemons automatisch starten. "
+"Sobald Sie OpenDNSSEC konfiguriert haben, sollten Sie diese Datei entfernen "
+"und die Daemons starten."

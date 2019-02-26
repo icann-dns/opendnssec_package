@@ -32,13 +32,21 @@ do_tmpfiles() {
     fi
 }
 
-do_start_prepare() {
-    do_tmpfiles "$(basename "$0")"
-    DAEMON_ARGS="$DAEMON_ARGS $ODS_SIGNERD_OPT"
-
+check_service_disabled()
+{
     # Prevent startup if this file exists
     if [ -e /etc/opendnssec/prevent-startup ]; then
-	log_action_msg "Not starting $DESC (/etc/opendnssec/prevent-startup)"
+	log_action_msg "Service $DESC is disabled (/etc/opendnssec/prevent-startup)"
 	exit 0
     fi
+}
+
+do_start_prepare() {
+    check_service_disabled
+    do_tmpfiles "$(basename "$0")"
+    DAEMON_ARGS="$DAEMON_ARGS $ODS_SIGNERD_OPT"
+}
+
+do_restart_prepare() {
+    do_start_prepare "$@"
 }
