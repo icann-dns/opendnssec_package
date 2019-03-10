@@ -1,0 +1,104 @@
+From ea4af9e518ea9317c20e899bc13da3e9e0f6a26f Mon Sep 17 00:00:00 2001
+From: Mathieu Mirmont <mat@parad0x.org>
+Date: Sat, 9 Mar 2019 22:21:00 +0100
+Subject: [PATCH] Fix build warnings and possible bugs
+
+---
+ common/scheduler/task.c             | 1 +
+ enforcer/src/daemon/engine.c        | 5 ++---
+ enforcer/src/daemon/time_leap_cmd.c | 1 +
+ libhsm/src/lib/libhsm.c             | 7 ++++++-
+ signer/src/daemon/engine.c          | 3 +--
+ 5 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/common/scheduler/task.c b/common/scheduler/task.c
+index 899d4b28..6b383af8 100644
+--- a/common/scheduler/task.c
++++ b/common/scheduler/task.c
+@@ -39,6 +39,7 @@
+ #include "status.h"
+ #include "duration.h"
+ #include "file.h"
++#include "util.h"
+ #include "log.h"
+ 
+ static const char* task_str = "task";
+diff --git a/enforcer/src/daemon/engine.c b/enforcer/src/daemon/engine.c
+index 3ed31161..590321fc 100644
+--- a/enforcer/src/daemon/engine.c
++++ b/enforcer/src/daemon/engine.c
+@@ -398,7 +398,7 @@ desetup_database(engine_type* engine)
+     engine->dbcfg_list = NULL;
+ }
+ 
+-static void *
++static void
+ signal_handler(sig_atomic_t sig)
+ {
+     switch (sig) {
+@@ -422,7 +422,6 @@ signal_handler(sig_atomic_t sig)
+         default:
+             break;
+     }
+-    return NULL;
+ }
+ 
+ /**
+@@ -454,7 +453,7 @@ engine_setup()
+     }
+ 
+     /* create command handler (before chowning socket file) */
+-    engine->cmdhandler = cmdhandler_create(engine->config->clisock_filename, enforcercommands, engine, (void*(*)(void*)) (void(*)(void*))&get_database_connection, (void(*)(void*))&db_connection_free);
++    engine->cmdhandler = cmdhandler_create(engine->config->clisock_filename, enforcercommands, engine, (void*(*)(void*)) &get_database_connection, (void(*)(void*))&db_connection_free);
+     if (!engine->cmdhandler) {
+         ods_log_error("[%s] create command handler to %s failed",
+             engine_str, engine->config->clisock_filename);
+diff --git a/enforcer/src/daemon/time_leap_cmd.c b/enforcer/src/daemon/time_leap_cmd.c
+index f1ee21b8..4adcd673 100644
+--- a/libhsm/src/lib/libhsm.c
++++ b/libhsm/src/lib/libhsm.c
+@@ -680,7 +680,7 @@ hsm_ctx_new()
+     hsm_ctx_t *ctx;
+     ctx = malloc(sizeof(hsm_ctx_t));
+     if (ctx) {
+-        memset(ctx->session, 0, HSM_MAX_SESSIONS);
++        memset(ctx->session, 0, sizeof (ctx->session));
+         ctx->session_count = 0;
+         ctx->error = 0;
+     }
+@@ -3238,6 +3238,11 @@ hsm_get_error(hsm_ctx_t *gctx)
+             "%s: %s",
+             ctx->error_action ? ctx->error_action : "unknown()",
+             ctx->error_message[0] ? ctx->error_message : "unknown error");
++
++        /* Since both message and ctx->error_message have the same length, the
++         * snprintf statement above may be truncated. In this case the string
++         * won't be null-terminated. */
++        message[HSM_ERROR_MSGSIZE - 1U] = '\0';
+         return message;
+     };
+ 
+diff --git a/signer/src/daemon/engine.c b/signer/src/daemon/engine.c
+index 34848a45..51841b8f 100644
+--- a/signer/src/daemon/engine.c
++++ b/signer/src/daemon/engine.c
+@@ -297,7 +297,7 @@ engine_wakeup_workers(engine_type* engine)
+     schedule_release_all(engine->taskq);
+ }
+ 
+-static void *
++static void
+ signal_handler(sig_atomic_t sig)
+ {
+     switch (sig) {
+@@ -321,7 +321,6 @@ signal_handler(sig_atomic_t sig)
+         default:
+             break;
+     }
+-    return NULL;
+ }
+ 
+ /**
+-- 
+2.20.1
+

@@ -297,7 +297,7 @@ engine_wakeup_workers(engine_type* engine)
     schedule_release_all(engine->taskq);
 }
 
-static void *
+static void
 signal_handler(sig_atomic_t sig)
 {
     switch (sig) {
@@ -321,7 +321,6 @@ signal_handler(sig_atomic_t sig)
         default:
             break;
     }
-    return NULL;
 }
 
 /**

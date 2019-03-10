@@ -8,3 +8,4 @@
 0010-Fix-the-ods-enforcer.8-man-page.patch
 0011-Strip-the-build-directory-from-the-doxygen-docs.patch
 0012-ods-kasp2html.in-remove-bashism.patch
+0013-Fix-build-warnings-and-possible-bugs.patch
