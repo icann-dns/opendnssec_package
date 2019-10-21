@@ -1,0 +1,16 @@
+#!/usr/bin/env /lib/runit/invoke-run
+set -e
+exec 2>&1
+
+# Create the runtime directory
+install -d -m 0775 -o opendnssec -g opendnssec /run/opendnssec
+
+# Prevent startup if this file exists
+if [ -e /etc/opendnssec/prevent-startup ]; then
+    echo "Not starting OpenDNSSEC Enforcer (/etc/opendnssec/prevent-startup)"
+    sv stop .
+    exit 0
+fi
+
+# Run the enforcer in the foreground
+exec /usr/sbin/ods-enforcerd --no-daemon

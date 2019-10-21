@@ -1,0 +1,25 @@
+From: Mathieu Mirmont <mat@parad0x.org>
+Date: Tue, 21 May 2019 23:57:55 +0200
+Subject: [PATCH] remove strptime build warning
+
+---
+ enforcer/src/daemon/time_leap_cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/enforcer/src/daemon/time_leap_cmd.c b/enforcer/src/daemon/time_leap_cmd.c
+index f1ee21b8..5baef1b6 100644
+--- a/enforcer/src/daemon/time_leap_cmd.c
++++ b/enforcer/src/daemon/time_leap_cmd.c
+@@ -26,8 +26,8 @@
+  *
+  */
+ 
+-#include <getopt.h>
+ #include "config.h"
++#include <getopt.h>
+ 
+ #include "file.h"
+ #include "duration.h"
+-- 
+2.20.1
+

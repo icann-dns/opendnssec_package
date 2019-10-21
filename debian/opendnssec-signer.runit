@@ -1,0 +1,1 @@
+debian/opendnssec-signer.run defaults,name=opendnssec-signer,logscript

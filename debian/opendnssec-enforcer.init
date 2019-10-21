@@ -13,7 +13,6 @@ fi
 # Description:       Daemon to create and enforce DNSSEC KASP policy
 ### END INIT INFO
 
-NAME=ods-enforcer
 DAEMON=/usr/sbin/ods-enforcerd
 DESC="OpenDNSSEC Enforcer"
 PIDFILE=/run/opendnssec/enforcerd.pid

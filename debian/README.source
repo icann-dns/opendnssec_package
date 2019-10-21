@@ -1,19 +1,28 @@
-opendnssec-conf for Debian
-----------------------------
+Source tree layout
+------------------
 
-This package uses quilt to manage all modifications to the upstream
-source.  Changes are stored in the source package as diffs in
-debian/patches and applied during the build.  Please see:
+This package is maintained using "git-buildpackage". The git
+repository includes upstream sources as well as the debian/ directory,
+with patches unapplied.
 
-    /usr/share/doc/quilt/README.source
+There exists a delta between the upstream git repository and their
+official tarballs. This package builds against the upstream tarballs
+and not against their git tree. The upstream tree in the packaging git
+repository is only there for documentation purposes and the package
+will not build against it.
 
-for more information on how to apply the patches, modify patches, or
-remove a patch.
+Building from source
+--------------------
 
- -- Ondřej Surý <ondrej@debian.org>, Tue, 13 Apr 2010 11:40:10 +0200
+The recommended way to build this package is the following, from an
+empty directory:
 
-This package sources was DFSGed by removing included trang XML schema
-converter.  You can create DFSG sources by running debian/dfsg-repack.sh
-script.
+  git clone git@salsa.debian.org:debian/opendnssec.git
+  cd opendnssec
+  uscan -dd
+  gbp buildpackage --git-export-dir=.. --git-overlay
 
- -- Ondřej Surý <ondrej@debian.org>, Tue, 13 Apr 2010 11:40:01 +0200
+It is advised to build in a clean environment, using pbuilder, docker,
+or something similar.
+
+ -- Mathieu Mirmont <mat@parad0x.org>, Thu,  3 Oct 2019 00:15:55 +0200
