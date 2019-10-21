@@ -1,0 +1,1 @@
+debian/opendnssec-enforcer.run defaults,name=opendnssec-enforcer,logscript

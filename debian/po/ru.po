@@ -1,0 +1,114 @@
+# Russian translation of debconf template for opendnssec
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the opendnssec package.
+# Lev Lamberov <dogsleg@debian.org>, 2019
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: opendnssec\n"
+"Report-Msgid-Bugs-To: opendnssec@packages.debian.org\n"
+"POT-Creation-Date: 2019-02-18 21:17+0100\n"
+"PO-Revision-Date: 2019-09-16 11:44+0500\n"
+"Last-Translator: Lev Lamberov <dogsleg@debian.org>\n"
+"Language-Team: Debian L10N Russian <debian-l10n-russian@lists.debian.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.3\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid "OpenDNSSEC 2.0.0 database and tools migration"
+msgstr "Миграция базы данных и инструментов OpenDNSSEC 2.0.0"
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"There are two steps in the database migration.  If you are running "
+"OpenDNSSEC 1.4.6 from Debian stable, you need to apply the SQL statements "
+"from /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3} against your "
+"existing database."
+msgstr ""
+"Процесс миграции базы данных предполагает два шага. Если вы используете "
+"OpenDNSSEC 1.4.6 из стабильного выпуска Debian, вам следует применить "
+"операторы SQL из /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3} к вашей "
+"существующей базе данных."
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"The enforcer does require a full migration, as the internal database has "
+"been completely revised.  See the upstream documentation in the /usr/share/"
+"opendnssec/1.4-2.0_db_convert/README.md for a description."
+msgstr ""
+"Для службы enforcer требуется полная миграция, поскольку внутренняя база "
+"данных была полностью переработана. Описание смотрите в руководстве от "
+"разработчиков основной ветки в файле /usr/share/"
+"opendnssec/1.4-2.0_db_convert/README.md."
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"You should also review the documentation on the OpenDNSSEC site.  This can "
+"be updated in between releases to provide more help.  Especially if you have "
+"tooling around OpenDNSSEC you should be aware that some command line "
+"utilities have changed.  A fair amount of backward compatibility has been "
+"respected, but changes are present."
+msgstr ""
+"Кроме того, вам следует просмотреть документацию на сайте OpenDNSSEC. Она "
+"может быть обновлена между выпусками и может содержать дополнительные "
+"справочные сведения. В особенности если у вас имеются инструменты, "
+"использующие OpenDNSSEC, вам следует знать, что некоторые утилиты командной "
+"строки были изменены. Следует ожидать обеспечение обратной совместимости, но "
+"изменения всё же присутствуют."
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid "Manual OpenDNSSEC configuration required"
+msgstr "Требуется ручная настройка OpenDNSSEC"
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid ""
+"OpenDNSSEC requires manual configuration before the signer and enforcer "
+"daemons can be started."
+msgstr ""
+"Для OpenDNSSEC требуется ручная настройка до того момента, когда можно будет "
+"запустить службы signer и enforcer."
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid ""
+"One of these configuration steps consists of installing and configuring a "
+"Hardware Security Module (HSM) that will handle the cryptographic key "
+"operations. Most people will want to use the software HSM implementation "
+"provided by the recommended softhsm2 package, but other options are possible."
+msgstr ""
+"Один из этих шагов состоит в установке и настройке модуля аппаратной защиты "
+"(Hardware Security Module, HSM), который будет обслуживать операции с "
+"криптографическим ключом. Большинству людей следует использовать программную "
+"реализацию HSM, предоставляемую рекомендуемым пакетом softhsm2, однако "
+"возможны и другие варианты."
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:2001
+msgid ""
+"The file /etc/opendnssec/prevent-startup is created during fresh "
+"installations and prevents the daemons from being automatically started. You "
+"should remove this file and start the daemons once you have configured "
+"OpenDNSSEC."
+msgstr ""
+"В ходе свежей установки создаётся файл /etc/opendnssec/prevent-startup, "
+"который предотвращает автоматический запуск служб. Вам следует удалить этот "
+"файл и запустить службы после настройки OpenDNSSEC."

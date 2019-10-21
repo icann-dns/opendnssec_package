@@ -13,7 +13,6 @@ fi
 # Description:       Daemon to periodically sign DNSSEC zone files.
 ### END INIT INFO
 
-NAME=ods-signer
 DAEMON=/usr/sbin/ods-signerd
 DESC="OpenDNSSEC Signer"
 PIDFILE=/run/opendnssec/signerd.pid

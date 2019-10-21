@@ -21,7 +21,7 @@ SQLITE3_SONAME = $(shell objdump -p $$(pkg-config --variable=libdir sqlite3)/lib
 
 # main packaging script based on dh7 syntax
 %:
-	dh $@
+	dh $@ --with runit
 
 override_dh_auto_clean:
 	dh_auto_clean -Bbuild-sqlite3
@@ -39,6 +39,7 @@ override_dh_auto_configure:
 	mkdir build-mysql
 	ln -s ../build-sqlite3/libhsm build-mysql/libhsm
 	dh_auto_configure -Bbuild-mysql/enforcer -- $(COMMON) --with-enforcer-database=mysql --disable-signer --disable-doxygen-doc
+	touch $(wildcard conf/*.rng)
 
 override_dh_auto_build-arch:
 	dh_auto_build -Bbuild-sqlite3
@@ -78,13 +79,10 @@ override_dh_installdocs-arch:
 	dh_installdocs -popendnssec-common -popendnssec-common\
 		-popendnssec-enforcer -popendnssec-enforcer-sqlite3 \
 		-popendnssec-enforcer-mysql -plibhsm-bin \
-		-popendnssec-signer -popendnssec-doc 
+		-popendnssec-signer -popendnssec-doc
 
 override_dh_installchangelogs:
 	dh_installchangelogs NEWS
-
-override_dh_strip:
-	dh_strip -O--dbgsym-migration='opendnssec-dbg-mysql (<< 1.4.9-2~), opendnssec-dbg-sqlite3 (<< 1.4.9-2~)'
 
 override_dh_install:
 	dh_install -popendnssec-enforcer-mysql --sourcedir=debian/tmp-mysql
