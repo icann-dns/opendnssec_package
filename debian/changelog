@@ -1,3 +1,10 @@
+opendnssec (1:2.1.4-2) unstable; urgency=medium
+
+  * README.source: add source package generation instructions
+  * gitlab-ci.yml: Build a source package when pushing tags
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Thu, 24 Oct 2019 19:25:02 +0200
+
 opendnssec (1:2.1.4-1) unstable; urgency=medium
 
   * opendnssec-common.postinst: fix zonelist.xml perms (Closes: #927998)

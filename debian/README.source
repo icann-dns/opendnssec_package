@@ -25,4 +25,15 @@ empty directory:
 It is advised to build in a clean environment, using pbuilder, docker,
 or something similar.
 
- -- Mathieu Mirmont <mat@parad0x.org>, Thu,  3 Oct 2019 00:15:55 +0200
+Building a source package
+-------------------------
+
+The recommended way to build a source package from the repository is
+the following, assuming a build from the master branch of a clean
+repository:
+
+  uscan -dd
+  gbp buildpackage --git-export-dir=.. --git-overlay \
+                   --git-builder="dpkg-source -b ."
+
+ -- Mathieu Mirmont <mat@parad0x.org>, Thu, 24 Oct 2019 17:46:42 +0200
