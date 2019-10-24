@@ -138,3 +138,27 @@ shellcheck:
           | xargs file
           | awk '-F:' '/shell script/ {print $1}'
           | xargs shellcheck --exclude SC1091,SC2230,SC2034,SC2039
+
+##
+## Build a source package when pushing tags, to facilitate uploads.
+##
+dsc:
+  stage: build
+  image: ${SALSA_CI_IMAGES_GBP}
+  only:
+    - /^debian\/.*/
+  except:
+    - branches
+  script:
+    - origtargz -dt
+    - mkdir -p ${WORKING_DIR}
+    - mv ../*.orig.* ${WORKING_DIR}
+    - gbp buildpackage
+          --git-ignore-branch
+          --git-overlay
+          --git-export-dir=${WORKING_DIR}
+          --git-builder="dpkg-source -b ."
+  artifacts:
+    name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - ${WORKING_DIR}/
