@@ -39,6 +39,7 @@
 #include "status.h"
 #include "duration.h"
 #include "file.h"
+#include "util.h"
 #include "log.h"
 
 static const char* task_str = "task";
