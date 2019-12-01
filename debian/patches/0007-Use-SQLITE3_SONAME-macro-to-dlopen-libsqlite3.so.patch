@@ -1,4 +1,4 @@
-From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Mon, 2 Jan 2017 15:00:13 +0100
 Subject: Use SQLITE3_SONAME macro to dlopen libsqlite3.so.*
 
@@ -6,6 +6,8 @@ Subject: Use SQLITE3_SONAME macro to dlopen libsqlite3.so.*
  enforcer/src/ods-migrate.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/enforcer/src/ods-migrate.c b/enforcer/src/ods-migrate.c
+index aece505..5d6cc1c 100644
 --- a/enforcer/src/ods-migrate.c
 +++ b/enforcer/src/ods-migrate.c
 @@ -97,7 +97,7 @@ dblayer_sqlite3_initialize(void)

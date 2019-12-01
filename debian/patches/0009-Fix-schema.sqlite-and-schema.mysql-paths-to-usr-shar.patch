@@ -1,4 +1,4 @@
-From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Mon, 2 Jan 2017 16:05:12 +0100
 Subject: Fix schema.sqlite and schema.mysql paths to /usr/share/opendnssec
 
@@ -10,7 +10,7 @@ Subject: Fix schema.sqlite and schema.mysql paths to /usr/share/opendnssec
  4 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/enforcer/utils/1.4-2.0_db_convert/convert_mysql b/enforcer/utils/1.4-2.0_db_convert/convert_mysql
-index 46eb554..82efd55 100755
+index 7b9869e..e4e2b73 100755
 --- a/enforcer/utils/1.4-2.0_db_convert/convert_mysql
 +++ b/enforcer/utils/1.4-2.0_db_convert/convert_mysql
 @@ -1,11 +1,11 @@
@@ -28,7 +28,7 @@ index 46eb554..82efd55 100755
  DB_IN=""
  DB_OUT=""
 diff --git a/enforcer/utils/1.4-2.0_db_convert/convert_sqlite b/enforcer/utils/1.4-2.0_db_convert/convert_sqlite
-index 5d11d2d..adb781c 100755
+index e54ef71..00de9f8 100755
 --- a/enforcer/utils/1.4-2.0_db_convert/convert_sqlite
 +++ b/enforcer/utils/1.4-2.0_db_convert/convert_sqlite
 @@ -1,9 +1,9 @@
@@ -44,7 +44,7 @@ index 5d11d2d..adb781c 100755
  DB_IN=""
  DB_OUT=""
 diff --git a/enforcer/utils/convert_mysql_to_sqlite b/enforcer/utils/convert_mysql_to_sqlite
-index 22913e8..45242d8 100755
+index 0c763a0..bc86555 100755
 --- a/enforcer/utils/convert_mysql_to_sqlite
 +++ b/enforcer/utils/convert_mysql_to_sqlite
 @@ -5,7 +5,7 @@ set -e
@@ -57,7 +57,7 @@ index 22913e8..45242d8 100755
  DB_IN=""
  DB_OUT=""
 diff --git a/enforcer/utils/convert_sqlite_to_mysql b/enforcer/utils/convert_sqlite_to_mysql
-index d2720cb..be07a05 100755
+index 90359e3..6743809 100755
 --- a/enforcer/utils/convert_sqlite_to_mysql
 +++ b/enforcer/utils/convert_sqlite_to_mysql
 @@ -5,7 +5,7 @@ set -e

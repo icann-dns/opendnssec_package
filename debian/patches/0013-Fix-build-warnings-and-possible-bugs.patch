@@ -1,18 +1,16 @@
-From ea4af9e518ea9317c20e899bc13da3e9e0f6a26f Mon Sep 17 00:00:00 2001
 From: Mathieu Mirmont <mat@parad0x.org>
 Date: Sat, 9 Mar 2019 22:21:00 +0100
 Subject: [PATCH] Fix build warnings and possible bugs
 
 ---
- common/scheduler/task.c             | 1 +
- enforcer/src/daemon/engine.c        | 5 ++---
- enforcer/src/daemon/time_leap_cmd.c | 1 +
- libhsm/src/lib/libhsm.c             | 7 ++++++-
- signer/src/daemon/engine.c          | 3 +--
- 5 files changed, 11 insertions(+), 6 deletions(-)
+ common/scheduler/task.c      | 1 +
+ enforcer/src/daemon/engine.c | 5 ++---
+ libhsm/src/lib/libhsm.c      | 7 ++++++-
+ signer/src/daemon/engine.c   | 3 +--
+ 4 files changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/common/scheduler/task.c b/common/scheduler/task.c
-index 899d4b28..6b383af8 100644
+index cfdbd2d..9c09dc1 100644
 --- a/common/scheduler/task.c
 +++ b/common/scheduler/task.c
 @@ -39,6 +39,7 @@
@@ -24,7 +22,7 @@ index 899d4b28..6b383af8 100644
  
  static const char* task_str = "task";
 diff --git a/enforcer/src/daemon/engine.c b/enforcer/src/daemon/engine.c
-index 3ed31161..590321fc 100644
+index 538aa74..259bc13 100644
 --- a/enforcer/src/daemon/engine.c
 +++ b/enforcer/src/daemon/engine.c
 @@ -398,7 +398,7 @@ desetup_database(engine_type* engine)
@@ -53,8 +51,8 @@ index 3ed31161..590321fc 100644
      if (!engine->cmdhandler) {
          ods_log_error("[%s] create command handler to %s failed",
              engine_str, engine->config->clisock_filename);
-diff --git a/enforcer/src/daemon/time_leap_cmd.c b/enforcer/src/daemon/time_leap_cmd.c
-index f1ee21b8..4adcd673 100644
+diff --git a/libhsm/src/lib/libhsm.c b/libhsm/src/lib/libhsm.c
+index 5041c27..6674ddd 100644
 --- a/libhsm/src/lib/libhsm.c
 +++ b/libhsm/src/lib/libhsm.c
 @@ -680,7 +680,7 @@ hsm_ctx_new()
@@ -62,7 +60,7 @@ index f1ee21b8..4adcd673 100644
      ctx = malloc(sizeof(hsm_ctx_t));
      if (ctx) {
 -        memset(ctx->session, 0, HSM_MAX_SESSIONS);
-+        memset(ctx->session, 0, sizeof (ctx->session));
++        memset(ctx->session, 0, HSM_MAX_SESSIONS * sizeof(hsm_ctx_t*));
          ctx->session_count = 0;
          ctx->error = 0;
      }
@@ -79,7 +77,7 @@ index f1ee21b8..4adcd673 100644
      };
  
 diff --git a/signer/src/daemon/engine.c b/signer/src/daemon/engine.c
-index 34848a45..51841b8f 100644
+index 34848a4..51841b8 100644
 --- a/signer/src/daemon/engine.c
 +++ b/signer/src/daemon/engine.c
 @@ -297,7 +297,7 @@ engine_wakeup_workers(engine_type* engine)
@@ -99,6 +97,3 @@ index 34848a45..51841b8f 100644
  }
  
  /**
--- 
-2.20.1
-
