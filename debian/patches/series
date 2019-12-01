@@ -5,5 +5,4 @@
 0008-Fix-var-opendnssec-var-lib-opendnssec-paths.patch
 0009-Fix-schema.sqlite-and-schema.mysql-paths-to-usr-shar.patch
 0013-Fix-build-warnings-and-possible-bugs.patch
-0014-conf-conf.rnc-fix-AllowExtraction-field-name.patch
 0015-remove-strptime-build-warning.patch

@@ -1,4 +1,4 @@
-From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@debian.org>
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@debian.org>
 Date: Wed, 21 Oct 2015 10:46:05 +0200
 Subject: rename regress for autotest
 
@@ -7,7 +7,7 @@ Subject: rename regress for autotest
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/conf/Makefile.am b/conf/Makefile.am
-index 20dffd3..b3e9eae 100644
+index 0b0570f..e5d36c3 100644
 --- a/conf/Makefile.am
 +++ b/conf/Makefile.am
 @@ -31,7 +31,7 @@ $(TRANG):

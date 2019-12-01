@@ -11,6 +11,35 @@ include:
 ##
 variables:
   SALSA_CI_DISABLE_PIUPARTS: 1
+  SALSA_CI_DISABLE_BUILD_PACKAGE_ANY: 1
+  SALSA_CI_DISABLE_BUILD_PACKAGE_ALL: 1
+
+##
+## Overload the build script to download and build from the upstream
+## tarball. Otherwise the build script tries to use "gbp export-orig"
+## which fails.
+##
+build:
+  script:
+    # Bits taken from .build-before-script
+    - rm -rf '$CI_PROJECT_DIR'
+    - rm -rf ${CI_PROJECT_DIR}/debian/output/.ccache
+    - mkdir -p ${WORKING_DIR} ${CCACHE_WORK_DIR}
+    - mv ${CCACHE_WORK_DIR} ${CCACHE_TMP_DIR}
+
+    # Bits taken from .build-script
+    - docker-origtargz.sh "${SALSA_CI_IMAGES_DOCKERBUILDER}"
+    - gbp buildpackage
+        --git-ignore-branch
+        --git-ignore-new
+        --git-no-create-orig
+        --git-overlay
+        --git-export-dir=${WORKING_DIR}
+        --git-builder="docker-build.sh ${SALSA_CI_IMAGES_DOCKERBUILDER} ${DB_BUILD_PARAM}"
+        |& filter-output
+
+    # Bits taken from .build-definition
+    - mv ${CCACHE_TMP_DIR} ${CCACHE_WORK_DIR}
 
 ##
 ## Run piuparts.
@@ -150,7 +179,7 @@ dsc:
   except:
     - branches
   script:
-    - origtargz -dt
+    - uscan --download --download-current-version
     - mkdir -p ${WORKING_DIR}
     - mv ../*.orig.* ${WORKING_DIR}
     - gbp buildpackage

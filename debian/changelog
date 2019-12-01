@@ -1,3 +1,16 @@
+opendnssec (1:2.1.5-1) unstable; urgency=medium
+
+  * gbp.conf: update the upstream tag format
+  * New upstream release
+  * patches: drop the AllowExtraction patch applied upstream
+  * patches: update the patches
+  * gitlab-ci.yml: force download the upstream tarball
+  * source/local-options: ignore the conf/trang directory
+  * source: ignore the accidentally comitted binary file
+  * README.source: update the uscan command line
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Sun, 01 Dec 2019 19:16:35 +0100
+
 opendnssec (1:2.1.4-2) unstable; urgency=medium
 
   * README.source: add source package generation instructions
