@@ -203,10 +203,10 @@ The list of zones as defined in conf.xml. This list is used during 'zonelist imp
 .B /etc/opendnssec/kasp.xml
 The configuration of policies that define timing and security, as defined in conf.xml.
 .TP
-.B /var/opendnssec/unsigned/
+.B /var/lib/opendnssec/unsigned/
 The location that is usually configured in conf.xml which contains unsigned zones.
 .TP
-.B /var/opendnssec/signed/
+.B /var/lib/opendnssec/signed/
 The location that is usually configured in conf.xml which contains signed zones.
 .P
 .SH "DIAGNOSTICS"
