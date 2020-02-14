@@ -1,3 +1,10 @@
+opendnssec (1:2.1.5-1ubuntu1) focal; urgency=medium
+
+  * d/p/0016-mysql8_my_bool.patch: Reintroduce my_bool to fix build with
+    MySQL 8. (LP: #1863026)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Fri, 14 Feb 2020 14:40:22 -0300
+
 opendnssec (1:2.1.5-1) unstable; urgency=medium
 
   * gbp.conf: update the upstream tag format

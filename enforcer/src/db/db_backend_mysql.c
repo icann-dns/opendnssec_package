@@ -33,6 +33,7 @@
 #include "log.h"
 
 #include <mysql/mysql.h>
+typedef bool my_bool;
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
