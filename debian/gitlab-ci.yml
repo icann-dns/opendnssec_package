@@ -178,6 +178,8 @@ dsc:
     - /^debian\/.*/
   except:
     - branches
+  variables:
+    GIT_DEPTH: 0
   script:
     - uscan --download --download-current-version
     - mkdir -p ${WORKING_DIR}
