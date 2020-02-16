@@ -1,3 +1,14 @@
+opendnssec (1:2.1.6-1) unstable; urgency=medium
+
+  * New upstream release
+  * Build with readline support
+  * patches: drop xml2-config (Closes: #949420)
+  * control: bump policy to 4.5.0, no code change
+  * source/local-options: remove suppression of accidental upstream commit
+  * gitlab-ci.yml: fix the dsc job
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Sun, 16 Feb 2020 12:07:31 +0100
+
 opendnssec (1:2.1.5-1) unstable; urgency=medium
 
   * gbp.conf: update the upstream tag format
