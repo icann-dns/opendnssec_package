@@ -1,0 +1,3 @@
+  * Reorder unsetting permission and deleting the user account
+    (Closes: #604042)
+  * Fix insecure PYTHONPATH (Closes: #605161)
