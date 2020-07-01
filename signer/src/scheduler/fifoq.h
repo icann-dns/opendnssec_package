@@ -53,7 +53,7 @@
 #include <ldns/ldns.h>
 
 #define FIFOQ_MAX_COUNT 1000
-#define FIFOQ_TRIES_COUNT 100
+#define FIFOQ_TRIES_COUNT 10
 
 /**
  * FIFO Queue.
@@ -67,7 +67,6 @@ struct fifoq_struct {
     lock_basic_type q_lock;
     cond_basic_type q_threshold;
     cond_basic_type q_nonfull;
-    int q_locked;
 };
 
 /**
@@ -81,7 +80,6 @@ fifoq_type* fifoq_create(allocator_type* allocator);
 /**
  * Wipe queue.
  * \param[in] q queue to be wiped
- * \param[out] worker worker that owns the item
  *
  */
 void fifoq_wipe(fifoq_type* q);

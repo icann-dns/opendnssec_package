@@ -1,4 +1,4 @@
-# $Id: Makefile.am 6484 2012-07-17 06:53:51Z jerry $
+# $Id: Makefile.am 6930 2013-01-08 12:31:16Z jakob $
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -17,15 +17,8 @@ if ENABLE_SIGNER
 SUBDIRS += signer
 endif
 
-if ENABLE_AUDITOR
-SUBDIRS += auditor
-endif
-
-if ENABLE_EPPCLIENT
-SUBDIRS += plugins/eppclient
-endif
-
-EXTRA_DIST =	$(srcdir)/KNOWN_ISSUES \
+EXTRA_DIST =	$(srcdir)/LICENSE \
+		$(srcdir)/KNOWN_ISSUES \
 		$(srcdir)/MIGRATION \
 		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
 
@@ -44,6 +37,3 @@ docs:
 	(cd libhsm; $(MAKE) doxygen)
 	(cd enforcer; $(MAKE) doxygen)
 	(cd signer; $(MAKE) doxygen)
-if ENABLE_AUDITOR
-	(cd auditor; $(MAKE) rdoc)
-endif

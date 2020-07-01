@@ -37,27 +37,14 @@
 #include "shared/log.h"
 #include "shared/util.h"
 
+#ifdef HAVE_SYSLOG_H
+static int logging_to_syslog = 0;
+#endif /* !HAVE_SYSLOG_H */
+
 #include <stdarg.h> /* va_start(), va_end()  */
 #include <stdio.h> /* fflush, fprintf(), vsnprintf() */
 #include <stdlib.h> /* exit() */
 #include <string.h> /* strlen() */
-
-#ifdef HAVE_SYSLOG_H
-#include <strings.h> /* strncasecmp() */
-#include <syslog.h> /* openlog(), closelog(), syslog() */
-static int logging_to_syslog = 0;
-#else /* !HAVE_SYSLOG_H */
-#define LOG_EMERG   0 /* ods_fatal_exit */
-#define LOG_ALERT   1 /* ods_log_alert */
-#define LOG_CRIT    2 /* ods_log_crit */
-#define LOG_ERR     3 /* ods_log_error */
-#define LOG_WARNING 4 /* ods_log_warning */
-#define LOG_NOTICE  5 /* ods_log_info */
-#define LOG_INFO    6 /* ods_log_verbose */
-#define LOG_DEBUG   7 /* ods_log_debug */
-#endif /* HAVE_SYSLOG_H */
-
-#define LOG_DEEEBUG 8 /* ods_log_deeebug */
 
 static FILE* logfile = NULL;
 static int log_level = LOG_CRIT;
@@ -103,7 +90,7 @@ ods_log_init(const char *filename, int use_syslog, int verbosity)
         verbosity, verbosity+2);
     if (logfile && logfile != stderr) {
             ods_fclose(logfile);
-    }
+	}
     log_level = verbosity + 2;
 
 #ifdef HAVE_SYSLOG_H

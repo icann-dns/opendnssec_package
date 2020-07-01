@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_policy.c 4169 2010-11-04 14:24:23Z sion $
+ * $Id: ksm_policy.c 7028 2013-02-13 11:41:17Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -74,7 +74,7 @@ int KsmPolicyInit(DB_RESULT* result, const char* name)
 
     /* Construct the query */
 
-    sql = DqsSpecifyInit("policies","id, name, description, audit, salt");
+    sql = DqsSpecifyInit("policies","id, name, description, salt");
     if (name) {
         DqsConditionString(&sql, "NAME", DQS_COMPARE_EQ, name, where++);
     }
@@ -317,9 +317,6 @@ int KsmPolicyRead(KSM_POLICY* policy)
             		if (strncmp(data.name, "publishsafety",13) == 0) policy->keys->publish_safety=data.value;
             		if (strncmp(data.name, "purge",5) == 0) policy->keys->purge=data.value;
             	}
-            /*	if (strncmp(data.category, "audit", 5) == 0) {
-            		if (strncmp(data.name, "audit",5) == 0) policy->audit->audit=data.value;
-                }*/
            		/* Ignore any unknown parameters */
 
                 status = KsmPolicyParameter(result, &data);
@@ -617,7 +614,7 @@ int KsmPolicyUpdateSalt(KSM_POLICY* policy)
             /* write these back to the database */
 #ifdef USE_MYSQL
             nchar = snprintf(buffer, sizeof(buffer),
-                    "UPDATE policies SET salt = '%s', salt_stamp = \"%s\" WHERE ID = %lu",
+                    "UPDATE policies SET salt = '%s', salt_stamp = '%s' WHERE ID = %lu",
                     policy->denial->salt, policy->denial->salt_stamp, (unsigned long) policy->id);
 #else
             nchar = snprintf(buffer, sizeof(buffer),
@@ -820,8 +817,7 @@ int KsmPolicySetIdFromName(KSM_POLICY *policy)
         if (status == 0) {
             DbInt(row, DB_POLICY_ID, &policy->id);
             DbStringBuffer(row, DB_POLICY_DESCRIPTION, policy->description, KSM_POLICY_DESC_LENGTH*sizeof(char));
-            DbStringBuffer(row, DB_POLICY_AUDIT, policy->audit, KSM_POLICY_AUDIT_LENGTH*sizeof(char));
-            DbStringBuffer(row, 4, policy->denial->salt, KSM_SALT_LENGTH*sizeof(char));
+            DbStringBuffer(row, 3, policy->denial->salt, KSM_SALT_LENGTH*sizeof(char));
         }
         else if (status == -1) {
         /* No rows to return (but no error) */
@@ -899,11 +895,62 @@ int KsmPolicyIdFromZoneId(int zone_id, int* policy_id)
     return status;
 }
 
+/*+
+ * KsmPolicyUpdateDesc - Update a policy description
+ *
+ * Arguments:
+ *
+ *      int policy_id
+ *          id of the policy
+ *
+ *      const char* policy_description
+ *          Description for that policy
+ *
+ * Returns:
+ *      int
+ *          Status return.  0 on success.
+ *                         -1 if an unexpected count value was returned
+-*/
+
+int KsmPolicyUpdateDesc(int policy_id, const char* policy_description)
+{
+    char*       sql = NULL;     /* SQL query */
+    int         status = 0;     /* Status return */
+
+	char        quoted_desc[KSM_POLICY_DESC_LENGTH];   /* with bad chars quoted */
+    /* check the main argument (description may be NULL) */
+    if (policy_id <= 0) {
+        return MsgLog(KSM_INVARG, "NULL policy id");
+    }
+
+	/* Quote description */
+    status = DbQuoteString(DbHandle(), policy_description, quoted_desc, KSM_POLICY_DESC_LENGTH);
+
+	if (status != 0) {
+		return status;
+	}
+
+    /* Update policy */
+    sql = DusInit("policies");
+	DusSetString(&sql, "description", quoted_desc, 0);
+	DusConditionInt(&sql, "id", DQS_COMPARE_EQ, policy_id, 0);
+    DusEnd(&sql);
+
+    status = DbExecuteSqlNoResult(DbHandle(), sql);
+    DisFree(sql);
+
+    return status;
+}
+
 KSM_POLICY *KsmPolicyAlloc()
 {
         KSM_POLICY *policy;
     
         policy = (KSM_POLICY *)malloc(sizeof(KSM_POLICY));
+		if (policy == NULL) {
+			return NULL;
+		}
+
         policy->description = (char *)calloc(KSM_POLICY_DESC_LENGTH, sizeof(char));
         policy->signer = (KSM_SIGNER_POLICY *)malloc(sizeof(KSM_SIGNER_POLICY));
         policy->signature = (KSM_SIGNATURE_POLICY *)malloc(sizeof(KSM_SIGNATURE_POLICY));
@@ -914,8 +961,6 @@ KSM_POLICY *KsmPolicyAlloc()
         policy->enforcer = (KSM_ENFORCER_POLICY *)malloc(sizeof(KSM_ENFORCER_POLICY));
         policy->zone = (KSM_ZONE_POLICY *)malloc(sizeof(KSM_ZONE_POLICY));
         policy->parent = (KSM_PARENT_POLICY *)malloc(sizeof(KSM_PARENT_POLICY));
-        /*  policy->audit = (KSM_AUDIT_POLICY *)malloc(sizeof(KSM_AUDIT_POLICY)); */
-        policy->audit = (char *)calloc(KSM_POLICY_AUDIT_LENGTH, sizeof(char));
         
         /*  if allocation fails, return NULL*/
         if (policy->description == NULL ||
@@ -927,8 +972,7 @@ KSM_POLICY *KsmPolicyAlloc()
             policy->zsk == NULL || 
             policy->enforcer == NULL ||
             policy->zone == NULL ||
-            policy->parent == NULL || 
-            policy->audit == NULL) {
+            policy->parent == NULL) { 
                 KsmPolicyFree(policy);
                 return NULL;
         }
@@ -948,6 +992,5 @@ void KsmPolicyFree(KSM_POLICY *policy)
     free(policy->enforcer);
     free(policy->zone);
     free(policy->parent);
-    free(policy->audit);
     free(policy);
 }

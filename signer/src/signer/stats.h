@@ -1,5 +1,5 @@
 /*
- * $Id: stats.h 7124 2013-05-03 09:49:26Z matthijs $
+ * $Id: stats.h 5410 2011-08-16 08:21:36Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -67,7 +67,6 @@ struct stats_struct {
     time_t      start_time;
     time_t      end_time;
     lock_basic_type stats_lock;
-    int         stats_locked;
 };
 
 /**

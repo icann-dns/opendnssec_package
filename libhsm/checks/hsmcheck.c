@@ -1,5 +1,5 @@
 /*
- * $Id: hsmcheck.c 6123 2012-02-02 09:04:39Z rb $
+ * $Id: hsmcheck.c 6560 2012-08-28 06:31:40Z rb $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.
@@ -112,7 +112,7 @@ main (int argc, char *argv[])
      * Open HSM library
      */
     fprintf(stdout, "Starting HSM lib test\n");
-    result = hsm_open(config, hsm_prompt_pin, NULL);
+    result = hsm_open(config, hsm_prompt_pin);
     fprintf(stdout, "hsm_open result: %d\n", result);
 
     /*
