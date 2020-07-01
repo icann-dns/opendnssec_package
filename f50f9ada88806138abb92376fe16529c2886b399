@@ -1,0 +1,8 @@
+  * New upstream version
+  * Packaging changes:
+    + Updated patches to new upstream version.
+    + Remove python dependencies (upstream change)
+    + Update interpackage dependencies to 1.2.0 release
+    + Remove obsolete opendnssec-signer-tools, libhsm0 and libhsm-dev
+      packages.
+    + Adjust mysql build for upstream changes
