@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: conf.rnc 6065 2012-01-16 09:45:47Z jerry $
+  $Id: conf.rnc 6606 2012-09-04 10:57:32Z jerry $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -46,10 +46,12 @@
             <element name="TokenLabel">
               <data type="string"/>
             </element>
-            <!-- PKCS#11 Login Credentials -->
-            <element name="PIN">
-              <data type="string"/>
-            </element>
+            <optional>
+              <!-- PKCS#11 Login Credentials -->
+              <element name="PIN">
+                <data type="string"/>
+              </element>
+            </optional>
             <optional>
               <!--
                 Maxmimum number of key pairs in the repository
@@ -102,18 +104,21 @@
         <element name="ZoneListFile">
           <data type="string"/>
         </element>
-        <optional>
-          <!-- Location to store the zonefetch XML file (optional) -->
-          <element name="ZoneFetchFile">
-            <data type="string"/>
-          </element>
-        </optional>
       </element>
       <!-- Configuration parameters for the KASP Enforcer -->
       <element name="Enforcer">
         <optional>
           <!-- User & group to drop privs to -->
           <ref name="privs"/>
+        </optional>
+        <optional>
+          <!--
+            Number of Worker Threads
+            DEFAULT: 1
+          -->
+          <element name="WorkerThreads">
+            <data type="positiveInteger"/>
+          </element>
         </optional>
         <!-- Where to store internal Enforcer state -->
         <element name="Datastore">
@@ -166,15 +171,6 @@
           </optional>
           <optional>
             <!--
-              Location of the signer tools
-              DEFAULT: $(libexecdir)/opendnssec
-            -->
-            <element name="ToolsDirectory">
-              <data type="string"/>
-            </element>
-          </optional>
-          <optional>
-            <!--
               Number of Worker Threads
               DEFAULT: 4
             -->
@@ -192,6 +188,14 @@
             </element>
           </optional>
           <optional>
+            <!-- Listener -->
+            <element name="Listener">
+              <zeroOrMore>
+                <ref name="interface"/>
+              </zeroOrMore>
+            </element>
+          </optional>
+          <optional>
             <!--
               System command to call after a zone has been (re)signed
               
@@ -199,23 +203,6 @@
               '%zonefile' in the string will be replaced by the zone file
             -->
             <element name="NotifyCommand">
-              <data type="string"/>
-            </element>
-          </optional>
-        </element>
-      </optional>
-      <optional>
-        <element name="Auditor">
-          <optional>
-            <!-- User & group to drop privs to -->
-            <ref name="privs"/>
-          </optional>
-          <optional>
-            <!--
-              Location to store intermediate audit information
-              DEFAULT: $(localstatedir)/opendnssec/tmp
-            -->
-            <element name="WorkingDirectory">
               <data type="string"/>
             </element>
           </optional>
@@ -292,6 +279,29 @@
   <define name="sqlite">
     <element name="SQLite">
       <data type="string"/>
+    </element>
+  </define>
+  <define name="interface">
+    <element name="Interface">
+      <optional>
+        <ref name="address"/>
+      </optional>
+      <optional>
+        <ref name="port"/>
+      </optional>
+    </element>
+  </define>
+  <define name="address">
+    <element name="Address">
+      <data type="string"/>
+    </element>
+  </define>
+  <!-- e.g., 192.0.2.1 or 2001:DB8::1 -->
+  <define name="port">
+    <element name="Port">
+      <data type="positiveInteger">
+        <param name="maxInclusive">65535</param>
+      </data>
     </element>
   </define>
 </grammar>

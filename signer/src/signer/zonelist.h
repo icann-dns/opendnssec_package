@@ -1,5 +1,5 @@
 /*
- * $Id: zonelist.h 7124 2013-05-03 09:49:26Z matthijs $
+ * $Id: zonelist.h 5948 2011-11-30 11:56:02Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -55,7 +55,6 @@ struct zonelist_struct {
     int just_updated;
     int just_removed;
     lock_basic_type zl_lock;
-    int zl_locked;
 };
 
 /**
@@ -76,6 +75,17 @@ zonelist_type* zonelist_create(allocator_type* allocator);
  */
 zone_type* zonelist_lookup_zone_by_name(zonelist_type* zonelist,
     const char* name, ldns_rr_class klass);
+
+/**
+ * Lookup zone by dname and class.
+ * \param[in] zl zone list
+ * \param[in] dname zone domain name
+ * \param[in] klass zone class
+ * \return zone_type* found zone
+ *
+ */
+zone_type* zonelist_lookup_zone_by_dname(zonelist_type* zonelist,
+    ldns_rdf* dname, ldns_rr_class klass);
 
 /**
  * Add zone.

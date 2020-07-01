@@ -1,4 +1,4 @@
-# $Id: conf.rnc 6065 2012-01-16 09:45:47Z jerry $
+# $Id: conf.rnc 6606 2012-09-04 10:57:32Z jerry $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -42,7 +42,7 @@ start = element Configuration {
 			element TokenLabel { xsd:string },
 
 			# PKCS#11 Login Credentials
-			element PIN { xsd:string },
+			element PIN { xsd:string }?,
 
 			# Maxmimum number of key pairs in the repository
 			# DEFAULT: infinite
@@ -72,10 +72,7 @@ start = element Configuration {
 		element PolicyFile { xsd:string },
 
 		# Location to store the zonelist XML file
-		element ZoneListFile { xsd:string },
-
-		# Location to store the zonefetch XML file (optional)
-		element ZoneFetchFile { xsd:string }?
+		element ZoneListFile { xsd:string }
 	},
 
 	# Configuration parameters for the KASP Enforcer
@@ -83,6 +80,10 @@ start = element Configuration {
 		# User & group to drop privs to
 		privs?,
 
+		# Number of Worker Threads
+		# DEFAULT: 1
+		element WorkerThreads { xsd:positiveInteger }?,
+		
 		# Where to store internal Enforcer state
 		element Datastore { (mysql | sqlite) },
 
@@ -109,10 +110,6 @@ start = element Configuration {
 		# DEFAULT: $(localstatedir)/opendnssec/tmp
 		element WorkingDirectory { xsd:string }?,
 
-		# Location of the signer tools
-		# DEFAULT: $(libexecdir)/opendnssec
-		element ToolsDirectory { xsd:string }?,
-
 		# Number of Worker Threads
 		# DEFAULT: 4
 		element WorkerThreads { xsd:positiveInteger }?,
@@ -120,20 +117,16 @@ start = element Configuration {
 		# DEFAULT: 4
 		element SignerThreads { xsd:positiveInteger }?,
 
+		# Listener
+		element Listener {
+			interface*
+		}?,
+
 		# System command to call after a zone has been (re)signed
 		#
 		# '%zone' in the string will be replaced by the zone name
 		# '%zonefile' in the string will be replaced by the zone file
 		element NotifyCommand { xsd:string }?
-	}?,
-
-	element Auditor {
-		# User & group to drop privs to
-		privs?,
-
-		# Location to store intermediate audit information
-		# DEFAULT: $(localstatedir)/opendnssec/tmp
-		element WorkingDirectory { xsd:string }?
 	}?
 }
 
@@ -169,3 +162,9 @@ mysql = element MySQL {
 }
 
 sqlite = element SQLite { xsd:string }
+
+interface = element Interface {	address?, port? }
+
+address = element Address { xsd:string } # e.g., 192.0.2.1 or 2001:DB8::1
+port    = element Port { xsd:positiveInteger { maxInclusive = "65535" } }
+

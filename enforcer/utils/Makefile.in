@@ -37,11 +37,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = ods-ksmutil$(EXEEXT)
+bin_PROGRAMS = ods-ksmutil$(EXEEXT) ods-kaspcheck$(EXEEXT)
 subdir = enforcer/utils
 DIST_COMMON = README $(am__dist_opendnssecdata_DATA_DIST) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/ods-ksmutil.1.in
+	$(srcdir)/ods-kaspcheck.1.in $(srcdir)/ods-ksmutil.1.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
 	$(top_srcdir)/m4/acx_check_strptime.m4 \
@@ -49,14 +49,13 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
 	$(top_srcdir)/m4/acx_database_backend.m4 \
 	$(top_srcdir)/m4/acx_dbparams.m4 \
 	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
-	$(top_srcdir)/m4/acx_libcurl.m4 \
-	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
-	$(top_srcdir)/m4/acx_pedantic.m4 \
+	$(top_srcdir)/m4/acx_libc.m4 $(top_srcdir)/m4/acx_libxml2.m4 \
+	$(top_srcdir)/m4/acx_mysql.m4 $(top_srcdir)/m4/acx_pedantic.m4 \
 	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
 	$(top_srcdir)/m4/acx_rpath.m4 $(top_srcdir)/m4/acx_rt.m4 \
-	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_strict.m4 \
-	$(top_srcdir)/m4/am_prog_ruby.m4 \
+	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_ssl.m4 \
+	$(top_srcdir)/m4/acx_strict.m4 \
 	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
 	$(top_srcdir)/m4/ax_pthread.m4 \
 	$(top_srcdir)/m4/check_compiler_flag.m4 \
@@ -70,11 +69,14 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/common/config.h
-CONFIG_CLEAN_FILES = ods-ksmutil.1
+CONFIG_CLEAN_FILES = ods-kaspcheck.1 ods-ksmutil.1
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" \
 	"$(DESTDIR)$(opendnssecdatadir)"
 PROGRAMS = $(bin_PROGRAMS)
+am_ods_kaspcheck_OBJECTS = kaspcheck.$(OBJEXT) kc_helper.$(OBJEXT)
+ods_kaspcheck_OBJECTS = $(am_ods_kaspcheck_OBJECTS)
+ods_kaspcheck_DEPENDENCIES = $(LIBHSM) $(LIBCOMPAT)
 am_ods_ksmutil_OBJECTS = ksmutil.$(OBJEXT)
 ods_ksmutil_OBJECTS = $(am_ods_ksmutil_OBJECTS)
 ods_ksmutil_DEPENDENCIES = $(LIBKSM) $(LIBHSM) $(LIBCOMPAT)
@@ -91,8 +93,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(ods_ksmutil_SOURCES)
-DIST_SOURCES = $(ods_ksmutil_SOURCES)
+SOURCES = $(ods_kaspcheck_SOURCES) $(ods_ksmutil_SOURCES)
+DIST_SOURCES = $(ods_kaspcheck_SOURCES) $(ods_ksmutil_SOURCES)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -146,6 +148,7 @@ CUCUMBER = @CUCUMBER@
 CUNIT_INCLUDES = @CUNIT_INCLUDES@
 CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
+C_LIBS = @C_LIBS@
 DB_HOST = @DB_HOST@
 DB_INCLUDES = @DB_INCLUDES@
 DB_LIBS = @DB_LIBS@
@@ -190,6 +193,7 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
+HAVE_SSL = @HAVE_SSL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -201,8 +205,6 @@ LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
 LDNS_LIBS = @LDNS_LIBS@
-LIBCURL = @LIBCURL@
-LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -254,13 +256,14 @@ PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RT_LIBS = @RT_LIBS@
-RUBY = @RUBY@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SQLITE3 = @SQLITE3@
 SQLITE3_INCLUDES = @SQLITE3_INCLUDES@
 SQLITE3_LIBS = @SQLITE3_LIBS@
+SSL_INCLUDES = @SSL_INCLUDES@
+SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
@@ -268,7 +271,6 @@ XML2_INCLUDES = @XML2_INCLUDES@
 XML2_LIBS = @XML2_LIBS@
 XMLLINT = @XMLLINT@
 XSLTPROC = @XSLTPROC@
-_libcurl_config = @_libcurl_config@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -323,25 +325,23 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
-LIBHSM = ${top_builddir}/libhsm/src/libhsm.a
+LIBHSM = ${top_builddir}/libhsm/src/lib/libhsm.a
 LIBKSM = ../ksm/libksm.a
 LIBCOMPAT = ${top_builddir}/common/libcompat.a
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/common \
 	-I$(top_builddir)/common \
+	-I$(top_srcdir)/libhsm/src/lib \
 	-I$(srcdir)/../common \
 	-I$(builddir)/../common \
 	-I$(srcdir)/../ksm/include \
 	-I$(builddir)/../ksm/include \
-	-I$(srcdir)/../../libhsm/src \
-	-I$(builddir)/../../libhsm/src \
 	@XML2_INCLUDES@ \
 	@DB_INCLUDES@ \
 	@LDNS_INCLUDES@
@@ -349,11 +349,16 @@ AM_CPPFLAGS = \
 opendnssecdatadir = $(datadir)/opendnssec
 @USE_MYSQL_FALSE@dist_opendnssecdata_DATA = database_create.sqlite3
 @USE_MYSQL_TRUE@dist_opendnssecdata_DATA = database_create.mysql
-man1_MANS = ods-ksmutil.1
+man1_MANS = ods-ksmutil.1 ods-kaspcheck.1
 ods_ksmutil_SOURCES = ksmutil.c
 ods_ksmutil_LDADD = $(LIBKSM) $(LIBHSM) $(LIBCOMPAT) @XML2_LIBS@ \
 	@DB_LIBS@ @LDNS_LIBS@ $(am__empty)
-EXTRA_DIST = $(srcdir)/migrate_*.pl $(srcdir)/add_indexes.sqlite3 \
+ods_kaspcheck_SOURCES = kaspcheck.c kaspcheck.h \
+						kc_helper.c kc_helper.h
+
+ods_kaspcheck_LDADD = $(LIBHSM) $(LIBCOMPAT) @XML2_LIBS@
+EXTRA_DIST = $(srcdir)/migrate_*.pl $(srcdir)/migrate_adapters_1.* \
+	$(srcdir)/convert_database.pl \
 	$(srcdir)/migrate_zone_delete.mysql
 all: all-am
 
@@ -389,6 +394,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+ods-kaspcheck.1: $(top_builddir)/config.status $(srcdir)/ods-kaspcheck.1.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 ods-ksmutil.1: $(top_builddir)/config.status $(srcdir)/ods-ksmutil.1.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-binPROGRAMS: $(bin_PROGRAMS)
@@ -434,6 +441,9 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+ods-kaspcheck$(EXEEXT): $(ods_kaspcheck_OBJECTS) $(ods_kaspcheck_DEPENDENCIES) $(EXTRA_ods_kaspcheck_DEPENDENCIES) 
+	@rm -f ods-kaspcheck$(EXEEXT)
+	$(LINK) $(ods_kaspcheck_OBJECTS) $(ods_kaspcheck_LDADD) $(LIBS)
 ods-ksmutil$(EXEEXT): $(ods_ksmutil_OBJECTS) $(ods_ksmutil_DEPENDENCIES) $(EXTRA_ods_ksmutil_DEPENDENCIES) 
 	@rm -f ods-ksmutil$(EXEEXT)
 	$(LINK) $(ods_ksmutil_OBJECTS) $(ods_ksmutil_LDADD) $(LIBS)
@@ -444,6 +454,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kaspcheck.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kc_helper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ksmutil.Po@am__quote@
 
 .c.o:

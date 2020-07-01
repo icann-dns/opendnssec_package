@@ -1,5 +1,5 @@
 /*
- * $Id: ksm.h 7053 2013-02-21 16:10:40Z sion $
+ * $Id: ksm.h 6969 2013-01-23 09:55:48Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -60,14 +60,13 @@ int KsmRundown(void);
 #define KSM_MSG_LENGTH      512         /* Includes trailing NULL */
 #define KSM_PATH_LENGTH     4096        /* Includes trailing NULL */
 #define KSM_POLICY_DESC_LENGTH     256  /* Includes trailing NULL */
-#define KSM_POLICY_AUDIT_LENGTH    4096 /* Includes trailing NULL */
 #define KSM_TIME_LENGTH     32          /* Includes trailing NULL */
 
 #define KSM_SQL_SIZE        1024        /* Max size of SQL statement */
 #define KSM_INT_STR_SIZE    32          /* Max size of int as string */
 #define KSM_SALT_LENGTH     512         /* Includes trailing NULL */
 #define KSM_ZONE_NAME_LENGTH     256    /* Includes trailing NULL */
-#define KSM_ADAPTER_NAME_LENGTH  256    /* Includes trailing NULL */
+#define KSM_ADAPTER_NAME_LENGTH  512    /* Includes trailing NULL */
 /* ksm_key */
 
 /* Key time flag states */
@@ -241,10 +240,6 @@ typedef struct {
 } KSM_PARENT_POLICY;
 
 typedef struct {
-    int audit;
-} KSM_AUDIT_POLICY;
-
-typedef struct {
 	int id;
     char        name[KSM_NAME_LENGTH];
 	char* description;
@@ -257,8 +252,6 @@ typedef struct {
 	KSM_ENFORCER_POLICY* enforcer;
 	KSM_ZONE_POLICY* zone;
 	KSM_PARENT_POLICY* parent;
-	/*KSM_AUDIT_POLICY* audit;*/
-	char* audit;
     int     shared_keys;
 } KSM_POLICY;
 
@@ -281,6 +274,7 @@ int KsmPolicyNullSaltStamp(int policy_id);
 int KsmPolicyPopulateSMFromIds(KSM_POLICY* policy);
 int KsmPolicySetIdFromName(KSM_POLICY *policy);
 int KsmPolicyIdFromZoneId(int zone_id, int* policy_id);
+int KsmPolicyUpdateDesc(int policy_id, const char* policy_description);
 
 KSM_POLICY *KsmPolicyAlloc();
 void KsmPolicyFree(KSM_POLICY *policy);
@@ -294,6 +288,8 @@ typedef struct {
     char  input[KSM_PATH_LENGTH];
     char  output[KSM_PATH_LENGTH];
     char  policy_name[KSM_NAME_LENGTH];
+    char  in_type[KSM_ADAPTER_NAME_LENGTH];
+    char  out_type[KSM_ADAPTER_NAME_LENGTH];
 } KSM_ZONE;
 
 int KsmZoneInit(DB_RESULT* handle, int policy_id);
@@ -614,8 +610,7 @@ int KsmPolicyInitialPublicationInterval(KSM_POLICY *policy);
 /* KsmImport */
 int KsmImportRepository(const char* repo_name, const char* repo_capacity, int require_backup);
 int KsmImportPolicy(const char* policy_name, const char* policy_description);
-int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int *new_zone, const char* signconf, const char* input, const char* output);
-int KsmImportAudit(int policy_id, const char* audit_contents);
+int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int *new_zone, const char* signconf, const char* input, const char* output, const char* input_type, const char* output_type);
 int KsmImportKeyPair(int policy_id, const char* HSMKeyID, int smID, int size, int alg, int state, const char* time, int fixDate, DB_ID* id);
 int KsmSmIdFromName(const char* name, int *id);
 int KsmSerialIdFromName(const char* name, int *id);
@@ -629,7 +624,7 @@ int KsmCheckHSMkeyID(int repo_id, const char* cka_id, int *exists);
 int KsmListBackups(int repo_id, int verbose_flag);
 int KsmListRepos();
 int KsmListPolicies();
-int KsmListRollovers(int zone_id);
+int KsmListRollovers(int zone_id, int* ds_count);
 int KsmCheckNextRollover(int keytype, int zone_id, char** datetime);
 
 #ifdef __cplusplus

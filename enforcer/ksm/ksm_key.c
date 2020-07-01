@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_key.c 6352 2012-05-29 08:45:11Z sion $
+ * $Id: ksm_key.c 7028 2013-02-13 11:41:17Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -985,6 +985,7 @@ int KsmMarkKeysAsDead(int zone_id)
         KsmKeyEnd(result);
     }
 
+	DqsFree(sql);
     return 0;
 }
 
@@ -1022,7 +1023,7 @@ int KsmKillKey(int keypair_id, int zone_id)
     DusSetInt(&sql, "STATE", KSM_STATE_DEAD, set++);
     DusSetString(&sql, "DEAD", now, set++);
     DusConditionInt(&sql, "KEYPAIR_ID", DQS_COMPARE_EQ, keypair_id, 0);
-	if (zone_id != -1) {
+    if (zone_id != -1) {
         DqsConditionInt(&sql, "zone_id", DQS_COMPARE_EQ, zone_id, 1);
     }
     DusEnd(&sql);

@@ -1,5 +1,5 @@
 /*
- * $Id: adapter.h 4686 2011-04-07 13:53:15Z matthijs $
+ * $Id: adapter.h 6449 2012-06-21 09:45:24Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,26 +35,20 @@
 #define ADAPTER_ADAPTER_H
 
 #include "config.h"
+#include "adapter/addns.h"
 #include "adapter/adfile.h"
+#include "shared/allocator.h"
 #include "shared/status.h"
 
 #include <stdio.h>
 
-struct zone_struct;
-
 /** Adapter mode. */
 enum adapter_mode_enum
 {
-    ADAPTER_FILE = 1
+    ADAPTER_FILE = 1,
+    ADAPTER_DNS
 };
 typedef enum adapter_mode_enum adapter_mode;
-
-/** Adapter mode specific. */
-union adapter_data_union
-{
-    void* file;
-};
-typedef union adapter_data_union adapter_data;
 
 /**
  * Adapter.
@@ -62,55 +56,57 @@ typedef union adapter_data_union adapter_data;
  */
 typedef struct adapter_struct adapter_type;
 struct adapter_struct {
-    const char* configstr;
-    adapter_mode type;
-    int inbound;
     allocator_type* allocator;
-    adapter_data* data;
+    adapter_mode type;
+    time_t config_last_modified;
+    const char* configstr;
+    void* config;
+    unsigned inbound : 1;
+    unsigned error : 1;
 };
-
-/**
- * Initialize adapter.
- * \param[in] adapter adapter
- * /return ods_status stats
- *
- */
-ods_status adapter_init(adapter_type* adapter);
 
 /**
  * Create new adapter.
  * \param[in] str configuration string
  * \param[in] type type of adapter
- * \param[in] inbound inbound or not (thus outbound)
+ * \param[in] in inbound or not (thus outbound)
  * \return adapter_type* created adapter
  *
  */
-adapter_type* adapter_create(const char* str, adapter_mode type, int inbound);
+adapter_type* adapter_create(const char* str, adapter_mode type, unsigned in);
+
+/**
+ * Load configuration.
+ * \param[in] adapter adapter
+ * \return ods_status status
+ *
+ */
+ods_status adapter_load_config(adapter_type* adapter);
 
 /**
  * Compare adapters.
- * /param[in] a1 adapter 1
- * /param[in] a2 adapter 2
- * /return int 0 on equal, -1 if a1 < a2, 1 if a1 > a2
+ * \param[in] a1 adapter 1
+ * \param[in] a2 adapter 2
+ * \return int 0 on equal, -1 if a1 < a2, 1 if a1 > a2
  *
  */
 int adapter_compare(adapter_type* a1, adapter_type* a2);
 
 /**
  * Read zone from input adapter.
- * /param[in] zone zone
- * /return ods_status stats
+ * \param[in] zone zone
+ * \return ods_status status
  *
  */
-ods_status adapter_read(struct zone_struct* zone);
+ods_status adapter_read(void* zone);
 
 /**
  * Write zone to output adapter.
- * /param[in] zone zone
- * /return ods_status stats
+ * \param[in] zone zone
+ * \return ods_status status
  *
  */
-ods_status adapter_write(struct zone_struct* zone);
+ods_status adapter_write(void* zone);
 
 /**
  * Clean up adapter.
