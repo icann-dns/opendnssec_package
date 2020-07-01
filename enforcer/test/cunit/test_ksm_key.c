@@ -1,6 +1,4 @@
 /*
- * $Id: test_ksm_key.c 5818 2011-10-27 08:12:18Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

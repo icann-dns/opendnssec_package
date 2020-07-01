@@ -1,6 +1,4 @@
 /*
- * $Id: hsm.h 6128 2012-02-02 10:39:28Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

@@ -1,6 +1,4 @@
 /*
- * $Id: test_ksm_zone.c 3858 2010-09-01 15:05:02Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

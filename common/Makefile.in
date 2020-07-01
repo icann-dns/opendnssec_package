@@ -15,8 +15,6 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 6148 2012-02-07 15:23:10Z matthijs $
-
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@

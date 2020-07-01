@@ -1,6 +1,4 @@
 /*
- * $Id: ksm_update.c 4250 2010-12-06 08:56:44Z sion $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

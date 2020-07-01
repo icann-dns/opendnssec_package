@@ -1,6 +1,4 @@
 /*
- * $Id: worker.h 6890 2012-12-12 14:33:49Z matthijs $
- *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

@@ -1,5 +1,3 @@
-# $Id: Makefile.am 7018 2013-02-05 13:59:43Z sion $
-
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 SUBDIRS = include

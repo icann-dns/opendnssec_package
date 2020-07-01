@@ -1,6 +1,4 @@
 /*
- * $Id: ksm_internal.h 872 2009-06-02 14:50:51Z jakob $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

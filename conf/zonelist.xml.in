@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: zonelist.xml.in 5937 2011-11-30 08:53:15Z matthijs $ -->
-
 <ZoneList>
 <!--
 	<Zone name="example.com">

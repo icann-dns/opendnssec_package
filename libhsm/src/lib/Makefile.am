@@ -1,5 +1,3 @@
-# $Id: Makefile.am 6560 2012-08-28 06:31:40Z rb $
-
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 AM_CPPFLAGS = \

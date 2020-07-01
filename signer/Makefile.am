@@ -1,5 +1,3 @@
-# $Id: Makefile.am 4098 2010-10-13 14:40:53Z matthijs $
-
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 SUBDIRS = src man

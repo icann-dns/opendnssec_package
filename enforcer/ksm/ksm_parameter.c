@@ -1,6 +1,4 @@
 /*
- * $Id: ksm_parameter.c 6379 2012-06-05 08:52:37Z jerry $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

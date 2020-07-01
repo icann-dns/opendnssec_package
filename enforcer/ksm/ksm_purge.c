@@ -1,6 +1,4 @@
 /*
- * $Id: ksm_purge.c 4656 2011-03-25 08:51:54Z rb $
- *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

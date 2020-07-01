@@ -14,8 +14,6 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-
-# $Id: Makefile.am 6930 2013-01-08 12:31:16Z jakob $
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -37,7 +35,7 @@ build_triplet = @build@
 host_triplet = @host@
 @ENABLE_SIGNER_TRUE@am__append_1 = signer
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Doxyfile.in \
+DIST_COMMON = $(am__configure_deps) $(srcdir)/Doxyfile.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/configure NEWS config.guess config.sub depcomp \
 	install-sh ltmain.sh missing
@@ -342,6 +340,7 @@ SUBDIRS = common libhsm enforcer conf tools $(am__append_1)
 EXTRA_DIST = $(srcdir)/LICENSE \
 		$(srcdir)/KNOWN_ISSUES \
 		$(srcdir)/MIGRATION \
+		$(srcdir)/README.md \
 		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
 
 all: all-recursive
