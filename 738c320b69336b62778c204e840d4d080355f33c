@@ -1,0 +1,3 @@
+  * Imported Upstream version 2.0.1
+  * Update packaging for OpenDNSSEC 2.0.0
+  * Rebase patches on top of OpenDNSSEC 2.0.1
