@@ -1,0 +1,8 @@
+  * gbp.conf: update the upstream tag format
+  * New upstream release
+  * patches: drop the AllowExtraction patch applied upstream
+  * patches: update the patches
+  * gitlab-ci.yml: force download the upstream tarball
+  * source/local-options: ignore the conf/trang directory
+  * source: ignore the accidentally comitted binary file
+  * README.source: update the uscan command line
