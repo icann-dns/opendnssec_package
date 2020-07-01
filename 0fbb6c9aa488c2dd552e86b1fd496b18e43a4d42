@@ -1,0 +1,5 @@
+  * po/de.po: Add German translation (Closes: #922638)
+  * gitlab-ci.yml: Check for missing debconf-updatepo
+  * po/templates.po: Update the templates.pot file
+  * opendnssec-*.service: Fix service files
+  * opendnssec-*.init: use do_restart_prepare from init-d-script
