@@ -1,3 +1,11 @@
+opendnssec (1:2.1.6-1ubuntu1) groovy; urgency=medium
+
+  * Merge from Debian unstable. Remaining changes:
+    - d/p/0016-mysql8_my_bool.patch: Reintroduce my_bool to fix build with
+      MySQL 8.
+
+ -- Logan Rosen <logan@ubuntu.com>  Tue, 30 Jun 2020 20:17:16 -0400
+
 opendnssec (1:2.1.6-1) unstable; urgency=medium
 
   * New upstream release
@@ -8,6 +16,13 @@ opendnssec (1:2.1.6-1) unstable; urgency=medium
   * gitlab-ci.yml: fix the dsc job
 
  -- Mathieu Mirmont <mat@parad0x.org>  Sun, 16 Feb 2020 12:07:31 +0100
+
+opendnssec (1:2.1.5-1ubuntu1) focal; urgency=medium
+
+  * d/p/0016-mysql8_my_bool.patch: Reintroduce my_bool to fix build with
+    MySQL 8. (LP: #1863026)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Fri, 14 Feb 2020 14:40:22 -0300
 
 opendnssec (1:2.1.5-1) unstable; urgency=medium
 
@@ -930,3 +945,4 @@ libhsm (1.0.0~rc3-1) unstable; urgency=low
   * Initial release (Closes: #568102)
 
  -- Ondřej Surý <ondrej@debian.org>  Thu, 28 Jan 2010 11:13:21 +0100
+
