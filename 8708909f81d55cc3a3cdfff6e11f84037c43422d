@@ -1,0 +1,2 @@
+  * Fix old directory in maintscript helper invocation for
+    opendnssec-enforcer-{mysql,sqlite3} (Closes: #768245)
