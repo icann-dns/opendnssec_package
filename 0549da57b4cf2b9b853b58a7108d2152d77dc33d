@@ -1,0 +1,4 @@
+  * New upstream version
+  * Fix for grave (causes data loss) upstream bug #183:
+    + Partial zone could get signed if zone transfer failed when using
+      zone_fetcher (http://trac.opendnssec.org/ticket/183)
