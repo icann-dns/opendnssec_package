@@ -34,6 +34,7 @@
 #include "config.h"
 #include "scheduler/schedule.h"
 #include "scheduler/task.h"
+#include "shared/allocator.h"
 #include "shared/duration.h"
 #include "shared/log.h"
 
@@ -51,26 +52,26 @@ schedule_create(allocator_type* allocator)
 {
     schedule_type* schedule;
     if (!allocator) {
+        ods_log_error("[%s] unable to create: no allocator available",
+            schedule_str);
         return NULL;
     }
+    ods_log_assert(allocator);
+
     schedule = (schedule_type*) allocator_alloc(allocator,
         sizeof(schedule_type));
     if (!schedule) {
-        ods_log_error("[%s] unable to create schedule: allocator_alloc() "
-            "failed", schedule_str);
+        ods_log_error("[%s] unable to create: allocator failed", schedule_str);
         return NULL;
     }
+    ods_log_assert(schedule);
+
     schedule->allocator = allocator;
     schedule->loading = 0;
     schedule->flushcount = 0;
     schedule->tasks = ldns_rbtree_create(task_compare);
-    if (!schedule->tasks) {
-        ods_log_error("[%s] unable to create schedule: ldns_rbtree_create() "
-            "failed", schedule_str);
-        allocator_deallocate(allocator, (void*) schedule);
-        return NULL;
-    }
     lock_basic_init(&schedule->schedule_lock);
+    schedule->schedule_locked = 0;
     return schedule;
 }
 
@@ -89,6 +90,9 @@ schedule_flush(schedule_type* schedule, task_id override)
     if (!schedule || !schedule->tasks) {
         return;
     }
+    ods_log_assert(schedule);
+    ods_log_assert(schedule->tasks);
+
     node = ldns_rbtree_first(schedule->tasks);
     while (node && node != LDNS_RBTREE_NULL) {
         task = (task_type*) node->data;
@@ -111,10 +115,8 @@ static ldns_rbnode_t*
 task2node(task_type* task)
 {
     ldns_rbnode_t* node = (ldns_rbnode_t*) malloc(sizeof(ldns_rbnode_t));
-    if (node) {
-        node->key = task;
-        node->data = task;
-    }
+    node->key = task;
+    node->data = task;
     return node;
 }
 
@@ -128,10 +130,14 @@ schedule_lookup_task(schedule_type* schedule, task_type* task)
 {
     ldns_rbnode_t* node = LDNS_RBTREE_NULL;
     task_type* lookup = NULL;
+
     if (!schedule || !task) {
         return NULL;
     }
+    ods_log_assert(task);
+    ods_log_assert(schedule);
     ods_log_assert(schedule->tasks);
+
     node = ldns_rbtree_search(schedule->tasks, task);
     if (node && node != LDNS_RBTREE_NULL) {
         lookup = (task_type*) node->data;
@@ -149,29 +155,34 @@ schedule_task(schedule_type* schedule, task_type* task, int log)
 {
     ldns_rbnode_t* new_node = NULL;
     ldns_rbnode_t* ins_node = NULL;
-    if (!task || !schedule || !schedule->tasks) {
+
+    if (!task) {
+        ods_log_error("[%s] unable to schedule task: no task", schedule_str);
         return ODS_STATUS_ASSERT_ERR;
     }
+    ods_log_assert(task);
+    if (!schedule) {
+        ods_log_error("[%s] unable to schedule task: no schedule",
+            schedule_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(schedule);
+    ods_log_assert(schedule->tasks);
+
     ods_log_debug("[%s] schedule task %s for zone %s", schedule_str,
-        task_what2str(task->what), task_who2str(task));
+        task_what2str(task->what), task_who2str(task->who));
     if (schedule_lookup_task(schedule, task) != NULL) {
         ods_log_error("[%s] unable to schedule task %s for zone %s: "
             " already present", schedule_str, task_what2str(task->what),
-            task_who2str(task));
+            task_who2str(task->who));
         return ODS_STATUS_ERR;
     }
     new_node = task2node(task);
-    if (!new_node) {
-        ods_log_error("[%s] unable to schedule task %s for zone %s: "
-            " task2node() failed", schedule_str, task_what2str(task->what),
-            task_who2str(task));
-        return ODS_STATUS_MALLOC_ERR;
-    }
     ins_node = ldns_rbtree_insert(schedule->tasks, new_node);
     if (!ins_node) {
         ods_log_error("[%s] unable to schedule task %s for zone %s: "
             " insert failed", schedule_str, task_what2str(task->what),
-            task_who2str(task));
+            task_who2str(task->who));
         free((void*)new_node);
         return ODS_STATUS_ERR;
     }
@@ -194,11 +205,22 @@ unschedule_task(schedule_type* schedule, task_type* task)
 {
     ldns_rbnode_t* del_node = LDNS_RBTREE_NULL;
     task_type* del_task = NULL;
-    if (!task || !schedule || !schedule->tasks) {
+
+    if (!task) {
+        /* we are done */
         return NULL;
     }
+    ods_log_assert(task);
+    if (!schedule) {
+        ods_log_error("[%s] unable to unschedule task: no schedule",
+            schedule_str);
+        return NULL;
+    }
+    ods_log_assert(schedule);
+    ods_log_assert(schedule->tasks);
+
     ods_log_debug("[%s] unschedule task %s for zone %s",
-        schedule_str, task_what2str(task->what), task_who2str(task));
+        schedule_str, task_what2str(task->what), task_who2str(task->who));
     del_node = ldns_rbtree_delete(schedule->tasks, (const void*) task);
     if (del_node) {
         del_task = (task_type*) del_node->data;
@@ -206,7 +228,7 @@ unschedule_task(schedule_type* schedule, task_type* task)
     } else {
         ods_log_warning("[%s] unable to unschedule task %s for zone %s: not "
             "scheduled", schedule_str, task_what2str(task->what),
-            task_who2str(task));
+            task_who2str(task->who));
         return NULL;
     }
     if (del_task->flush) {
@@ -226,9 +248,11 @@ reschedule_task(schedule_type* schedule, task_type* task, task_id what,
     time_t when)
 {
     task_type* del_task = NULL;
-    if (!task || !schedule || !schedule->tasks) {
+
+    if (!task) {
         return ODS_STATUS_ASSERT_ERR;
     }
+
     del_task = unschedule_task(schedule, task);
     if (!del_task) {
         del_task = task;
@@ -249,13 +273,18 @@ schedule_get_first_task(schedule_type* schedule)
     ldns_rbnode_t* first_node = LDNS_RBTREE_NULL;
     ldns_rbnode_t* node = LDNS_RBTREE_NULL;
     task_type* pop = NULL;
-    if (!schedule || !schedule->tasks) {
+
+    if (!schedule) {
         return NULL;
     }
+    ods_log_assert(schedule);
+    ods_log_assert(schedule->tasks);
+
     first_node = ldns_rbtree_first(schedule->tasks);
     if (!first_node) {
         return NULL;
     }
+
     if (schedule->flushcount > 0) {
         /* find remaining to be flushed tasks */
         node = first_node;
@@ -267,7 +296,7 @@ schedule_get_first_task(schedule_type* schedule)
             node = ldns_rbtree_next(node);
         }
         /* no more to be flushed tasks found */
-        ods_log_warning("[%s] unable to get first scheduled task: could not "
+        ods_log_warning("[%s] unable to get first scheduled: could not "
             "find flush-task, while there should be %i flush-tasks left",
             schedule_str, schedule->flushcount);
         ods_log_info("[%s] reset flush count to 0", schedule_str);
@@ -288,20 +317,31 @@ schedule_pop_task(schedule_type* schedule)
 {
     task_type* pop = NULL;
     time_t now = 0;
-    if (!schedule || !schedule->tasks) {
+
+    if (!schedule) {
+        ods_log_error("[%s] unable to pop task: no schedule", schedule_str);
         return NULL;
     }
+    ods_log_assert(schedule);
+    ods_log_assert(schedule->tasks);
+
     now = time_now();
     pop = schedule_get_first_task(schedule);
     if (pop && (pop->flush || pop->when <= now)) {
         if (pop->flush) {
             ods_log_debug("[%s] flush task for zone %s", schedule_str,
-                task_who2str(pop));
+                pop->who?pop->who:"(null)");
         } else {
             ods_log_debug("[%s] pop task for zone %s", schedule_str,
-                task_who2str(pop));
+                pop->who?pop->who:"(null)");
         }
         return unschedule_task(schedule, pop);
+    } else if (pop) {
+        ods_log_debug("[%s] not popping task for zone %s: not ready (when %u "
+              "< now %u, flush=%u)", schedule_str, pop->who?pop->who:"(null)",
+              pop->when, now, pop->flush);
+    } else {
+        ods_log_debug("[%s] not popping task: no task", schedule_str);
     }
     return NULL;
 }
@@ -320,6 +360,10 @@ schedule_print(FILE* out, schedule_type* schedule)
     if (!out || !schedule || !schedule->tasks) {
         return;
     }
+    ods_log_assert(out);
+    ods_log_assert(schedule);
+    ods_log_assert(schedule->tasks);
+
     node = ldns_rbtree_first(schedule->tasks);
     while (node && node != LDNS_RBTREE_NULL) {
         task = (task_type*) node->data;
@@ -370,8 +414,10 @@ schedule_cleanup(schedule_type* schedule)
         ldns_rbtree_free(schedule->tasks);
         schedule->tasks = NULL;
     }
+
     allocator = schedule->allocator;
     schedule_lock = schedule->schedule_lock;
+
     allocator_deallocate(allocator, (void*) schedule);
     lock_basic_destroy(&schedule_lock);
     return;

@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signer.c 7083 2013-04-03 13:27:51Z matthijs $
+ * $Id: ods-signer.c 6307 2012-05-04 09:36:03Z jerry $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -64,7 +64,7 @@ usage(FILE* out)
     fprintf(out, "Usage: %s [<cmd>]\n", "ods-signer");
     fprintf(out, "Simple command line interface to control the signer "
                  "engine daemon.\nIf no cmd is given, the tool is going "
-                 "into interactive mode.\n");
+                 "to interactive mode.\n");
     fprintf(out, "\nBSD licensed, see LICENSE in source package for "
                  "details.\n");
     fprintf(out, "Version %s. Report bugs to <%s>.\n",
@@ -101,6 +101,7 @@ interface_run(FILE* fp, int sockfd, char* cmd)
     fd_set rset;
     char buf[ODS_SE_MAXLINE];
 
+    stdineof = 0;
     FD_ZERO(&rset);
     for(;;) {
         /* prepare */
@@ -177,9 +178,6 @@ interface_run(FILE* fp, int sockfd, char* cmd)
                     buf[n] = '\0';
                     cmd_response = 1;
                 }
-            } else {
-                /* always null terminate string */
-                buf[n] = '\0';
             }
 
             /* n > 0 : when we get to this line... */
@@ -201,8 +199,7 @@ interface_run(FILE* fp, int sockfd, char* cmd)
                 }
                 /* ret > 0 : when we get here... */
                 if (written+ret > n) {
-                    fprintf(stderr, "\n\nwrite error: more bytes (%d) written "
-                        "than required (%d)\n",
+                    fprintf(stderr, "\n\nwrite error: more bytes (%d) written than required (%d)\n",
                         written+ret, n);
                     break;
                 }
@@ -258,12 +255,11 @@ interface_run(FILE* fp, int sockfd, char* cmd)
             ods_writen(sockfd, buf, n);
         }
     }
-    return 0;
 }
 
 
 /**
- * Start interface.
+ * Start interface
  *
  */
 static int

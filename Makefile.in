@@ -15,7 +15,7 @@
 
 @SET_MAKE@
 
-# $Id: Makefile.am 6930 2013-01-08 12:31:16Z jakob $
+# $Id: Makefile.am 6484 2012-07-17 06:53:51Z jerry $
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -36,6 +36,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @ENABLE_SIGNER_TRUE@am__append_1 = signer
+@ENABLE_AUDITOR_TRUE@am__append_2 = auditor
+@ENABLE_EPPCLIENT_TRUE@am__append_3 = plugins/eppclient
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Doxyfile.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
@@ -48,13 +50,14 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/acx_broken_setres.m4 \
 	$(top_srcdir)/m4/acx_database_backend.m4 \
 	$(top_srcdir)/m4/acx_dbparams.m4 \
 	$(top_srcdir)/m4/acx_dlopen.m4 $(top_srcdir)/m4/acx_ldns.m4 \
-	$(top_srcdir)/m4/acx_libc.m4 $(top_srcdir)/m4/acx_libxml2.m4 \
-	$(top_srcdir)/m4/acx_mysql.m4 $(top_srcdir)/m4/acx_pedantic.m4 \
+	$(top_srcdir)/m4/acx_libcurl.m4 \
+	$(top_srcdir)/m4/acx_libxml2.m4 $(top_srcdir)/m4/acx_mysql.m4 \
+	$(top_srcdir)/m4/acx_pedantic.m4 \
 	$(top_srcdir)/m4/acx_pkcs11_modules.m4 \
 	$(top_srcdir)/m4/acx_prefixhack.m4 \
 	$(top_srcdir)/m4/acx_rpath.m4 $(top_srcdir)/m4/acx_rt.m4 \
-	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_ssl.m4 \
-	$(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/acx_sqlite3.m4 $(top_srcdir)/m4/acx_strict.m4 \
+	$(top_srcdir)/m4/am_prog_ruby.m4 \
 	$(top_srcdir)/m4/ax_prog_doxygen.m4 \
 	$(top_srcdir)/m4/ax_pthread.m4 \
 	$(top_srcdir)/m4/check_compiler_flag.m4 \
@@ -88,7 +91,8 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 	distdir dist dist-all distcheck
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = common libhsm enforcer conf tools signer
+DIST_SUBDIRS = common libhsm enforcer conf tools signer auditor \
+	plugins/eppclient
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -146,7 +150,6 @@ CUCUMBER = @CUCUMBER@
 CUNIT_INCLUDES = @CUNIT_INCLUDES@
 CUNIT_LIBS = @CUNIT_LIBS@
 CYGPATH_W = @CYGPATH_W@
-C_LIBS = @C_LIBS@
 DB_HOST = @DB_HOST@
 DB_INCLUDES = @DB_INCLUDES@
 DB_LIBS = @DB_LIBS@
@@ -191,7 +194,6 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
-HAVE_SSL = @HAVE_SSL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -203,6 +205,8 @@ LDFLAGS = @LDFLAGS@
 LDNS_CONFIG = @LDNS_CONFIG@
 LDNS_INCLUDES = @LDNS_INCLUDES@
 LDNS_LIBS = @LDNS_LIBS@
+LIBCURL = @LIBCURL@
+LIBCURL_CPPFLAGS = @LIBCURL_CPPFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
@@ -254,14 +258,13 @@ PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
 RANLIB = @RANLIB@
 RT_LIBS = @RT_LIBS@
+RUBY = @RUBY@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SQLITE3 = @SQLITE3@
 SQLITE3_INCLUDES = @SQLITE3_INCLUDES@
 SQLITE3_LIBS = @SQLITE3_LIBS@
-SSL_INCLUDES = @SSL_INCLUDES@
-SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 XML2_CONFIG = @XML2_CONFIG@
@@ -269,6 +272,7 @@ XML2_INCLUDES = @XML2_INCLUDES@
 XML2_LIBS = @XML2_LIBS@
 XMLLINT = @XMLLINT@
 XSLTPROC = @XSLTPROC@
+_libcurl_config = @_libcurl_config@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -323,6 +327,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
@@ -338,9 +343,9 @@ MAINTAINERCLEANFILES = \
 	$(srcdir)/depcomp $(srcdir)/aclocal.m4 $(srcdir)/compile \
 	$(srcdir)/config.guess $(srcdir)/config.sub
 
-SUBDIRS = common libhsm enforcer conf tools $(am__append_1)
-EXTRA_DIST = $(srcdir)/LICENSE \
-		$(srcdir)/KNOWN_ISSUES \
+SUBDIRS = common libhsm enforcer conf tools $(am__append_1) \
+	$(am__append_2) $(am__append_3)
+EXTRA_DIST = $(srcdir)/KNOWN_ISSUES \
 		$(srcdir)/MIGRATION \
 		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
 
@@ -860,6 +865,7 @@ docs:
 	(cd libhsm; $(MAKE) doxygen)
 	(cd enforcer; $(MAKE) doxygen)
 	(cd signer; $(MAKE) doxygen)
+@ENABLE_AUDITOR_TRUE@	(cd auditor; $(MAKE) rdoc)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

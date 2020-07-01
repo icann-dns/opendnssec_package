@@ -1,5 +1,5 @@
 /*
- * $Id: test_dd_string.c 5336 2011-07-15 12:53:09Z sion $
+ * $Id: test_dd_string.c 3811 2010-08-26 15:05:19Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -113,9 +113,9 @@ static void TestDdsConditionString(void)
 	char*	sql = NULL;
 	int		clause = 0;
 	static const char* TEST = 
-		"DELETE FROM TEST WHERE ALPHA < 'PETER' AND BETA <= 'PIPER' "
-		"AND GAMMA = 'PICKED' AND DELTA != 'A' AND EPSILON >= 'PECK' "
-		"AND ZETA > 'OF'";
+		"DELETE FROM TEST WHERE ALPHA < \"PETER\" AND BETA <= \"PIPER\" "
+		"AND GAMMA = \"PICKED\" AND DELTA != \"A\" AND EPSILON >= \"PECK\" "
+		"AND ZETA > \"OF\"";
 
 	sql = DdsInit("TEST");
 	DdsConditionString(&sql, "ALPHA", DQS_COMPARE_LT, "PETER", clause++);

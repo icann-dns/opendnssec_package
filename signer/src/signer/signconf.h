@@ -1,5 +1,5 @@
 /*
- * $Id: signconf.h 6215 2012-03-20 13:30:51Z matthijs $
+ * $Id: signconf.h 4550 2011-03-11 11:42:01Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -38,7 +38,6 @@
 #include "shared/allocator.h"
 #include "shared/duration.h"
 #include "signer/keys.h"
-#include "signer/nsec3params.h"
 
 #include <ldns/ldns.h>
 #include <time.h>
@@ -66,7 +65,6 @@ struct signconf_struct {
     uint32_t nsec3_algo;
     uint32_t nsec3_iterations;
     const char* nsec3_salt;
-    nsec3params_type* nsec3params;
     /* Keys */
     duration_type* dnskey_ttl;
     keylist_type* keys;
@@ -77,6 +75,7 @@ struct signconf_struct {
     /* Other useful information */
     const char* filename;
     time_t last_modified;
+    int audit;
 };
 
 /**
@@ -98,13 +97,20 @@ ods_status signconf_update(signconf_type** signconf, const char* scfile,
     time_t last_modified);
 
 /**
+ * Read signer configuration from backup.
+ * \param[in] filename file name
+ * \return signconf_type* signer configuration
+ *
+ */
+signconf_type* signconf_recover_from_backup(const char* filename);
+
+/**
  * Backup signer configuration.
  * \param[in] fd file descriptor
  * \param[in] sc signer configuration settings
- * \param[in] version version string
  *
  */
-void signconf_backup(FILE* fd, signconf_type* sc, const char* version);
+void signconf_backup(FILE* fd, signconf_type* sc);
 
 /**
  * Check signer configuration.
@@ -124,6 +130,33 @@ ods_status signconf_check(signconf_type* signconf);
 task_id signconf_compare_denial(signconf_type* a, signconf_type* b);
 
 /**
+ * Compare signer configurations on key material.
+ * \param[in] a a signer configuration
+ * \param[in] b another signer configuration
+ * \param[out] del list of DNSKEY RRs that have to be removed
+ * \return task_id what task needs to be scheduled
+ *
+ */
+task_id signconf_compare_keys(signconf_type* a, signconf_type* b,
+    ldns_rr_list* del);
+
+/**
+ * Compare signer configurations.
+ * \param[in] a a signer configuration
+ * \param[in] b another signer configuration
+ * \return task_id what task needs to be scheduled
+ *
+ */
+task_id signconf_compare(signconf_type* a, signconf_type* b);
+
+/**
+ * Clean up signer configuration.
+ * \param[in] sc signconf to cleanup
+ *
+ */
+void signconf_cleanup(signconf_type* sc);
+
+/**
  * Print signer configuration.
  * \param[in] out file descriptor
  * \param[in] sc signconf to print
@@ -139,12 +172,5 @@ void signconf_print(FILE* out, signconf_type* sc, const char* name);
  *
  */
 void signconf_log(signconf_type* sc, const char* name);
-
-/**
- * Clean up signer configuration.
- * \param[in] sc signconf to cleanup
- *
- */
-void signconf_cleanup(signconf_type* sc);
 
 #endif /* SIGNER_SIGNCONF_H */

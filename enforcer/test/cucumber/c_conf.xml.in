@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: c_conf.xml.in 6013 2012-01-04 15:57:01Z sion $ -->
+<!-- $Id: c_conf.xml.in 3812 2010-08-26 15:09:37Z jakob $ -->
 
 <Configuration>
 
@@ -42,5 +42,9 @@
 		     %zonefile  the filename of the signed zone
 		-->
 	</Signer>
+
+	<Auditor>
+
+	</Auditor>
 
 </Configuration>

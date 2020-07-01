@@ -1,5 +1,5 @@
 .TH "ods-ksmutil" "1" "February 2010" OpenDNSSEC "OpenDNSSEC ods-ksmutil"
-.\" $Id: ods-ksmutil.1.in 6768 2012-10-24 11:15:35Z sion $
+.\" $Id: ods-ksmutil.1.in 7094 2013-04-16 15:19:10Z sara $
 .SH "NAME"
 .LP
 .B ods-ksmutil
@@ -17,11 +17,8 @@
 .br
 .B ods-ksmutil zonelist import|export
 .br
-.B ods-ksmutil key 
-.RS
-.B		generate|import|export|list|purge|rollover|ksk\-retire|ds\-seen|delete
+.B ods-ksmutil key generate|import|export|list|purge|rollover|ksk-retire|ds-seen
 .RB ...
-.RE
 .br
 .B ods-ksmutil rollover list
 .RB ...
@@ -195,16 +192,20 @@ database of the KASP Enforcer.  The options \-\-zone and \-\-policy
 are used to limit this operation to a single named zone or policy,
 respectively.
 .TP
-.B key rollover \-\-zone|\-z \fIname\fB [\-\-keytype \fItype\fB]
+.B key rollover \-\-zone|\-z \fIname\fB \-\-keytype \fItype\fB|\-t \fItype\fB
 .TP
-.B key rollover \-\-policy|\-p \fIname\fB [\-\-keytype \fItype\fB]
+.B key rollover \-\-zone|\-z \fIname\fB \-\-all|\-a
+.TP
+.B key rollover \-\-policy|\-p \fIname\fB \-\-keytype \fItype\fB|\-t \fItype\fB
+.TP
+.B key rollover \-\-policy|\-p \fIname\fB \-\-all|\-a
 Rollover active keys on the named zone or policy, respectively.
 This command is used to intiate manual rollovers; if it is not given,
 OpenDNSSEC will automatically rollover keys when the need arises. (Or, in the 
 case of KSKs it will start the rollover process, to finish the KSK rollover see
 ksk-roll below.)
 
-The \-\-keytype option specifies the type of key to roll (both are rolled if nothing is specified) After running, the KASP Enforcer will be woken up so that the signer can be sent the new information.
+The \-\-keytype option specifies the type of key to roll. Alternatively the --all option can be used which will roll both types of keys. After running, the KASP Enforcer will be woken up so that the signer can be sent the new information.
 
 If the policy that the zone is on specifies that keys are shared then all zones on that policy will be rolled. If appropriate, a backup of the sqlite DB file is made.
 
@@ -243,19 +244,9 @@ An optional \-\-no\-retire flag can also be passed in, without this the
 existing key is moved into the retired state at the same time as making 
 the new key active. If you wish to delay this step then pass in this flag 
 and use the ksk\-retire command when needed.
-
-.TP
-.B key delete --cka_id|-k \fIckaid\fB [\-\-no\-hsm]
-Remove a named key from the system.
-
-Keys in the GENERATE or DEAD state can be safely removed from the system as
-they are not in use.
-
-The \-\-no\-hsm flag can be provided if you want to leave the key material on the HSM.
-
 .br
 .TP
-.B rollover list
+.B ods-ksmutil rollover list
 List the expected dates and times of upcoming rollovers.  This can be
 used to get an idea of upcoming work, such as the non-standardised
 submission of DS records to a registry.
@@ -272,7 +263,7 @@ Update the database with the contents of kasp.xml; identical to "update kasp".
 * Experimental *
 
 Remove any policies which have no zones associated with them.
-Note that this command has only been tested in a lab environment and so caution is recommended. 
+Note that this command has only been tested in a lab environment and so caution is recommended.
 .SH "REPOSITORY AND BACKUP SUBCOMMANDS"
 .LP
 .TP
@@ -308,11 +299,10 @@ to the state where they are generated, but not yet available for service
 by OpenDNSSEC.  After fixing this problem, a new attempt to backup the 
 keys can be made. 
 .TP
-.B backup done \-\-repository|\-r name [\-\-force]
-*DEPRECATED*
-
+.B backup done \-\-repository|\-r name
 Indicate that a backup of the given repository has been done, all non-backed up keys will now be marked as backed up.
 The \-\-repository option specifies what repository to list.
+This is a necessary step for repositories that have the RequireBackup flag set.
 
 Note that the KASP Enforcer may take the initiative to generate keys after
 the backup has started and before the backup is done.  This single-phase 
@@ -405,7 +395,7 @@ The location that is usually configured in conf.xml to contain unsigned zones.
 The location that is usually configured in conf.xml to contain signed zones.
 .SH "SEE ALSO"
 .LP
-ods\-control(8), ods\-enforcerd(8), ods\-hsmspeed(1),
+ods\-auditor(1), ods\-control(8), ods\-enforcerd(8), ods\-hsmspeed(1),
 ods\-hsmutil(1), ods\-kaspcheck(1), ods\-signer(8),
 ods\-signerd(8), ods\-timing(5), opendnssec(7),
 .B http://www.opendnssec.org/

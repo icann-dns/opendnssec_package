@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_request.c 7028 2013-02-13 11:41:17Z sion $
+ * $Id: ksm_request.c 4489 2011-02-17 10:17:39Z rb $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -1552,7 +1552,6 @@ int KsmRequestPendingRetireCount(int keytype, const char* datetime,
 #endif /* USE_MYSQL */
     if (nchar >= sizeof(buffer)) {
         status = MsgLog(KME_BUFFEROVF, "KsmRequestKeys");
-		DqsFree(sql);
         return status;
     }
 
@@ -1635,7 +1634,6 @@ int KsmRequestAvailableCount(int keytype, const char* datetime, KSM_PARCOLL* par
         KSM_STATE_PUBLISH, KSM_STATE_READY, KSM_STATE_ACTIVE, KSM_STATE_KEYPUBLISH);
     if (nchar >= sizeof(buffer)) {
         status = MsgLog(KME_BUFFEROVF, "KsmRequestKeys");
-		DqsFree(sql);
         return status;
     }
     DqsConditionKeyword(&sql, "STATE", DQS_COMPARE_IN, buffer, clause++);
@@ -1751,7 +1749,6 @@ int KsmRequestStandbyKSKCount(int* count, int zone_id)
         KSM_STATE_DSSUB, KSM_STATE_DSPUBLISH, KSM_STATE_DSREADY);
     if (nchar >= sizeof(buffer)) {
         status = MsgLog(KME_BUFFEROVF, "KsmRequestKeys");
-		DqsFree(sql);
         return status;
     }
     DqsConditionKeyword(&sql, "STATE", DQS_COMPARE_IN, buffer, clause++);

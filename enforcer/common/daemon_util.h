@@ -1,5 +1,5 @@
 /*
- * $Id: daemon_util.h 6442 2012-06-19 14:13:41Z jerry $
+ * $Id: daemon_util.h 6441 2012-06-19 14:04:57Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

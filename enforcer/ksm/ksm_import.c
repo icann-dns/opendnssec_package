@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_import.c 7028 2013-02-13 11:41:17Z sion $
+ * $Id: ksm_import.c 5838 2011-11-08 14:28:05Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -151,24 +151,15 @@ int KsmImportPolicy(const char* policy_name, const char* policy_description)
     char*       sql = NULL;     /* SQL query */
     int         status = 0;     /* Status return */
 
-	char        quoted_desc[KSM_POLICY_DESC_LENGTH];   /* with bad chars quoted */
-
     /* check the main argument (description may be NULL) */
     if (policy_name == NULL) {
         return MsgLog(KSM_INVARG, "NULL policy name");
     }
 
-	/* Quote description */
-    status = DbQuoteString(DbHandle(), policy_description, quoted_desc, KSM_POLICY_DESC_LENGTH);
-
-	if (status != 0) {
-		return status;
-	}
-
     /* Insert policy */
     sql = DisSpecifyInit("policies", "name, description");
     DisAppendString(&sql, policy_name);
-    DisAppendString(&sql, quoted_desc);
+    DisAppendString(&sql, policy_description);
     DisEnd(&sql);
 
     status = DbExecuteSqlNoResult(DbHandle(), sql);
@@ -199,16 +190,10 @@ int KsmImportPolicy(const char* policy_name, const char* policy_description)
  *          Where is the signconf saved
  *
  *      const char* input
- *          Where is the input
+ *          Where is the input file
  *
  *      const char* output
- *          Where is the output
- *
- *      const char* input_type
- *          What adapter type is the input
- *
- *      const char* output_type
- *          What adapter type is the output
+ *          Where is the output file
  *
  * Returns:
  *      int
@@ -217,7 +202,7 @@ int KsmImportPolicy(const char* policy_name, const char* policy_description)
  *                         -2 if the zone exists and fail_if_exists == 1
  *                         -3 if the zone exists with and without a trailing dot
 -*/
-int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int *new_zone, const char* signconf, const char* input, const char* output, const char* input_type, const char* output_type)
+int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int *new_zone, const char* signconf, const char* input, const char* output)
 {
     char*       sql = NULL;     /* SQL query */
     int         status = 0;     /* Status return */
@@ -262,14 +247,12 @@ int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int 
     /* If the count was 0 then we do an insert, otherwise we do an update */
     if (count == 0)
     {
-        sql = DisSpecifyInit(DB_ZONE_TABLE, "name, policy_id, signconf, input, output, in_type, out_type");
+        sql = DisSpecifyInit(DB_ZONE_TABLE, "name, policy_id, signconf, input, output");
         DisAppendString(&sql, zone_name);
         DisAppendInt(&sql, policy_id);
         DisAppendString(&sql, signconf);
         DisAppendString(&sql, input);
         DisAppendString(&sql, output);
-        DisAppendString(&sql, input_type);
-        DisAppendString(&sql, output_type);
         DisEnd(&sql);
 
         status = DbExecuteSqlNoResult(DbHandle(), sql);
@@ -287,8 +270,6 @@ int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int 
         DusSetString(&sql, "signconf", signconf, 1);
         DusSetString(&sql, "input", input, 2);
         DusSetString(&sql, "output", output, 3);
-        DusSetString(&sql, "in_type", input_type, 4);
-        DusSetString(&sql, "out_type", output_type, 5);
         DusConditionString(&sql, "name", DQS_COMPARE_EQ, zone_name, 0);
         DusEnd(&sql);
 
@@ -306,7 +287,40 @@ int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int 
         return -1;
     }
 
-	StrFree(zone_name_td);
+    return status;
+}
+
+/*+
+ * KsmImportAudit - Import contents of the Audit tag for a policy, which will already exist
+ *
+ *
+ * Arguments:
+ *
+ *      int policy_id
+ *          ID of the policy
+ *
+ *      const char* audit_contents
+ *          Audit information for that policy
+ *
+ * Returns:
+ *      int
+ *          Status return.  0 on success.
+ *                         -1 if an unexpected count value was returned
+-*/
+
+int KsmImportAudit(int policy_id, const char* audit_contents)
+{
+    char*       sql = NULL;     /* SQL query */
+    int         status = 0;     /* Status return */
+
+    /* Insert policy */
+    sql = DusInit("policies");
+    DusSetString(&sql, "audit", audit_contents, 0);
+    DusConditionInt(&sql, "id", DQS_COMPARE_EQ, policy_id, 0);
+    DusEnd(&sql);
+
+    status = DbExecuteSqlNoResult(DbHandle(), sql);
+    DusFree(sql);
 
     return status;
 }
@@ -334,7 +348,7 @@ int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int 
  *      time
  *          timestamp of entry into state given
  *      fixDate
- *      	set to 1 if the retire date should be fixed
+ *             set to 1 if the retire date should be fixed
  *
  *      DB_ID* id (returned)
  *          ID of the created entry.  This will be undefined on error.
@@ -360,7 +374,7 @@ int KsmImportKeyPair(int policy_id, const char* HSMKeyID, int smID, int size, in
         StrAppend(&columns, ", ");
         StrAppend(&columns, KsmKeywordStateValueToName(state));
     }
-    if (state == KSM_STATE_ACTIVE && fixDate == 1) {
+	if (state == KSM_STATE_ACTIVE && fixDate == 1) {
         StrAppend(&columns, ", fixedDate");
     }
 
@@ -373,7 +387,7 @@ int KsmImportKeyPair(int policy_id, const char* HSMKeyID, int smID, int size, in
     if (state == KSM_STATE_GENERATE) {
         DisAppendString(&sql, time);
     }
-    if (state == KSM_STATE_ACTIVE && fixDate == 1) {
+	if (state == KSM_STATE_ACTIVE && fixDate == 1) {
         DisAppendInt(&sql, fixDate);
     }
     DisEnd(&sql);
