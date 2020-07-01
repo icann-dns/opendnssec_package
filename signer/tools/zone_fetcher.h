@@ -1,5 +1,5 @@
 /*
- * $Id: zone_fetcher.h 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: zone_fetcher.h 3912 2010-09-10 12:35:26Z rb $
  *
  * Copyright (c) 2009 NLnet Labs. All rights reserved.
  *
@@ -88,7 +88,7 @@ struct config_struct
     zonelist_type* zonelist;
     serverlist_type* serverlist;
     serverlist_type* notifylist;
-    ldns_resolver* xfrd;
+    /* ldns_resolver* xfrd; *** RoRi: removed this, structure is NOT suitable for re-use */
 };
 
 /**
