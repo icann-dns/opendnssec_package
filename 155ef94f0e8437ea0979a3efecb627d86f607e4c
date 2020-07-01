@@ -1,0 +1,3 @@
+  * Add epoch to conflicts/breaks with opendnssec-auditor (Closes: #717980)
+  * opendnssec-auditor has been removed (Closes: #734344, #735587)
+  * Promote 1.4 branch to Debian unstable
