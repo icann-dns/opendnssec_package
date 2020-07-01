@@ -1,0 +1,2 @@
+  * Strip trailing slashes and use ${misc:Pre-Depends} (Closes: #768245)
+  * Drop extra -- "$@" from *.mainscript
