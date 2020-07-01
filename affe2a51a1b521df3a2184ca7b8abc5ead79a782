@@ -1,0 +1,3 @@
+  * Non-maintainer upload.
+  * rules: Drop handling old dbg packages from dh_installdocs override.
+    (Closes: #876277)
