@@ -1,0 +1,17 @@
+  * opendnssec-common.postinst: fix zonelist.xml perms (Closes: #927998)
+  * conf/conf.rnc: fix AllowExtraction field name (Closes: #928021)
+  * New upstream release
+  * Drop local patches accepted upstream
+  * Remove strptime build warning
+  * control: bump policy to 4.4.1, no code change
+  * gbp.conf: rename [git-dch] to [dch]
+  * gitlab-ci.yml: cleanup the CI pipeline
+  * opendnssec-*.init: fix the failure to stop the daemons
+  * Add support for running under runit supervision
+  * control: remove unnecessary build dependencies
+  * control: bump debhelper compat to 12
+  * control: drop obsolete dependency on mysql
+  * Update the source documentation and gbp.conf file
+  * copyright: follow DEP5
+  * Fix some pedantic lintian complaints
+  * po/ru.po: Add Russian translation (Closes: #942640)
