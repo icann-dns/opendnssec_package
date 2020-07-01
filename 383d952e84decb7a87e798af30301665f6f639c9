@@ -1,0 +1,1 @@
+  * Remove zonefetch.xml and add addns.xml configfile (Closes: #668703)
