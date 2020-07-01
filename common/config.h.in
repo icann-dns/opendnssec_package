@@ -174,9 +174,6 @@
 /* Define to 1 if you have the `ldns' library (-lldns). */
 #undef HAVE_LIBLDNS
 
-/* Define if libunwind supported */
-#undef HAVE_LIBUNWIND
-
 /* Define to 1 if you have the `xml2' library (-lxml2). */
 #undef HAVE_LIBXML2
 
@@ -222,6 +219,9 @@
 
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
+
+/* Define to 1 if you have the `pthread_barrier_wait' function. */
+#undef HAVE_PTHREAD_BARRIER_WAIT
 
 /* Define to 1 if you have the `pthread_cond_destroy' function. */
 #undef HAVE_PTHREAD_COND_DESTROY
