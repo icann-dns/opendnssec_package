@@ -1,0 +1,3 @@
+  * New upstream version 1.4.6
+  * Refresh patches for 1.4.6 release
+  * Install new ods-getconf binary into opendnssec-signer package
