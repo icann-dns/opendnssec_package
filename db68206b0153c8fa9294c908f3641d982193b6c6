@@ -1,0 +1,2 @@
+  * README.source: add source package generation instructions
+  * gitlab-ci.yml: Build a source package when pushing tags
