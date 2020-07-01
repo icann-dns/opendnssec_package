@@ -1,0 +1,6 @@
+  * New upstream release
+  * Build with readline support
+  * patches: drop xml2-config (Closes: #949420)
+  * control: bump policy to 4.5.0, no code change
+  * source/local-options: remove suppression of accidental upstream commit
+  * gitlab-ci.yml: fix the dsc job
