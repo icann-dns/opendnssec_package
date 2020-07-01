@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: c_kasp.xml.in 3876 2010-09-03 07:07:36Z jakob $ -->
+<!-- $Id: c_kasp.xml.in 6013 2012-01-04 15:57:01Z sion $ -->
 
 <KASP>
 <Policy name="Policy1">
@@ -226,11 +226,6 @@ A default policy that will amaze you and your friends
 				<Minimum>PT3600S</Minimum>
 			</SOA>
 		</Parent>
-
-		<Audit>
-      <!--              <Partial/>
-    -->
-            </Audit>
 
 	</Policy>
 

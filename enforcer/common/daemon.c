@@ -1,5 +1,5 @@
 /*
- * $Id: daemon.c 6307 2012-05-04 09:36:03Z jerry $
+ * $Id: daemon.c 6483 2012-07-16 06:50:24Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -97,10 +97,15 @@ sig_handler (int sig)
     }
 }
 
+int daemon_our_pidfile = 0;
+
 void
 exit_function(void)
 {
-    unlink(config.pidfile);
+	/* Only unlink pidfile if its our pidfile */
+	if (daemon_our_pidfile) {
+		unlink(config.pidfile);
+	}
 }
 
 int

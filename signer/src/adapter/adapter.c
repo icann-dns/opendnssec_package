@@ -1,5 +1,5 @@
 /*
- * $Id: adapter.c 5432 2011-08-22 12:55:04Z matthijs $
+ * $Id: adapter.c 6478 2012-07-13 06:40:25Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -38,37 +38,9 @@
 #include "shared/status.h"
 #include "signer/zone.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 static const char* adapter_str = "adapter";
-
-
-/**
- * Initialize adapter.
- *
- */
-ods_status
-adapter_init(adapter_type* adapter)
-{
-    ods_log_assert(adapter);
-    ods_log_assert(adapter->type);
-    ods_log_assert(adapter->configstr);
-
-    switch(adapter->type) {
-        case ADAPTER_FILE:
-            return adfile_init();
-            break;
-        default:
-            ods_log_error("[%s] unable to initialize adapter: "
-                "unknown adapter", adapter_str);
-            return ODS_STATUS_ERR;
-            break;
-    }
-
-    /* not reached */
-    return ODS_STATUS_ERR;
-}
 
 
 /**
@@ -76,33 +48,113 @@ adapter_init(adapter_type* adapter)
  *
  */
 adapter_type*
-adapter_create(const char* str, adapter_mode type, int inbound)
+adapter_create(const char* str, adapter_mode type, unsigned in)
 {
-    allocator_type* allocator;
-    adapter_type* adapter;
-
+    adapter_type* adapter = NULL;
+    allocator_type* allocator = NULL;
     allocator = allocator_create(malloc, free);
     if (!allocator) {
-        ods_log_error("[%s] unable to create adapter: create allocator failed",
-            adapter_str);
+        ods_log_error("[%s] unable to create adapter: allocator_create() "
+            "failed", adapter_str);
         return NULL;
     }
-    ods_log_assert(allocator);
-
     adapter = (adapter_type*) allocator_alloc(allocator, sizeof(adapter_type));
     if (!adapter) {
-        ods_log_error("[%s] unable to create adapter: allocator failed",
-            adapter_str);
+        ods_log_error("[%s] unable to create adapter: allocator_alloc() "
+            "failed", adapter_str);
         allocator_cleanup(allocator);
         return NULL;
     }
-
     adapter->allocator = allocator;
-    adapter->configstr = allocator_strdup(allocator, str);
     adapter->type = type;
-    adapter->inbound = inbound;
-    adapter->data = allocator_alloc(allocator, sizeof(adapter_data));
+    adapter->inbound = in;
+    adapter->error = 0;
+    adapter->config = NULL;
+    adapter->config_last_modified = 0;
+    adapter->configstr = allocator_strdup(allocator, str);
+    if (!adapter->configstr) {
+        ods_log_error("[%s] unable to create adapter: allocator_strdup() "
+            "failed", adapter_str);
+        adapter_cleanup(adapter);
+        return NULL;
+    }
+    /* type specific */
+    switch(adapter->type) {
+        case ADAPTER_FILE:
+            break;
+        case ADAPTER_DNS:
+            if (adapter->inbound) {
+                adapter->config = (void*) dnsin_create();
+                if (!adapter->config) {
+                    ods_log_error("[%s] unable to create adapter: "
+                        "dnsin_create() failed", adapter_str);
+                    adapter_cleanup(adapter);
+                    return NULL;
+                }
+            } else {
+                adapter->config = (void*) dnsout_create();
+                if (!adapter->config) {
+                    ods_log_error("[%s] unable to create adapter: "
+                        "dnsout_create() failed", adapter_str);
+                    adapter_cleanup(adapter);
+                    return NULL;
+                }
+            }
+            break;
+        default:
+            break;
+    }
     return adapter;
+}
+
+
+/**
+ * Load ACL.
+ *
+ */
+ods_status
+adapter_load_config(adapter_type* adapter)
+{
+    dnsin_type* dnsin = NULL;
+    dnsout_type* dnsout = NULL;
+    ods_status status = ODS_STATUS_OK;
+
+    if (!adapter || !adapter->configstr) {
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    /* type specific */
+    switch(adapter->type) {
+        case ADAPTER_FILE:
+            break;
+        case ADAPTER_DNS:
+            ods_log_assert(adapter->config);
+            if (adapter->inbound) {
+                status = dnsin_update(&dnsin, adapter->configstr,
+                    &adapter->config_last_modified);
+                if (status == ODS_STATUS_OK) {
+                    ods_log_assert(dnsin);
+                    dnsin_cleanup((dnsin_type*) adapter->config);
+                    adapter->config = (void*) dnsin;
+                } else if (status != ODS_STATUS_UNCHANGED) {
+                    return status;
+                }
+                return ODS_STATUS_OK;
+            } else { /* outbound */
+                status = dnsout_update(&dnsout, adapter->configstr,
+                    &adapter->config_last_modified);
+                if (status == ODS_STATUS_OK) {
+                    ods_log_assert(dnsout);
+                    dnsout_cleanup((dnsout_type*) adapter->config);
+                    adapter->config = (void*) dnsout;
+                } else if (status != ODS_STATUS_UNCHANGED) {
+                    return status;
+                }
+            }
+            break;
+        default:
+            break;
+    }
+    return ODS_STATUS_OK;
 }
 
 
@@ -111,26 +163,25 @@ adapter_create(const char* str, adapter_mode type, int inbound)
  *
  */
 ods_status
-adapter_read(struct zone_struct* zone)
+adapter_read(void* zone)
 {
     zone_type* adzone = (zone_type*) zone;
-    ods_status status = ODS_STATUS_OK;
-
     if (!adzone || !adzone->adinbound) {
         ods_log_error("[%s] unable to read zone: no input adapter",
             adapter_str);
         return ODS_STATUS_ASSERT_ERR;
     }
-    ods_log_assert(adzone);
-    ods_log_assert(adzone->adinbound);
     ods_log_assert(adzone->adinbound->configstr);
-
-    switch(adzone->adinbound->type) {
+    switch (adzone->adinbound->type) {
         case ADAPTER_FILE:
             ods_log_verbose("[%s] read zone %s from file input adapter %s",
                 adapter_str, adzone->name, adzone->adinbound->configstr);
-            status = adfile_read(zone, adzone->adinbound->configstr);
-            return status;
+            return adfile_read(zone);
+            break;
+        case ADAPTER_DNS:
+            ods_log_verbose("[%s] read zone %s from dns input adapter %s",
+                adapter_str, adzone->name, adzone->adinbound->configstr);
+            return addns_read(zone);
             break;
         default:
             ods_log_error("[%s] unable to read zone %s from adapter: unknown "
@@ -138,7 +189,6 @@ adapter_read(struct zone_struct* zone)
             return ODS_STATUS_ERR;
             break;
     }
-
     /* not reached */
     return ODS_STATUS_ERR;
 }
@@ -149,34 +199,26 @@ adapter_read(struct zone_struct* zone)
  *
  */
 ods_status
-adapter_write(struct zone_struct* zone)
+adapter_write(void* zone)
 {
     zone_type* adzone = (zone_type*) zone;
-    ods_status status = ODS_STATUS_OK;
-
-    if (!adzone || !adzone->adoutbound) {
+    if (!adzone || !adzone->db || !adzone->adoutbound) {
         ods_log_error("[%s] unable to write zone: no output adapter",
             adapter_str);
         return ODS_STATUS_ASSERT_ERR;
     }
-    ods_log_assert(adzone);
-    ods_log_assert(adzone->adoutbound);
+    ods_log_assert(adzone->name);
     ods_log_assert(adzone->adoutbound->configstr);
-    if (!adzone->zonedata) {
-        ods_log_error("[%s] unable to write zone %s: no zone data",
-            adapter_str, adzone->name);
-        return ODS_STATUS_ASSERT_ERR;
-    }
-    ods_log_assert(adzone->zonedata);
 
     switch(adzone->adoutbound->type) {
         case ADAPTER_FILE:
             ods_log_verbose("[%s] write zone %s serial %u to output file "
                 "adapter %s", adapter_str, adzone->name,
-                adzone->zonedata->outbound_serial,
-                adzone->adinbound->configstr);
-            status = adfile_write(zone, adzone->adoutbound->configstr);
-            return status;
+                adzone->db->intserial, adzone->adoutbound->configstr);
+            return adfile_write(zone, adzone->adoutbound->configstr);
+            break;
+        case ADAPTER_DNS:
+            return addns_write(zone);
             break;
         default:
             ods_log_error("[%s] unable to write zone %s to adapter: unknown "
@@ -184,8 +226,7 @@ adapter_write(struct zone_struct* zone)
             return ODS_STATUS_ERR;
             break;
     }
-
-    /* NOT REACHED */
+    /* not reached */
     return ODS_STATUS_ERR;
 }
 
@@ -219,13 +260,25 @@ adapter_compare(adapter_type* a1, adapter_type* a2)
 void
 adapter_cleanup(adapter_type* adapter)
 {
-    allocator_type* allocator;
+    allocator_type* allocator = NULL;
     if (!adapter) {
         return;
     }
     allocator = adapter->allocator;
     allocator_deallocate(allocator, (void*) adapter->configstr);
-    allocator_deallocate(allocator, (void*) adapter->data);
+    switch(adapter->type) {
+        case ADAPTER_FILE:
+            break;
+        case ADAPTER_DNS:
+            if (adapter->inbound) {
+                dnsin_cleanup((dnsin_type*) adapter->config);
+            } else { /* outbound */
+                dnsout_cleanup((dnsout_type*) adapter->config);
+            }
+            break;
+        default:
+            break;
+    }
     allocator_deallocate(allocator, (void*) adapter);
     allocator_cleanup(allocator);
     return;

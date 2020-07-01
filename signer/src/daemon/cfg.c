@@ -1,5 +1,5 @@
 /*
- * $Id: cfg.c 6065 2012-01-16 09:45:47Z jerry $
+ * $Id: cfg.c 7083 2013-04-03 13:27:51Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -58,43 +58,32 @@ engine_config(allocator_type* allocator, const char* cfgfile,
     const char* rngfile = ODS_SE_RNGDIR "/conf.rng";
     FILE* cfgfd = NULL;
 
-    if (!allocator) {
-        ods_log_error("[%s] failed to read: no allocator available",
-            conf_str);
+    if (!allocator || !cfgfile) {
         return NULL;
     }
-    ods_log_assert(allocator);
-    if (!cfgfile) {
-        ods_log_error("[%s] failed to read: no filename given", conf_str);
-        return NULL;
-    }
-    ods_log_assert(cfgfile);
-    ods_log_verbose("[%s] read cfgfile: %s", conf_str, cfgfile);
-
-    ecfg = (engineconfig_type*) allocator_alloc(allocator,
-        sizeof(engineconfig_type));
-    if (!ecfg) {
-        ods_log_error("[%s] failed to read: allocator failed", conf_str);
-        return NULL;
-    }
-
-    ecfg->allocator = allocator;
-
     /* check syntax (slows down parsing configuration file) */
     if (parse_file_check(cfgfile, rngfile) != ODS_STATUS_OK) {
-        ods_log_error("[%s] failed to read: unable to parse file %s",
+        ods_log_error("[%s] unable to create config: parse error in %s",
             conf_str, cfgfile);
         return NULL;
     }
-
     /* open cfgfile */
     cfgfd = ods_fopen(cfgfile, NULL, "r");
     if (cfgfd) {
+        ods_log_verbose("[%s] read cfgfile: %s", conf_str, cfgfile);
+        /* create config */
+        ecfg = (engineconfig_type*) allocator_alloc(allocator,
+            sizeof(engineconfig_type));
+        if (!ecfg) {
+            ods_log_error("[%s] unable to create config: allocator_alloc() "
+                "failed", conf_str);
+            ods_fclose(cfgfd);
+            return NULL;
+        }
+        ecfg->allocator = allocator;
         /* get values */
         ecfg->cfg_filename = allocator_strdup(allocator, cfgfile);
         ecfg->zonelist_filename = parse_conf_zonelist_filename(allocator,
-            cfgfile);
-        ecfg->zonefetch_filename = parse_conf_zonefetch_filename(allocator,
             cfgfile);
         ecfg->log_filename = parse_conf_log_filename(allocator, cfgfile);
         ecfg->pid_filename = parse_conf_pid_filename(allocator, cfgfile);
@@ -115,15 +104,13 @@ engine_config(allocator_type* allocator, const char* cfgfile,
         else {
         	ecfg->verbosity = parse_conf_verbosity(cfgfile);
         }
-        ecfg->num_adapters = 0;
-
+        ecfg->interfaces = parse_conf_listener(allocator, cfgfile);
         /* done */
         ods_fclose(cfgfd);
         return ecfg;
     }
-
-    ods_log_error("[%s] failed to read: unable to open file %s", conf_str,
-        cfgfile);
+    ods_log_error("[%s] unable to create config: failed to open file %s",
+        conf_str, cfgfile);
     return NULL;
 }
 
@@ -136,20 +123,30 @@ ods_status
 engine_config_check(engineconfig_type* config)
 {
     if (!config) {
-        ods_log_error("[%s] check failed: config does not exist", conf_str);
+        ods_log_error("[%s] config-check failed: no config", conf_str);
+        return ODS_STATUS_CFG_ERR;
+    }
+    if (!config->cfg_filename) {
+        ods_log_error("[%s] config-check failed: no config filename",
+            conf_str);
         return ODS_STATUS_CFG_ERR;
     }
     if (!config->zonelist_filename) {
-        ods_log_error("[%s] check failed: no zonelist filename", conf_str);
+        ods_log_error("[%s] config-check failed: no zonelist filename",
+            conf_str);
         return ODS_STATUS_CFG_ERR;
     }
     if (!config->clisock_filename) {
-        ods_log_error("[%s] check failed: no socket filename", conf_str);
+        ods_log_error("[%s] config-check failed: no socket filename",
+            conf_str);
         return ODS_STATUS_CFG_ERR;
     }
-
+    if (!config->interfaces) {
+        ods_log_error("[%s] config-check failed: no listener",
+            conf_str);
+        return ODS_STATUS_CFG_ERR;
+    }
     /*  [TODO] room for more checks here */
-
     return ODS_STATUS_OK;
 }
 
@@ -164,7 +161,6 @@ engine_config_print(FILE* out, engineconfig_type* config)
     if (!out) {
         return;
     }
-
     fprintf(out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     if (config) {
         fprintf(out, "<Configuration>\n");
@@ -186,14 +182,8 @@ engine_config_print(FILE* out, engineconfig_type* config)
 	        fprintf(out, "\t\t\t</File>\n");
 	        fprintf(out, "\t\t</Logging>\n");
         }
-
         fprintf(out, "\t\t<ZoneListFile>%s</ZoneListFile>\n",
             config->zonelist_filename);
-        if (config->zonefetch_filename) {
-            fprintf(out, "\t\t<ZoneFetchFile>%s</ZoneFetchFile>\n",
-                config->zonefetch_filename);
-        }
-
         fprintf(out, "\t</Common>\n");
 
         /* Signer */
@@ -212,6 +202,26 @@ engine_config_print(FILE* out, engineconfig_type* config)
             }
             fprintf(out, "\t\t</Privileges>\n");
         }
+        if (config->interfaces) {
+             size_t i = 0;
+             fprintf(out, "\t\t<Listener>\n");
+
+             for (i=0; i < config->interfaces->count; i++) {
+                 fprintf(out, "\t\t\t<Interface>");
+                 if (config->interfaces->interfaces[i].address) {
+                     fprintf(out, "<Address>%s</Address>",
+                         config->interfaces->interfaces[i].address);
+                 }
+                 if (config->interfaces->interfaces[i].port) {
+                     fprintf(out, "<Port>%s</Port>",
+                         config->interfaces->interfaces[i].port);
+                 }
+                 fprintf(out, "<Interface>\n");
+             }
+             fprintf(out, "\t\t</Listener>\n");
+
+        }
+
         fprintf(out, "\t\t<WorkingDirectory>%s</WorkingDirectory>\n",
             config->working_dir);
         fprintf(out, "\t\t<WorkerThreads>%i</WorkerThreads>\n",
@@ -242,17 +252,17 @@ engine_config_print(FILE* out, engineconfig_type* config)
 void
 engine_config_cleanup(engineconfig_type* config)
 {
-    allocator_type* allocator;
+    allocator_type* allocator = NULL;
     if (!config) {
         return;
     }
     allocator = config->allocator;
+    listener_cleanup(config->interfaces);
+    allocator_deallocate(allocator, (void*) config->notify_command);
     allocator_deallocate(allocator, (void*) config->cfg_filename);
     allocator_deallocate(allocator, (void*) config->zonelist_filename);
-    allocator_deallocate(allocator, (void*) config->zonefetch_filename);
     allocator_deallocate(allocator, (void*) config->log_filename);
     allocator_deallocate(allocator, (void*) config->pid_filename);
-    allocator_deallocate(allocator, (void*) config->notify_command);
     allocator_deallocate(allocator, (void*) config->clisock_filename);
     allocator_deallocate(allocator, (void*) config->working_dir);
     allocator_deallocate(allocator, (void*) config->username);

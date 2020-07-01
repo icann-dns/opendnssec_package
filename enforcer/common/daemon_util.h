@@ -1,5 +1,5 @@
 /*
- * $Id: daemon_util.h 2159 2009-10-08 10:10:45Z sion $
+ * $Id: daemon_util.h 6442 2012-06-19 14:13:41Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -42,6 +42,20 @@
 
 #include "daemon.h"
 #include <stdio.h>
+
+/**
+ * Use _r() functions on platforms that have. They are thread safe versions of
+ * the normal syslog functions. Platforms without _r() usually have thread safe
+ * normal functions.
+ */
+#if defined(HAVE_SYSLOG_R) && defined(HAVE_OPENLOG_R) && defined(HAVE_CLOSELOG_R) && defined(HAVE_VSYSLOG_R)
+extern struct syslog_data sdata;
+#else
+#undef HAVE_SYSLOG_R
+#undef HAVE_OPENLOG_R
+#undef HAVE_CLOSELOG_R
+#undef HAVE_VSYSLOG_R
+#endif
 
 void cmdlParse(DAEMONCONFIG*, int*, char**);
 void log_init(int facility, const char *program_name);

@@ -1,5 +1,5 @@
 /*
- * $Id: test_ksm_policy.c 3943 2010-09-17 08:49:22Z sion $
+ * $Id: test_ksm_policy.c 6013 2012-01-04 15:57:01Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -69,8 +69,6 @@ static void TestKsmPolicyRead(void)
 	policy->zsk = (KSM_KEY_POLICY *)malloc(sizeof(KSM_KEY_POLICY));
 	policy->denial = (KSM_DENIAL_POLICY *)malloc(sizeof(KSM_DENIAL_POLICY));
 	policy->enforcer = (KSM_ENFORCER_POLICY *)malloc(sizeof(KSM_ENFORCER_POLICY));
-/*    policy->audit = (KSM_AUDIT_POLICY *)malloc(sizeof(KSM_AUDIT_POLICY)); */
-    policy->audit = (char *)calloc(KSM_POLICY_AUDIT_LENGTH, sizeof(char));
     policy->description = (char *)calloc(KSM_POLICY_DESC_LENGTH, sizeof(char));
 
     snprintf(policy->name, KSM_NAME_LENGTH, "default");
@@ -105,8 +103,6 @@ static void TestKsmPolicyReadId(void)
 	policy->zsk = (KSM_KEY_POLICY *)malloc(sizeof(KSM_KEY_POLICY));
 	policy->denial = (KSM_DENIAL_POLICY *)malloc(sizeof(KSM_DENIAL_POLICY));
 	policy->enforcer = (KSM_ENFORCER_POLICY *)malloc(sizeof(KSM_ENFORCER_POLICY));
-/*    policy->audit = (KSM_AUDIT_POLICY *)malloc(sizeof(KSM_AUDIT_POLICY)); */
-    policy->audit = (char *)calloc(KSM_POLICY_AUDIT_LENGTH, sizeof(char));
     policy->description = (char *)calloc(KSM_POLICY_DESC_LENGTH, sizeof(char));
 
 
@@ -143,8 +139,6 @@ static void TestKsmPolicy2(void)
 	policy->zsk = (KSM_KEY_POLICY *)malloc(sizeof(KSM_KEY_POLICY));
 	policy->denial = (KSM_DENIAL_POLICY *)malloc(sizeof(KSM_DENIAL_POLICY));
 	policy->enforcer = (KSM_ENFORCER_POLICY *)malloc(sizeof(KSM_ENFORCER_POLICY));
-/*    policy->audit = (KSM_AUDIT_POLICY *)malloc(sizeof(KSM_AUDIT_POLICY)); */
-    policy->audit = (char *)calloc(KSM_POLICY_AUDIT_LENGTH, sizeof(char));
     policy->description = (char *)calloc(KSM_POLICY_DESC_LENGTH, sizeof(char));
 
 
@@ -190,8 +184,6 @@ static void TestKsmPolicySalt(void)
 	policy->zsk = (KSM_KEY_POLICY *)malloc(sizeof(KSM_KEY_POLICY));
 	policy->denial = (KSM_DENIAL_POLICY *)malloc(sizeof(KSM_DENIAL_POLICY));
 	policy->enforcer = (KSM_ENFORCER_POLICY *)malloc(sizeof(KSM_ENFORCER_POLICY));
-/*    policy->audit = (KSM_AUDIT_POLICY *)malloc(sizeof(KSM_AUDIT_POLICY)); */
-    policy->audit = (char *)calloc(KSM_POLICY_AUDIT_LENGTH, sizeof(char));
     policy->description = (char *)calloc(KSM_POLICY_DESC_LENGTH, sizeof(char));
 
     snprintf(policy->name, KSM_NAME_LENGTH, "default");
