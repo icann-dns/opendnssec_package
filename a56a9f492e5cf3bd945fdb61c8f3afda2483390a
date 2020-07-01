@@ -1,0 +1,3 @@
+  * New upstream version 1.3.15
+  * Move doxygen from B-D-I to B-D to unbreak the Ubuntu precise build
+  * Update opendnssec-doc Breaks/Replaces to unbreak the PPA repository
