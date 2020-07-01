@@ -308,6 +308,9 @@
 /* Define if you have the SSL libraries installed. */
 #undef HAVE_SSL
 
+/* Define if you have the SSL libraries with new HMAC related functions. */
+#undef HAVE_SSL_NEW_HMAC
+
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT
 
