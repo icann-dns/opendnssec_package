@@ -1,4 +1,4 @@
-/* $Id: libhsm.h 5320 2011-07-12 10:42:26Z jakob $ */
+/* $Id: libhsm.h 4474 2011-02-16 10:43:54Z sion $ */
 
 /*
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).

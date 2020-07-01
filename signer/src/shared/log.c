@@ -91,7 +91,7 @@ ods_log_init(const char *filename, int use_syslog, int verbosity)
         verbosity, verbosity+2);
     if (logfile && logfile != stderr) {
             ods_fclose(logfile);
-	}
+    }
     log_level = verbosity + 2;
 
 #ifdef HAVE_SYSLOG_H

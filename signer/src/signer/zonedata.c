@@ -1,5 +1,5 @@
 /*
- * $Id: zonedata.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: zonedata.c 5432 2011-08-22 12:55:04Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -282,60 +282,6 @@ recover_domain_error:
 
     return ODS_STATUS_ERR;
 }
-
-
-/**
- * Recover RR from backup.
- *
- */
-/*
-int
-zonedata_recover_rr_from_backup(zonedata_type* zd, ldns_rr* rr)
-{
-    domain_type* domain = NULL;
-
-    ods_log_assert(zd);
-    ods_log_assert(zd->domains);
-    ods_log_assert(rr);
-
-    domain = zonedata_lookup_domain(zd, ldns_rr_owner(rr));
-    if (domain) {
-        return domain_recover_rr_from_backup(domain, rr);
-    }
-
-    ods_log_error("[%s] unable to recover RR to zonedata: domain does not exist",
-        zd_str);
-    return 1;
-}
-*/
-
-/**
- * Recover RRSIG from backup.
- *
- */
-/*
-int
-zonedata_recover_rrsig_from_backup(zonedata_type* zd, ldns_rr* rrsig,
-    const char* locator, uint32_t flags)
-{
-    domain_type* domain = NULL;
-    ldns_rr_type type_covered;
-
-    ods_log_assert(zd);
-    ods_log_assert(zd->domains);
-    ods_log_assert(rrsig);
-
-    type_covered = ldns_rdf2rr_type(ldns_rr_rrsig_typecovered(rrsig));
-    domain = zonedata_lookup_domain(zd, ldns_rr_owner(rrsig));
-    if (domain) {
-        return domain_recover_rrsig_from_backup(domain, rrsig, type_covered,
-            locator, flags);
-    }
-    ods_log_error("[%s] unable to recover RRSIG to zonedata: domain does not "
-        "exist", zd_str);
-    return 1;
-}
-*/
 
 
 /**
@@ -1277,7 +1223,7 @@ zonedata_update_serial(zonedata_type* zd, signconf_type* sc)
         soa = zd->inbound_serial;
         if (zd->initialized && !DNS_SERIAL_GT(soa, prev)) {
             ods_log_error("[%s] cannot keep SOA SERIAL from input zone "
-                " (%u): output SOA SERIAL is %u", zd_str, soa, prev);
+                " (%u): previous output SOA SERIAL is %u", zd_str, soa, prev);
             return ODS_STATUS_CONFLICT_ERR;
         }
     } else {

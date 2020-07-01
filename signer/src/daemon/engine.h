@@ -1,5 +1,5 @@
 /*
- * $Id: engine.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: engine.h 4496 2011-02-17 11:30:22Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

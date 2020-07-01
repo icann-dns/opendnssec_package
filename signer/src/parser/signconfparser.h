@@ -1,5 +1,5 @@
 /*
- * $Id: signconfparser.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: signconfparser.h 5376 2011-08-09 09:01:54Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -89,9 +89,6 @@ uint32_t parse_sc_nsec3_iterations(const char* cfgfile);
  * \return int integer
  *
  */
-int parse_sc_dnskey_ttl_use(const char* cfgfile);
-int parse_sc_soa_ttl_use(const char* cfgfile);
-int parse_sc_soa_min_use(const char* cfgfile);
 int parse_sc_nsec3_optout(const char* cfgfile);
 int parse_sc_audit(const char* cfgfile);
 

@@ -1,5 +1,5 @@
 /*
- * $Id: worker.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: worker.h 5432 2011-08-22 12:55:04Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -77,7 +77,8 @@ struct worker_struct {
  * \return worker_type* created worker
  *
  */
-worker_type* worker_create(allocator_type* allocator, int num, worker_id type);
+worker_type* worker_create(allocator_type* allocator, int num,
+    worker_id type);
 
 /**
  * Start working.
@@ -96,7 +97,8 @@ void worker_start(worker_type* worker);
 void worker_sleep(worker_type* worker, time_t timeout);
 
 /**
- * Put worker to sleep unless the worker has measured up to all appointed jobs.
+ * Put worker to sleep unless the worker has measured up to all
+ * appointed jobs.
  * \param[in] worker put this worker to sleep
  * \param[in] timeout time before alarm clock is going off,
  *            0 means no alarm clock is set.

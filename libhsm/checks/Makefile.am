@@ -1,4 +1,4 @@
-# $Id: Makefile.am 5320 2011-07-12 10:42:26Z jakob $
+# $Id: Makefile.am 3734 2010-08-11 11:18:06Z jakob $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 CLEANFILES = token.db othertoken.db

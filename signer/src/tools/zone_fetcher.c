@@ -1,5 +1,5 @@
 /*
- * $Id: zone_fetcher.c 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: zone_fetcher.c 5408 2011-08-16 08:15:16Z matthijs $
  *
  * Copyright (c) 2009 NLnet Labs. All rights reserved.
  *
@@ -704,15 +704,6 @@ init_sockets(sockets_type* sockets, serverlist_type* list)
             }
 #endif
 #endif /* IPV6_V6ONLY */
-/*
-            if (setsockopt(sockets->udp[i].s, SOL_SOCKET, SO_REUSEADDR, &on,
-                sizeof(on)) < 0) {
-                ods_log_error("zone fetcher setsockopt(..., SO_REUSEADDR, ...) "
-                    "failed for "
-                    "%s:%s (%s)", node?node:"(null)", port?port:"(null)",
-                    strerror(errno));
-            }
-*/
             if (fcntl(sockets->udp[i].s, F_SETFL, O_NONBLOCK) == -1) {
                 ods_log_error("zone fetcher cannot fcntl udp/6 socket for "
                     "%s:%s (%s)", node?node:"(null)", port?port:"(null)",
@@ -1117,6 +1108,7 @@ handle_query(uint8_t* inbuf, ssize_t inlen,
     char* owner_name = NULL;
     uint8_t *outbuf = NULL;
     size_t answer_size = 0;
+    char dest_file[MAXPATHLEN];
     FILE* fd;
 
     /* packet parsing */
@@ -1167,7 +1159,9 @@ handle_query(uint8_t* inbuf, ssize_t inlen,
             ods_log_info("zone fetcher received NOTIFY for zone %s",
                 zonelist->name?zonelist->name:"(null)");
             /* get latest serial */
-            fd = fopen(zonelist->input_file, "r");
+            snprintf(dest_file, sizeof(dest_file), "%s.axfr",
+                zonelist->input_file?zonelist->input_file:"(null)");
+            fd = fopen(dest_file, "r");
             if (!fd) {
                 serial = 0;
             } else {

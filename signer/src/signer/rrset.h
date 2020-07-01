@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.h 5320 2011-07-12 10:42:26Z jakob $
+ * $Id: rrset.h 5408 2011-08-16 08:15:16Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -161,7 +161,7 @@ void rrset_rollback(rrset_type* rrset);
  * \param[in] rrset RRset
  * \param[in] owner owner of the zone
  * \param[in] sc signer configuration
- * \param[in] signtime time when the zone is being signd
+ * \param[in] signtime time when the zone is being signed
  * \param[out] stats update statistics
  * \return ods_status status
  *

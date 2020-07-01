@@ -1,4 +1,4 @@
-# $Id: opendnssec_common.m4 5320 2011-07-12 10:42:26Z jakob $
+# $Id: opendnssec_common.m4 5175 2011-05-27 07:33:11Z rb $
 
 AC_DEFUN([OPENDNSSEC_COMMON],[
 

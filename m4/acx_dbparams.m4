@@ -1,4 +1,4 @@
-# $Id: acx_dbparams.m4 5320 2011-07-12 10:42:26Z jakob $
+# $Id: acx_dbparams.m4 4642 2011-03-24 14:10:21Z rb $
 
 AC_DEFUN([ACX_DBPARAMS],[
 
