@@ -1,0 +1,4 @@
+  * po/pt.po: Add Portuguese translation (Closes: #923569)
+  * po/nl.po: Add Dutch translation (Closes: #924102)
+  * po/fr.po: Add French translation (Closes: #924055)
+  * Fix build warnings and possible bugs
