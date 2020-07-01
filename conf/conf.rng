@@ -111,6 +111,15 @@
         </optional>
         <optional>
           <!--
+            Location to store pidfile
+            DEFAULT: $(localstatedir)/run/opendnssec/enforcerd.pid
+          -->
+          <element name="PidFile">
+            <data type="string"/>
+          </element>
+        </optional>
+        <optional>
+          <!--
             Number of Worker Threads
             DEFAULT: 1
           -->
@@ -157,6 +166,24 @@
           <optional>
             <!-- User & group to drop privs to -->
             <ref name="privs"/>
+          </optional>
+          <optional>
+            <!--
+              Location to store pidfile
+              DEFAULT: $(localstatedir)/run/opendnssec/signerd.pid
+            -->
+            <element name="PidFile">
+              <data type="string"/>
+            </element>
+          </optional>
+          <optional>
+            <!--
+              Location to store commandhandler socket
+              DEFAULT: $(localstatedir)/run/opendnssec/engine.sock
+            -->
+            <element name="SocketFile">
+              <data type="string"/>
+            </element>
           </optional>
           <optional>
             <!--
