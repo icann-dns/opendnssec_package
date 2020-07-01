@@ -1,0 +1,2 @@
+  * Set explicit path to libsofthsm.so to avoid M-A dirs creeping in
+    (Closes: #753612)
