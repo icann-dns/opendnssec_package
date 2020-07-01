@@ -1,0 +1,2 @@
+  * Replace documentation directory with symlink. (Courtesy of Salvatore
+    Bonaccorso) (Closes: #687885)
