@@ -1,0 +1,8 @@
+  * Don't build libhsm twice for sqlite3/mysql
+  * Apply directory fixes in common directory as well
+  * Remove all pregenerated config.h before building
+    + This fixes bad paths in binaries
+  * Install common scripts (ods-control) and man pages
+  * Fix signerd init.d script by adding missing d in pidfile (Closes: #592791)
+  * Add some useful linker flags to not link unneccessary libraries
+  * Fix ods-timing.5 manpage
