@@ -1,5 +1,5 @@
 /*
- * $Id: adfile.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: adfile.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,30 +35,51 @@
 #define ADAPTER_ADFILE_H
 
 #include "config.h"
+#include "shared/allocator.h"
+#include "shared/status.h"
 
 #include <stdio.h>
-
-#define SE_ADFILE_MAXLINE 65535
 
 struct zone_struct;
 
 /**
- * Read zone file.
- * \param[in] zone zone structure
- * \param[in] filename read from this specific file
- * \param[in] recover true if we are recovering from backup
- * \return 0 on success, 1 on error
+ * File adapter.
  *
  */
-int adfile_read(struct zone_struct* zone, const char* filename, int recover);
+/** NULL */
 
 /**
- * Write zone file.
- * \param[in] zone zone structure
- * \param[in] filename write to this specific file
- * \return 0 on success, 1 on error
+ * Initialize file adapters.
+ * \return ods_status status
  *
  */
-int adfile_write(struct zone_struct* zone, const char* filename);
+ods_status adfile_init(void);
+
+/**
+ * Read zone from input file adapter.
+ * \param[in] zone zone structure
+ * \param[in] filename read from this specific file
+ * \return ods_status status
+ *
+ */
+ods_status adfile_read(struct zone_struct* zone, const char* filename);
+
+/**
+ * Read zone from backup file.
+ * \param[in] zone zone structure
+ * \param[in] filename read from this specific file
+ * \return ods_status status
+ *
+ */
+ods_status adbackup_read(struct zone_struct* zone, const char* filename);
+
+/**
+ * Write zone to output file adapter.
+ * \param[in] zone zone structure
+ * \param[in] filename write to this specific file
+ * \return ods_status status
+ *
+ */
+ods_status adfile_write(struct zone_struct* zone, const char* filename);
 
 #endif /* ADAPTER_ADFILE_H */

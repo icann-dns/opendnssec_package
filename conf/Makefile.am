@@ -1,4 +1,4 @@
-# $Id: Makefile.am 4294 2011-01-13 19:58:29Z jakob $
+# $Id: Makefile.am 4998 2011-04-21 12:29:27Z jakob $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
@@ -35,7 +35,7 @@ regress: $(RNG)
 		(echo "xmllint is required for regression tests"; false)
 	@for i in ${XML}; do \
 		${XMLLINT} --noout --relaxng \
-			`basename $$i .xml`.rng $$i || exit $?; \
+			`basename $$i .xml`.rng $$i || exit 1; \
 	done
 	@test -x ${XSLTPROC} || \
 		(echo "xsltproc is required for regression tests"; false)

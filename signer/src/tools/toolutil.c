@@ -1,5 +1,5 @@
 /*
- * $Id: toolutil.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: toolutil.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

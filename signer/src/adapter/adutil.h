@@ -1,7 +1,7 @@
 /*
- * $Id: hsm.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id$
  *
- * Copyright (c) 2009 NLNet Labs. All rights reserved.
+ * Copyright (c) 2009-2011 NLNet Labs. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,45 +27,52 @@
  */
 
 /**
- * Hardware Security Module support.
  *
+ * Adapter utilities.
  */
 
-#ifndef SIGNER_HSM_H
-#define SIGNER_HSM_H
+#ifndef ADAPTER_ADUTIL_H
+#define ADAPTER_ADUTIL_H
 
-#include "signer/se_key.h"
+#include "config.h"
 
-#include <config.h>
-#include <ctype.h>
-#include <stdint.h>
-
+#include <stdio.h>
 #include <ldns/ldns.h>
-#include <libhsm.h>
-#include <libhsmdns.h>
+
+#define SE_ADFILE_MAXLINE 65535
 
 /**
- * Get key from one of the HSMs, store the DNSKEY and HSM key.
- * \param[in] ctx HSM context
- * \param[in] dname the zone owner name
- * \param[in] key_id key credentials
- * \return int 0 on ok, 1 on error
+ * Lookup SOA RR.
+ * \param[in] fd file descriptor
+ * \return ldns_rr* SOA RR
  *
  */
-int hsm_get_key(hsm_ctx_t* ctx, ldns_rdf* dname, key_type* key_id);
+ldns_rr* adutil_lookup_soa_rr(FILE* fd);
 
 /**
- * Get RRSIG from one of the HSMs, given a RRset and a key.
- * \param[in] ctx HSM context
- * \param[in] dname owner of the keys
- * \param[in] key_id key credentials
- * \param[in] rrset RRset to be signed
- * \param[in] inception signature inception
- * \param[in] expiration signature expiration
- * \return ldns_rr* RRSIG rr
+ * Read one line from file.
+ * \param[in] fd file descriptor of zonefile
+ * \param[out] line the one line
+ * \param[out] l keeps track of line numbers
+ * \return int number of characters read
  *
  */
-ldns_rr* hsm_sign_rrset_with_key(hsm_ctx_t* ctx, ldns_rdf* dname, key_type* key_id,
-	ldns_rr_list* rrset, time_t inception, time_t expiration);
+int adutil_readline_frm_file(FILE* fd, char* line, unsigned int* l);
 
-#endif /* SIGNER_HSM_H */
+/*
+ * Trim trailing whitespace.
+ * \param[in] line line to be trimmed
+ * \param[out] line_len maintain line length
+ *
+ */
+void adutil_rtrim_line(char* line, int* line_len);
+
+/**
+ * Check for white space.
+ * \param[in] line line to be checked
+ * \param[in] line_len line length
+ *
+ */
+int adutil_whitespace_line(char* line, int line_len);
+
+#endif /* ADAPTER_ADUTIL_H */

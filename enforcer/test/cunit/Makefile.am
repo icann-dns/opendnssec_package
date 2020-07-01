@@ -1,4 +1,4 @@
-# $Id: Makefile.am 4294 2011-01-13 19:58:29Z jakob $
+# $Id: Makefile.am 4998 2011-04-21 12:29:27Z jakob $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
@@ -27,6 +27,7 @@ test_SOURCES = \
 	
 TESTS_ENVIRONMENT = \
 	DB_HOST="@DB_HOST@" \
+	DB_PORT="@DB_PORT@" \
 	DB_USERNAME="@DB_USER@" \
 	DB_NAME="@DB_NAME@" \
 	DB_PASSWORD="@DB_PASS@"

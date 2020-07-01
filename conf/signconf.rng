@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: signconf.rnc 4294 2011-01-13 19:58:29Z jakob $
+  $Id: signconf.rnc 5133 2011-05-17 14:45:50Z sion $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -177,7 +177,7 @@
       <element name="Hash">
         <ref name="algorithm"/>
         <element name="Iterations">
-          <data type="positiveInteger">
+          <data type="nonNegativeInteger">
             <param name="maxInclusive">65535</param>
           </data>
         </element>

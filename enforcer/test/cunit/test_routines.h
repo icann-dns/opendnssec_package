@@ -1,5 +1,5 @@
 /*
- * $Id: test_routines.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: test_routines.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -88,6 +88,7 @@ int TcuCreateSuite(const char* title, int (*init)(), int (*teardown)(),
 const char* TdbUsername(void);
 const char* TdbPassword(void);
 const char* TdbHost(void);
+const char* TdbPort(void);
 const char* TdbName(void);
 
 int TdbSetup(void);

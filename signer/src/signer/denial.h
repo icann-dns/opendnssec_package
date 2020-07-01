@@ -35,6 +35,7 @@
 #define SIGNER_DENIAL_H
 
 #include "config.h"
+#include "shared/allocator.h"
 #include "signer/nsec3params.h"
 #include "signer/rrset.h"
 
@@ -48,6 +49,7 @@ struct domain_struct;
  */
 typedef struct denial_struct denial_type;
 struct denial_struct {
+    allocator_type* allocator;
     ldns_rdf* owner;
     rrset_type* rrset;
     struct domain_struct* domain;
@@ -64,36 +66,15 @@ struct denial_struct {
 denial_type* denial_create(ldns_rdf* owner);
 
 /**
- * Recover Denial of Existence data point from backup.
- * \param[in] fd backup file descriptor
- * \return denial_type* recovered denial of existence data
- *
- */
-denial_type* denial_recover_from_backup(FILE* fd);
-
-/**
- * Recover RRSIG from backup.
- * \param[in] denial Denial of Existence data point
- * \param[in] rrsig RRSIG
- * \param[in] type_covered RRtype that is covered by rrsig
- * \param[in] locator key locator
- * \param[in] flags key flags
- * \return int 0 on success, 1 on error
- *
- */
-int denial_recover_rrsig_from_backup(denial_type* denial, ldns_rr* rrsig,
-    ldns_rr_type type_covered, const char* locator, uint32_t flags);
-
-/**
  * Add NSEC to the Denial of Existence data point.
  * \param[in] denial Denial of Existence data point
  * \param[in] nxt next Denial of Existence data point
  * \param[in] ttl ttl
  * \param[in] klass class
- * \return int 0 if ok, 1 on error
+ * \return ods_status status
  *
  */
-int denial_nsecify(denial_type* denial, denial_type* nxt, uint32_t ttl,
+ods_status denial_nsecify(denial_type* denial, denial_type* nxt, uint32_t ttl,
     ldns_rr_class klass);
 
 /**
@@ -103,10 +84,10 @@ int denial_nsecify(denial_type* denial, denial_type* nxt, uint32_t ttl,
  * \param[in] ttl ttl
  * \param[in] klass class
  * \param[in] nsec3params NSEC3 parameters
- * \return int 0 if ok, 1 on error
+ * \return ods_status status
  *
  */
-int denial_nsecify3(denial_type* denial, denial_type* nxt, uint32_t ttl,
+ods_status denial_nsecify3(denial_type* denial, denial_type* nxt, uint32_t ttl,
     ldns_rr_class klass, nsec3params_type* nsec3params);
 
 /**

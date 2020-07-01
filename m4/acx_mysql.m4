@@ -1,4 +1,4 @@
-# $Id: acx_mysql.m4 4294 2011-01-13 19:58:29Z jakob $
+# $Id: acx_mysql.m4 5071 2011-05-06 13:40:00Z rb $
 
 AC_DEFUN([ACX_MYSQL],[
 	AC_ARG_WITH(mysql,
@@ -17,8 +17,9 @@ AC_DEFUN([ACX_MYSQL],[
 	if test -x "$MYSQL_CONFIG"; then
 		AC_MSG_CHECKING(mysql version)
 		MYSQL_VERSION="`$MYSQL_CONFIG --version`"
+		MYSQL_VERSION_MAJOR=`echo "$MYSQL_VERSION" | sed -e 's/\..*//'`
 		AC_MSG_RESULT($MYSQL_VERSION)
-		if test ${MYSQL_VERSION//.*/} -le 4 ; then
+		if test ${MYSQL_VERSION_MAJOR} -le 4 ; then
 			AC_MSG_ERROR([mysql must be newer than 5.0.0])
 		fi
 	

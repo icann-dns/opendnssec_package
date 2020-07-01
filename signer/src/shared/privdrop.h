@@ -1,7 +1,7 @@
 /*
- * $Id: se_malloc.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: privdrop.h 4998 2011-04-21 12:29:27Z jakob $
  *
- * Copyright (c) 2009 NLNet Labs. All rights reserved.
+ * Copyright (c) 2009 Nominet UK. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,61 +27,54 @@
  */
 
 /**
- * Memory management wrapper.
+ *
+ * Privileges.
+ */
+
+#ifndef SHARED_PRIVDROP_H
+#define SHARED_PRIVDROP_H
+
+#include <pwd.h>
+#include <grp.h>
+
+#include "shared/status.h"
+
+/**
+ * Get the group identifier from a group name.
+ * \param[in] groupname group name
+ * \return gid_t group identifier
  *
  */
-
-#ifndef UTIL_SE_MALLOC_H
-#define UTIL_SE_MALLOC_H
-
-#include "config.h"
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <ldns/rbtree.h>
+gid_t privgid(const char* groupname);
 
 /**
- * Our own malloc.
- * \param[in] size the size to allocate
- * \return void* pointer to the allocated data
+ * Get the user identifier from a username.
+ * \param[in] username username
+ * \return uid_t user identifier
  *
  */
-void* se_malloc(size_t size);
+uid_t privuid(const char* username);
 
 /**
- * Our own calloc.
- * \param[in] nmemb number of memory blocks.
- * \param[in] size the size to allocate
- * \return void* pointer to the allocated data
- */
-void* se_calloc(size_t nmemb, size_t size);
-
-/**
- * Our own realloc.
- * \param[in] pointer to be reallocated.
- * \param[in] size the size to allocate
- * \return void* pointer to the allocated data
- */
-void* se_realloc(void* ptr, size_t size);
-
-/**
- * Our own free.
- * \param[in] pointer to be free'd
- */
-void se_free(void* ptr);
-
-/**
- * Free a ldns rbnode.
- * \param[in] rbnode to be free'd
- */
-void se_rbnode_free(ldns_rbnode_t* node);
-
-/**
- * Our own strdup.
- * \param[in] s string to duplicate
- * \return char* duplicated string
+ * Drop privileges.
+ * \param[in] username drop priviliges to this user
+ * \param[in] groupname drop priviliges to this group
+ * \param[in] newroot make this the new root directory
+ * \param[out] puid user id
+ * \param[out] pgid group id
+ * \return ods_status status.
  *
  */
-char* se_strdup(const char* s);
+ods_status privdrop(const char *username, const char *groupname,
+    const char *newroot, uid_t* puid, gid_t* pgid);
 
-#endif /* UTIL_SE_MALLOC_H */
+/**
+ * Close privdrop.
+ * \param[in] username username
+ * \param[in] groupname group name
+ *
+ */
+void privclose(const char* username, const char* groupname);
+
+#endif /* SHARED_PRIVDROP_H */
+

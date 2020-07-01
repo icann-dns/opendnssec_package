@@ -1,5 +1,5 @@
 /*
- * $Id: hsmcheck.c 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: hsmcheck.c 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.
@@ -42,7 +42,7 @@ char *progname = NULL;
 void
 usage ()
 {
-    fprintf(stderr, "usage: %s [-c config] [-gsd]\n", progname);
+    fprintf(stderr, "usage: %s [-c config] [-gsdr]\n", progname);
 }
 
 int

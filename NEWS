@@ -1,4 +1,55 @@
-$Id: NEWS 4600 2011-03-18 14:40:38Z rb $
+$Id: NEWS 5137 2011-05-18 06:32:19Z rb $
+
+OpenDNSSEC 1.3.0.rc2 - 2011-05-18
+
+* Match the names of the signer pidfile and enforcer pidfile.
+* Include check for resign < resalt in ods-kaspcheck.
+
+Bugfixes:
+* Bugfix #231: Fix MySQL version check.
+* ods-ksmutil: Update now sends a HUP to the enforcerd.
+* Signer Engine: Fix assertion failure if zone was just added.
+* Signer Engine: Don't hsm_close() on setup error.
+* Signer Engine: Fix race condition bug when doing a single run.
+* Signer Engine: In case of failure, also mark zone processed (single run).
+* Signer Engine: Don't leak backup file descriptor.
+* signconf.rnc now allows NSEC3 Iterations of 0
+
+
+OpenDNSSEC 1.3.0rc1 - 2011-04-21
+
+* <SkipPublicKey/> is enabled for SoftHSM in the default configuration.
+  It improves the performance by only using the private key objects.
+* Document the <RolloverNotification> tag in conf.xml.
+
+Bugfixes:
+* Bugfix #221: Segmentation Fault on schedule.c:232
+* Enforcer: 'make check' now works.
+* Enforcer: Fixed some memory leaks in the tests.
+* Signer Engine: Coverity report fixes some leaks and thread issues.
+* Signer Engine: Now logs to the correct facility again.
+
+
+OpenDNSSEC 1.3.0b1 - 2011-03-23
+
+* Support for signing the root. Use the zone name "."
+* Enforcer: Stop import of policy if it is not consistent.
+* ods-signer: The queue command will now also show what tasks the workers
+  are working on.
+* Signer Engine: Just warn if occluded zone data was found, don't stop signing process.
+* Signer Engine: Simpler serial maintenance, reduces the number of conflicts.
+  Less chance to hit a 'cannot update: serial too small' error message.
+* Signer Engine: Simpler NSEC(3) maintenance.
+* Signer Engine: Temperate the number of backup files.
+* Signer Engine: Set number of <SignerThreads> in conf.xml to 
+  get peak performance from HSMs that can handle multiple threads.
+
+Bugfixes:
+* Bugreport #139: ods-auditor fails on root zone.
+* Bugreport #198: Zone updates ignored?
+* Replace tab with white-space when writing to syslog.
+* Signer Engine: Do not block update command while signing.
+
 
 OpenDNSSEC 1.2.1 - 2011-03-18
 
@@ -8,11 +59,11 @@ OpenDNSSEC 1.2.1 - 2011-03-18
 Bugfixes:
 * Auditor: 'make check' now works when srcdir != builddir.
 * Auditor: Include the 'make check' files in the tarball.
-* Enforcer: Fix the migration script for SQLite. 
+* Enforcer: Fix the migration script for SQLite.
 * Enforcer: Increase size of keypairs(id) field in MySQL to allow more than
   32767 keys; see MIGRATION for details.
 * Enforcer: Minor change to NOT_READY_KEY error message.
-* libhsm: Increase the maximum number of attached HSM:s from 10 to 100. 
+* libhsm: Increase the maximum number of attached HSM:s from 10 to 100.
 * ods-ksmutil: Send trivial MySQL messages to stdout when exporting zonelist
   etc. Otherwise the resulting XML needs to be edited by hand.
 * ods-control: Fix for Bourne shell.
@@ -25,6 +76,8 @@ Bugfixes:
 * Signer Engine: Backup state after writing output.
 * Signer Engine: Allow update of serial if internal structure is not
   initialized.
+* Signer Engine: NSEC chain could become broken if the predecessor domain
+  of a deleted domain was a glue domain.
 
 
 OpenDNSSEC 1.2.0 - 2011-01-13
@@ -93,6 +146,7 @@ OpenDNSSEC 1.2.0b1 - 2010-10-18
 
 * A new signer engine, written in c. Zones are maintained in memory, instead of
   in files on disk.
+* Signer Engine: Check if the signature exists before recycling it.
 * Removed the python and python-4suite-xml dependencies.
 * Remove separate autoconf for libhsm/conf/enforcer.
 * Add option to disable building the signer.

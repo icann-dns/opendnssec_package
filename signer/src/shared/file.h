@@ -1,5 +1,5 @@
 /*
- * $Id: file.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: file.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -31,8 +31,8 @@
  * File access wrapper.
  */
 
-#ifndef UTIL_FILE_H
-#define UTIL_FILE_H
+#ifndef SHARED_FILE_H
+#define SHARED_FILE_H
 
 #include "config.h"
 
@@ -55,7 +55,7 @@
  * \return const char* string
  *
  */
-const char* se_file_mode2str(const char* mode);
+const char* ods_file_mode2str(const char* mode);
 
 /**
  * Get next character.
@@ -64,7 +64,7 @@ const char* se_file_mode2str(const char* mode);
  * \return int next character.
  *
  */
-int se_fgetc(FILE* fd, unsigned int* line_nr);
+int ods_fgetc(FILE* fd, unsigned int* line_nr);
 
 /**
  * Skip white space.
@@ -73,7 +73,7 @@ int se_fgetc(FILE* fd, unsigned int* line_nr);
  * \return int first encountered non-whitespace character
  *
  */
-int se_skip_whitespace(FILE* fd, unsigned int* line_nr);
+int ods_skip_whitespace(FILE* fd, unsigned int* line_nr);
 
 /**
  * Construct file or directory name.
@@ -83,7 +83,7 @@ int se_skip_whitespace(FILE* fd, unsigned int* line_nr);
  * \return char* concatenation of file and suffix
  *
  */
-char* se_build_path(const char* file, const char* suffix, int dir);
+char* ods_build_path(const char* file, const char* suffix, int dir);
 
 /**
  * Open a file.
@@ -93,14 +93,14 @@ char* se_build_path(const char* file, const char* suffix, int dir);
  * \return FILE* file descriptor
  *
  */
-FILE* se_fopen(const char* file, const char* dir, const char* mode);
+FILE* ods_fopen(const char* file, const char* dir, const char* mode);
 
 /**
  * Close a file.
  * \param[in] fd the file descriptor
  *
  */
-void se_fclose(FILE* fd);
+void ods_fclose(FILE* fd);
 
 /**
  * Write to file descriptor.
@@ -109,7 +109,7 @@ void se_fclose(FILE* fd);
  * \param[in] n size of data
  *
  */
-ssize_t se_writen(int fd, const void* vptr, size_t n);
+ssize_t ods_writen(int fd, const void* vptr, size_t n);
 
 /**
  * Get file status.
@@ -117,7 +117,7 @@ ssize_t se_writen(int fd, const void* vptr, size_t n);
  * \return time_t last modified
  *
  */
-time_t se_file_lastmodified(const char* file);
+time_t ods_file_lastmodified(const char* file);
 
 /**
  * Compare strings.
@@ -126,7 +126,7 @@ time_t se_file_lastmodified(const char* file);
  * \return -1, 0 or 1
  *
  */
-int se_strcmp(const char* s1, const char* s2);
+int ods_strcmp(const char* s1, const char* s2);
 
 /**
  * Replace a substring in string.
@@ -136,8 +136,8 @@ int se_strcmp(const char* s1, const char* s2);
  * \return char* the substituted string.
  *
  */
-const char*
-se_replace(const char *str, const char *oldstr, const char *newstr);
+const char* ods_replace(const char *str, const char *oldstr,
+    const char *newstr);
 
 /**
  * Get directory part of filename.
@@ -145,7 +145,7 @@ se_replace(const char *str, const char *oldstr, const char *newstr);
  * \return char* directory part
  *
  */
-char* se_dir_name(const char* file);
+char* ods_dir_name(const char* file);
 
 /**
  * Copy file.
@@ -154,7 +154,7 @@ char* se_dir_name(const char* file);
  * \return 0 on success, 1 on error
  *
  */
-int se_file_copy(const char* file1, const char* file2);
+int ods_file_copy(const char* file1, const char* file2);
 
 /**
  * (Create) and change ownership of directories.
@@ -164,7 +164,7 @@ int se_file_copy(const char* file1, const char* file2);
  * \param[in] getdir fetch directory part
  *
  */
-void se_chown(const char* file, uid_t uid, gid_t gid, int getdir);
+void ods_chown(const char* file, uid_t uid, gid_t gid, int getdir);
 
 
 /**
@@ -172,6 +172,6 @@ void se_chown(const char* file, uid_t uid, gid_t gid, int getdir);
  * \param[in] str string to trim
  *
  */
-void se_str_trim(char* str);
+void ods_str_trim(char* str);
 
-#endif /* UTIL_FILE_H */
+#endif /* SHARED_FILE_H */

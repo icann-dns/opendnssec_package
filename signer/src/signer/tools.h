@@ -1,5 +1,5 @@
 /*
- * $Id: tools.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: tools.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,65 +35,49 @@
 #define SIGNER_TOOLS_H
 
 #include "config.h"
-#include "daemon/cfg.h"
+#include "shared/status.h"
 #include "signer/zone.h"
 
 /**
- * Read zone input adapter.
+ * Read zone from input adapter.
  * \param[in] zone zone
- * \return int 0 on success, 1 on fail
+ * \return ods_status status
  *
  */
-int tools_read_input(zone_type* zone);
+ods_status tools_input(zone_type* zone);
 
 /**
- * Add DNSKEY (and NSEC3PARAM) records to zone.
+ * Examine and commit updates.
  * \param[in] zone zone
- * \return int 0 on success, 1 on fail
+ * \return ods_status status
  *
  */
-int tools_add_dnskeys(zone_type* zone);
+ods_status tools_commit(zone_type* zone);
 
 /**
- * Update zone with pending changes.
+ * Nsecify zone.
  * \param[in] zone zone
- * \return int 0 on success, 1 on fail
+ * \return ods_status status
  *
  */
-int tools_update(zone_type* zone);
-
-/**
- * Add NSEC(3) records to zone.
- * \param[in] zone zone
- * \return int 0 on success, 1 on fail
- *
- */
-int tools_nsecify(zone_type* zone);
-
-/**
- * Add RRSIG records to zone.
- * \param[in] zone zone
- * \return int 0 on success, 1 on fail
- *
- */
-int tools_sign(zone_type* zone);
+ods_status tools_nsecify(zone_type* zone);
 
 /**
  * Audit zone.
  * \param[in] zone zone
  * \param[in] working_dir working directory
  * \param[in] cfg_filename conf.xml filename
- * \return int 0 on success, 1 on fail
+ * \return ods_status status
  *
  */
-int tools_audit(zone_type* zone, char* working_dir, char* cfg_filename);
+ods_status tools_audit(zone_type* zone, char* working_dir, char* cfg_filename);
 
 /**
  * Write zone to output adapter.
  * \param[in] zone zone
- * \return int 0 on success, 1 on fail
+ * \return ods_status status
  *
  */
-int tools_write_output(zone_type* zone);
+ods_status tools_output(zone_type* zone);
 
 #endif /* SIGNER_TOOLS_H */

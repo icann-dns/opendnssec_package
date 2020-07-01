@@ -1,7 +1,7 @@
-# $Id: am_prog_ruby.m4 4294 2011-01-13 19:58:29Z jakob $
+# $Id: am_prog_ruby.m4 4998 2011-04-21 12:29:27Z jakob $
 
 AC_DEFUN([AM_PROG_RUBY],[
-	RUBY_PROGS="ruby ruby1.8 ruby1.7 ruby1.6"
+	RUBY_PROGS="ruby ruby1.9 ruby19 ruby1.8 ruby18 ruby1.7 ruby1.6"
 	AC_ARG_WITH(ruby,
 		[AC_HELP_STRING([--with-ruby=PATH],[specify ruby interpreter (e.g. ruby1.9)])],
 		[

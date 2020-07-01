@@ -1,5 +1,5 @@
 /*
- * $Id: zone.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: zone.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -36,7 +36,10 @@
 
 #include "config.h"
 #include "adapter/adapter.h"
-#include "scheduler/locks.h"
+#include "scheduler/task.h"
+#include "shared/allocator.h"
+#include "shared/locks.h"
+#include "shared/status.h"
 #include "signer/nsec3params.h"
 #include "signer/signconf.h"
 #include "signer/stats.h"
@@ -44,8 +47,7 @@
 
 #include <ldns/ldns.h>
 
-struct task_struct;
-struct tasklist_struct;
+struct schedule_struct;
 
 /**
  * Zone.
@@ -53,33 +55,37 @@ struct tasklist_struct;
  */
 typedef struct zone_struct zone_type;
 struct zone_struct {
-    const char* name; /* string format zone name */
+    allocator_type* allocator; /* memory allocator */
     ldns_rdf* dname; /* wire format zone name */
     ldns_rr_class klass; /* class */
-    nsec3params_type* nsec3params; /* NSEC3 parameters */
-    zonedata_type* zonedata; /* zone data */
 
     /* from conf.xml */
     const char* notify_ns; /* master name server reload command */
     int fetch; /* zone fetcher enabled */
 
-    /* from signconf.xml */
-    signconf_type* signconf; /* signer configuration values */
-
     /* from zonelist.xml */
+    const char* name; /* string format zone name */
     const char* policy_name; /* policy identifier */
-    const char* signconf_filename; /* signer configuration filename */
-    adapter_type* inbound_adapter; /* inbound adapter */
-    adapter_type* outbound_adapter; /* outbound adapter */
+    const char* signconf_filename; /* signconf filename */
     int just_added;
     int just_updated;
     int tobe_removed;
     int processed;
+    int prepared;
+
+    /* adapters */
+    adapter_type* adinbound; /* inbound adapter */
+    adapter_type* adoutbound; /* outbound adapter */
+
+    /* from signconf.xml */
+    signconf_type* signconf; /* signer configuration values */
+    nsec3params_type* nsec3params; /* NSEC3 parameters */
+
+    /* zone data */
+    zonedata_type* zonedata;
 
     /* worker variables */
-    struct task_struct* task; /* current scheduled task */
-    time_t backoff; /* backoff value if there is something failing */
-    int in_progress; /* in progress (check with active worker?) */
+    void* task; /* next assigned task */
 
     /* statistics */
     stats_type* stats;
@@ -94,107 +100,107 @@ struct zone_struct {
  * \return zone_type* zone
  *
  */
-zone_type* zone_create(const char* name, ldns_rr_class klass);
+zone_type* zone_create(char* name, ldns_rr_class klass);
 
 /**
- * Update zone configuration settings from zone list.
- * \param[in] z1 zone to be updated
- * \param[in] z2 update
+ * Add RR.
+ * \param[in] zone zone
+ * \param[in] rr rr
+ * \param[in] do_stats true if we need to maintain statistics
+ * \return ods_status status
  *
  */
-void zone_update_zonelist(zone_type* z1, zone_type* z2);
+ods_status zone_add_rr(zone_type* zone, ldns_rr* rr, int do_stats);
 
 /**
- * Update signer configuration file.
+ * Delete RR.
+ * \param[in] zone zone
+ * \param[in] rr rr
+ * \param[in] do_stats true if we need to maintain statistics
+ * \return ods_status status
+ *
+ */
+ods_status zone_del_rr(zone_type* zone, ldns_rr* rr, int do_stats);
+
+/**
+ * Load signer configuration for zone.
+ * \param[in] zone zone
+ * \param[out] tbs task to be scheduled
+ * \return ods_status status
+ *
+ */
+ods_status zone_load_signconf(zone_type* zone, task_id* tbs);
+
+/**
+ * Publish DNSKEYs.
+ * \param[in] zone zone
+ * \param[in] recover true if in recovery mode
+ * \return ods_status status
+ *
+ */
+ods_status zone_publish_dnskeys(zone_type* zone, int recover);
+
+/**
+ * Prepare for NSEC3.
+ * \param[in] zone zone
+ * \param[in] recover true if in recovery mode
+ * \return ods_status status
+ *
+ */
+ods_status zone_prepare_nsec3(zone_type* zone, int recover);
+
+/**
+ * Backup zone.
  * \param[in] zone corresponding zone
- * \param[in] tl task list
- * \param[in] buf feedback buffer
- * \return int 0 on success, 1 on error
+ * \return ods_status status
  *
  */
-int zone_update_signconf(zone_type* zone, struct tasklist_struct* tl,
-    char* buf);
+ods_status zone_backup(zone_type* zone);
 
 /**
- * Update zone data.
+ * Recover zone from backup.
  * \param[in] zone corresponding zone
- * \return int 0 on success, 1 on error
  *
  */
-int zone_update_zonedata(zone_type* zone);
+ods_status zone_recover(zone_type* zone);
 
 /**
- * Add DNSKEY and NSEC3PARAM records to the zone.
- * \param[in] zone corresponding zone
- * \return int 0 on success, 1 on error
+ * Merge zones.
+ * \param[in] z1 zone
+ * \param[in] z2 zone with new values
  *
  */
-int zone_add_dnskeys(zone_type* zone);
+void zone_merge(zone_type* z1, zone_type* z2);
 
 /**
- * Add a RR to the zone.
- * \param[in] zone zone structure
- * \param[in] rr RR
- * \param[in] recover true if we are recovering from backup
- * \return int 0 on success, 1 on error
+ * Update serial.
+ * \param[in] zone zone
+ * \return ods_status status
  *
  */
-int zone_add_rr(zone_type* zone, ldns_rr* rr, int recover);
+ods_status zone_update_serial(zone_type* zone);
 
 /**
- * Delete a RR from the zone.
- * \param[in] zone zone structure
- * \param[in] rr RR
- * \return int 0 on success, 1 on error
+ * Print zone.
+ * \param[in] zone zone
+ * \return ods_status status
  *
  */
-int zone_del_rr(zone_type* zone, ldns_rr* rr);
+ods_status zone_print(FILE* fd, zone_type* zone);
 
 /**
- * Nsecify zone.
- * \param[in] zone zone to nsecify
- * \return int 0 on success, 1 on error
+ * Examine zone.
+ * \param[in] zone zone
+ * \return ods_status status
  *
  */
-int zone_nsecify(zone_type* zone);
+ods_status zone_examine(zone_type* zone);
 
 /**
- * Sign zone.
- * \param[in] zone zone to sign
- * \return int 0 on success, 1 on error
- *
- */
-int zone_sign(zone_type* zone);
-
-/**
- * Backup zone state.
- * \param[in] zone corresponding zone
- * \return int 0 on success, 1 on error
- *
- */
-int zone_backup_state(zone_type* zone);
-
-/**
- * Recover from backup.
- * \param[in] zone corresponding zone
- * \param[in] tl task list
- *
- */
-void zone_recover_from_backup(zone_type* zone, struct tasklist_struct* tl);
-
-/**
- * Clean up a zone.
- * \param[in] zone zone to cleanup
+ * Clean up zone.
+ * \param[in] zone zone
  *
  */
 void zone_cleanup(zone_type* zone);
-
-/**
- * Print a zone.
- * \param[in] out file descriptor
- * \param[in] zone zone to print
- *
- */
-void zone_print(FILE* fd, zone_type* zone);
 
 #endif /* SIGNER_ZONE_H */

@@ -1,4 +1,4 @@
-$Id: MIGRATION 4482 2011-02-16 13:25:18Z rb $
+$Id: MIGRATION 4998 2011-04-21 12:29:27Z jakob $
 
 This file gives you instructions on how to migrate from one version of
 OpenDNSSEC to another.
@@ -23,6 +23,8 @@ OpenDNSSEC to another.
 
   NOTE: Although these scripts have been tested it is recommended to make a
         backup of your database prior to running them.
+
+
 
 
 *** Migrating to a larger keypairs(id) field (MySQL ONLY) ***

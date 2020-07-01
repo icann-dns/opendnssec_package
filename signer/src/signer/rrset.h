@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.h 4516 2011-02-24 09:20:32Z matthijs $
+ * $Id: rrset.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,27 +35,36 @@
 #define SIGNER_RRSET_H
 
 #include "config.h"
-#include "signer/hsm.h"
+#include "daemon/worker.h"
+#include "scheduler/fifoq.h"
+#include "shared/allocator.h"
+#include "shared/hsm.h"
+#include "shared/locks.h"
+#include "shared/status.h"
+#include "signer/keys.h"
 #include "signer/rrsigs.h"
 #include "signer/signconf.h"
 #include "signer/stats.h"
 
 #include <ldns/ldns.h>
 
+#define COUNT_RR  0
+#define COUNT_ADD 1
+#define COUNT_DEL 2
+
 typedef struct rrset_struct rrset_type;
 struct rrset_struct {
+    allocator_type* allocator;
     ldns_rr_type rr_type;
     uint32_t rr_count;
     uint32_t add_count;
     uint32_t del_count;
     uint32_t rrsig_count;
-    uint32_t internal_serial;
-    int initialized;
+    int needs_signing;
     ldns_dnssec_rrs* rrs;
     ldns_dnssec_rrs* add;
     ldns_dnssec_rrs* del;
     rrsigs_type* rrsigs;
-    int drop_signatures;
 };
 
 /**
@@ -67,130 +76,117 @@ struct rrset_struct {
 rrset_type* rrset_create(ldns_rr_type rrtype);
 
 /**
- * Create new RRset from RR.
- * \param[in] rr RR
- * \return rrset_type* new RRset
- *
- */
-rrset_type* rrset_create_frm_rr(ldns_rr* rr);
-
-/**
- * Update RRset with pending changes.
- * \param[in] rrset RRset
- * \param[in] serial version to update to
- * \return int 0 on success, 1 on error
- *
- */
-int rrset_update(rrset_type* rrset, uint32_t serial);
-
-/**
- * Examine NS RRset and verify its RDATA.
- * \param[in] rrset NS RRset
- * \param[in] nsdname domain name that should match NS RDATA
- * \return int 0 if nsdame exists as NS RDATA, 1 otherwise
- *
- */
-int rrset_examine_ns_rdata(rrset_type* rrset, ldns_rdf* nsdname);
-
-/**
- * Cancel update.
- * \param[in] rrset RRset
- *
- */
-void rrset_cancel_update(rrset_type* rrset);
-
-/**
- * Add RR to RRset.
- * \param[in] rrset RRset
- * \param[in] rr RR
- * \return int 0 on success, 1 on error
- *
- */
-int rrset_add_rr(rrset_type* rrset, ldns_rr* rr);
-
-/**
- * Delete RR from RRset.
- * \param[in] rrset RRset
- * \param[in] rr RR
- * \return int 0 on success, 1 on error
- *
- */
-int rrset_del_rr(rrset_type* rrset, ldns_rr* rr);
-
-/**
- * Recover RR from backup.
- * \param[in] rrset RRset
- * \param[in] rr RR
- * \return int 0 on success, 1 on error
- *
- */
-int rrset_recover_rr_from_backup(rrset_type* rrset, ldns_rr* rr);
-
-/**
  * Recover RRSIG from backup.
  * \param[in] rrset RRset
  * \param[in] rrsig RRSIG
  * \param[in] locator key locator
  * \param[in] flags key flags
- * \return int 0 on success, 1 on error
+ * \return ods_status status
  *
  */
-int rrset_recover_rrsig_from_backup(rrset_type* rrset, ldns_rr* rrsig,
+ods_status rrset_recover(rrset_type* rrset, ldns_rr* rrsig,
     const char* locator, uint32_t flags);
+
+/**
+ * Count the number of RRs in this RRset.
+ * \param[in] rrset RRset
+ * \param[in] which which RRset to be counted
+ * \return size_t number of RRs
+ *
+ */
+size_t rrset_count_rr(rrset_type* rrset, int which);
+
+/**
+ * Return the number of RRs in RRset after an update.
+ * \param[in] rrset RRset
+ * \return size_t number of RRs after an update
+ *
+ */
+size_t rrset_count_RR(rrset_type* rrset);
+
+/**
+ * Add RR to RRset.
+ * \param[in] rrset RRset
+ * \param[in] rr RR
+ * \return ldns_rr* added RR
+ *
+ */
+ldns_rr* rrset_add_rr(rrset_type* rrset, ldns_rr* rr);
+
+/**
+ * Delete RR from RRset.
+ * \param[in] rrset RRset
+ * \param[in] rr RR
+ * \param[in] dupallowed if true, allow duplicate deletions
+ * \return ldns_rr* RR if failed
+ *
+ */
+ldns_rr* rrset_del_rr(rrset_type* rrset, ldns_rr* rr, int dupallowed);
+
+/**
+ * Wipe out current RRs in RRset.
+ * \param[in] rrset RRset
+ * \return ods_status status
+ *
+ */
+ods_status rrset_wipe_out(rrset_type* rrset);
+
+/**
+ * Calculate differences between the current RRset and the pending new one.
+ * \param[in] rrset RRset
+ * \param[in] kl current key list
+ * \return ods_status status
+ *
+ */
+ods_status rrset_diff(rrset_type* rrset, keylist_type* kl);
+
+/**
+ * Commit updates from RRset.
+ * \param[in] rrset RRset
+ * \return ods_status status
+ *
+ */
+ods_status rrset_commit(rrset_type* rrset);
+
+/**
+ * Rollback updates from RRset.
+ * \param[in] rrset RRset
+ *
+ */
+void rrset_rollback(rrset_type* rrset);
 
 /**
  * Sign RRset.
  * \param[in] ctx HSM context
  * \param[in] rrset RRset
  * \param[in] owner owner of the zone
- * \param[in] sc sign configuration
- * \param[in] signtime time when the zone is signd
+ * \param[in] sc signer configuration
+ * \param[in] signtime time when the zone is being signd
  * \param[out] stats update statistics
- * \return int 0 on success, 1 on error
+ * \return ods_status status
  *
  */
-int rrset_sign(hsm_ctx_t* ctx, rrset_type* rrset, ldns_rdf* owner,
+ods_status rrset_sign(hsm_ctx_t* ctx, rrset_type* rrset, ldns_rdf* owner,
     signconf_type* sc, time_t signtime, stats_type* stats);
 
 /**
- * Delete all RRs from RRset.
+ * Queue RRset.
  * \param[in] rrset RRset
- * \return int 0 on success, 1 on error
+ * \param[in] q queue
+ * \param[in] worker owner of RRset
+ * \return ods_status status
  *
  */
-int rrset_del_rrs(rrset_type* rrset);
+ods_status rrset_queue(rrset_type* rrset, fifoq_type* q, worker_type* worker);
 
 /**
- * Return the number of RRs in RRset.
- * \param[in] rrset RRset
- * \return int number of RRs
+ * Examine NS RRset and verify its RDATA.
+ * \param[in] rrset NS RRset
+ * \param[in] nsdname domain name that should match NS RDATA
+ * \return int 1 if match, 0 otherwise
  *
  */
-int rrset_count_rr(rrset_type* rrset);
-
-/**
- * Return the number of pending added RRs in RRset.
- * \param[in] rrset RRset
- * \return int number of pending added RRs
- *
- */
-int rrset_count_add(rrset_type* rrset);
-
-/**
- * Return the number of pending deleted RRs in RRset.
- * \param[in] rrset RRset
- * \return int number of pending deleted RRs
- *
- */
-int rrset_count_del(rrset_type* rrset);
-
-/**
- * Return the number of RRs in RRset after an update.
- * \param[in] rrset RRset
- * \return int number of RRs after an update
- *
- */
-int rrset_count_RR(rrset_type* rrset);
+int rrset_examine_ns_rdata(rrset_type* rrset, ldns_rdf* nsdname);
 
 /**
  * Clean up RRset.
@@ -218,11 +214,11 @@ void log_rr(ldns_rr* rr, const char* pre, int level);
 void rrset_print(FILE* fd, rrset_type* rrset, int skip_rrsigs);
 
 /**
- * Print RRSIGs from RRset.
+ * Backup RRset.
  * \param[in] fd file descriptor
- * \param[in] rrset RRset to be printed
+ * \param[in] rrset RRset
  *
  */
-void rrset_print_rrsig(FILE* fd, rrset_type* rrset);
+void rrset_backup(FILE* fd, rrset_type* rrset);
 
 #endif /* SIGNER_RRSET_H */

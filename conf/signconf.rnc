@@ -1,4 +1,4 @@
-# $Id: signconf.rnc 4294 2011-01-13 19:58:29Z jakob $
+# $Id: signconf.rnc 5133 2011-05-17 14:45:50Z sion $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -112,7 +112,7 @@ nsec3 = element NSEC3 {
 		element OptOut { empty }?,
 		element Hash {
 			algorithm,
-			element Iterations { xsd:positiveInteger { maxInclusive = "65535" } },
+			element Iterations { xsd:nonNegativeInteger { maxInclusive = "65535" } },
 			element Salt { xsd:string }
 		}
 	}

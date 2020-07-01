@@ -1,5 +1,5 @@
 /*
- * $Id: duration.h 4294 2011-01-13 19:58:29Z jakob $
+ * $Id: duration.h 4998 2011-04-21 12:29:27Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,6 +35,7 @@
 #define UTIL_DURATION_H
 
 #include "config.h"
+#include "shared/allocator.h"
 
 #include <stdint.h>
 #include <time.h>
@@ -46,6 +47,7 @@
 typedef struct duration_struct duration_type;
 struct duration_struct
 {
+    allocator_type* allocator;
     time_t years;
     time_t months;
     time_t weeks;
@@ -57,7 +59,7 @@ struct duration_struct
 
 /**
  * Create a new 'instant' duration.
- * \return duration_t* the created duration
+ * \return duration_type* created duration
  *
  */
 duration_type* duration_create(void);
@@ -74,7 +76,7 @@ int duration_compare(duration_type* d1, duration_type* d2);
 /**
  * Create a duration from string.
  * \param[in] str string-format duration
- * \return duration_t* the created duration
+ * \return duration_type* created duration
  *
  */
 duration_type* duration_create_from_string(const char* str);
@@ -101,7 +103,7 @@ time_t duration2time(duration_type* duration);
  * \return time_t random time
  *
  */
-time_t se_rand(time_t mod);
+time_t ods_rand(time_t mod);
 
 /**
  * Return the shortest time.
@@ -138,13 +140,6 @@ void time_itoa(time_t n, char* s);
  *
  */
 uint32_t time_datestamp(time_t tt, const char* format, char** str);
-
-/**
- * Convert time iin string format into seconds.
- * \param[in] time time in string format
- * return time_t time in seconds
- */
-time_t timeshift2time(const char *time);
 
 /**
  * Return the time since Epoch, measured in seconds.
