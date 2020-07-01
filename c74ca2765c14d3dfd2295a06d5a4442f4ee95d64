@@ -1,0 +1,6 @@
+  * Pull couple of critical upstream fixes:
+    + OPENDNSSEC-303: for ods-ksmutil update zonelist will delete all
+      zones if unable to open/parse zonelist.xml
+    + OPENDNSSEC-282: RRSIGs are left in the signed zone when
+      authoritative RRsets become glue.
+    + OPENDNSSEC-338: ods-ksmutil zone delete --all does not work
