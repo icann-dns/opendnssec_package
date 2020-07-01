@@ -1,0 +1,5 @@
+  * Imported Upstream version 1.3.0~rc2.dfsg
+  * Remove $Id tags from conf files for smoother upgrades
+  * Remove duplicated conffiles from opendnssec-enforcer-mysql
+  * Remove extra jquery.js from doxygen generated documentation
+  * Bump standards version to 3.9.2
