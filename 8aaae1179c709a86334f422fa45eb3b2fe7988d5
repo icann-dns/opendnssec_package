@@ -1,0 +1,1 @@
+  * Fix default-*mysql* {Build-,}Depends (Closes: #845883)
