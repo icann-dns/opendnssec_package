@@ -1,0 +1,1 @@
+  * Remove hard dependency on libldns1 (Closes: #849451)
