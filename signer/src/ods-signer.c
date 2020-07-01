@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signer.c 4173 2010-11-09 08:45:37Z matthijs $
+ * $Id: ods-signer.c 4524 2011-03-03 14:01:47Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -336,8 +336,13 @@ main(int argc, char* argv[])
 {
     int c;
     int options_size = 0;
-    const char* options[sizeof(argv)];
+    const char* options[4];
     char* cmd = NULL;
+
+    if (argc > 3) {
+        fprintf(stderr,"error, too many arguments\n");
+        exit(1);
+    }
 
     /* command line options */
     for (c = 0; c < argc; c++) {

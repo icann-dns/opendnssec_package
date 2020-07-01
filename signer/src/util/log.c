@@ -1,5 +1,5 @@
 /*
- * $Id: log.c 4237 2010-12-01 09:42:16Z rb $
+ * $Id: log.c 4512 2011-02-23 09:48:58Z matthijs $
  *
  * Copyright (c) 2009 NLnet Labs. All rights reserved.
  *
@@ -203,9 +203,13 @@ se_log_vmsg(int priority, const char* t, const char* s, va_list args)
 {
     char message[ODS_SE_MAXLINE];
     static char nowstr[CTIME_LENGTH];
+    size_t len = 0;
     time_t now = time_now();
 
     vsnprintf(message, sizeof(message), s, args);
+    message[ODS_SE_MAXLINE-1] = '\0';
+    len = strlen(message);
+    message[len] = '\0';
 
 #ifdef HAVE_SYSLOG_H
     if (logging_to_syslog) {
@@ -368,6 +372,5 @@ se_fatal_exit(const char *format, ...)
         se_log_vmsg(LOG_CRIT, "fatal error", format, args);
     }
     va_end(args);
-    se_log_init(NULL, 0, 0);
-    exit(2);
+    abort();
 }

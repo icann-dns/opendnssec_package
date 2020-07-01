@@ -1,5 +1,5 @@
 /*
- * $Id: database_support_mysql.c 2592 2009-12-09 15:06:39Z rb $
+ * $Id: database_support_mysql.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: worker.c 4172 2010-11-08 14:25:53Z matthijs $
+ * $Id: worker.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

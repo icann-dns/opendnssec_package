@@ -1,5 +1,5 @@
 /*
- * $Id: tools.c 4188 2010-11-12 10:16:49Z matthijs $
+ * $Id: tools.c 4515 2011-02-24 08:58:03Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -320,9 +320,15 @@ int tools_write_output(zone_type* zone)
             error = 1;
             break;
     }
+    if (error) {
+        return error;
+    }
+    zone_backup_state(zone);
+
     /* kick the nameserver */
     if (zone->notify_ns) {
         se_log_verbose("notify nameserver: %s", zone->notify_ns);
+
         snprintf(str, SYSTEM_MAXLEN, "%s > /dev/null",
             zone->notify_ns);
         error = system(str);

@@ -1,5 +1,5 @@
 /*
- * $Id: engine.c 4276 2010-12-20 09:29:42Z matthijs $
+ * $Id: engine.c 4441 2011-02-15 09:48:22Z rb $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -552,6 +552,11 @@ engine_setup(engine_type* engine)
     se_log_assert(engine->config);
     se_log_debug("perform setup");
 
+    /* set up the work floor */
+    engine->tasklist = tasklist_create(); /* tasks */
+    engine->zonelist = zonelist_create(); /* zones */
+    engine_create_workers(engine); /* workers */
+
     /* create command handler (before chowning socket file) */
     engine->cmdhandler = cmdhandler_create(engine->config->clisock_filename);
     if (!engine->cmdhandler) {
@@ -661,11 +666,6 @@ engine_setup(engine_type* engine)
         engine->cmdhandler = NULL;
         return 1;
     }
-
-    /* set up the work floor */
-    engine->tasklist = tasklist_create(); /* tasks */
-    engine->zonelist = zonelist_create(); /* zones */
-    engine_create_workers(engine); /* workers */
 
     return 0;
 }
@@ -958,6 +958,7 @@ engine_start(const char* cfgfile, int cmdline_verbosity, int daemonize,
     engine->config = engine_config(cfgfile, cmdline_verbosity);
     if (engine_check_config(engine->config) != 0) {
         se_log_error("cfgfile %s has errors", cfgfile?cfgfile:"(null)");
+        goto earlyexit;
     }
     if (info) {
         engine_config_print(stdout, engine->config); /* for debugging */

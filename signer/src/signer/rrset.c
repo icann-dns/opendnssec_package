@@ -1,5 +1,5 @@
 /*
- * $Id: rrset.c 4205 2010-11-23 09:53:09Z matthijs $
+ * $Id: rrset.c 4521 2011-03-01 14:56:15Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -57,6 +57,7 @@ rrset_create(ldns_rr_type rrtype)
     rrset->add_count = 0;
     rrset->del_count = 0;
     rrset->internal_serial = 0;
+    rrset->initialized = 0;
     rrset->rrs = ldns_dnssec_rrs_new();
     rrset->add = NULL;
     rrset->del = NULL;
@@ -81,6 +82,7 @@ rrset_create_frm_rr(ldns_rr* rr)
     rrset->del_count = 0;
     rrset->rrsig_count = 0;
     rrset->internal_serial = 0;
+    rrset->initialized = 0;
     rrset->rrs = ldns_dnssec_rrs_new();
     rrset->rrs->rr = rr;
     rrset->add = NULL;
@@ -354,9 +356,8 @@ rrset_update(rrset_type* rrset, uint32_t serial)
     ldns_status status = LDNS_STATUS_OK;
 
     se_log_assert(rrset);
-    se_log_assert(serial);
 
-    if (DNS_SERIAL_GT(serial, rrset->internal_serial)) {
+    if (!rrset->initialized || DNS_SERIAL_GT(serial, rrset->internal_serial)) {
         /* compare del and add */
         if (rrset_compare_rrs(rrset->del, rrset->add) != 0) {
             rrset->drop_signatures = 1;
@@ -393,6 +394,7 @@ rrset_update(rrset_type* rrset, uint32_t serial)
 
         /* update serial */
         rrset->internal_serial = serial;
+        rrset->initialized = 1;
     }
     return 0;
 }
@@ -595,6 +597,16 @@ rrset_recycle_rrsigs(rrset_type* rrset, signconf_type* sc, time_t signtime,
     /* 3. Check every signature if it matches the recycling logic. */
     rrsigs = rrset->rrsigs;
     while (rrsigs) {
+        if (!rrsigs->rr) {
+            se_log_warning("signature set has no RRSIG record: "
+                "drop signatures for RRset[%i]", rrset->rr_type);
+            rrsigs_cleanup(rrset->rrsigs);
+            rrset->rrsigs = NULL;
+            rrset->rrsig_count = 0;
+            rrset->drop_signatures = 0;
+            return 0;
+        }
+
         expiration = ldns_rdf2native_int32(
             ldns_rr_rrsig_expiration(rrsigs->rr));
         inception = ldns_rdf2native_int32(

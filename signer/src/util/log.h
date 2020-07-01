@@ -1,5 +1,5 @@
 /*
- * $Id: log.h 3845 2010-08-31 14:19:24Z matthijs $
+ * $Id: log.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLnet Labs. All rights reserved.
  *

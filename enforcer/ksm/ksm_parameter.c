@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_parameter.c 3059 2010-03-16 11:52:08Z sion $
+ * $Id: ksm_parameter.c 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

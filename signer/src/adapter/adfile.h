@@ -1,5 +1,5 @@
 /*
- * $Id: adfile.h 3847 2010-09-01 06:50:13Z matthijs $
+ * $Id: adfile.h 4294 2011-01-13 19:58:29Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

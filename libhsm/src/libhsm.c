@@ -1,4 +1,4 @@
-/* $Id: libhsm.c 4006 2010-09-24 08:48:07Z rb $ */
+/* $Id: libhsm.c 4535 2011-03-08 14:44:27Z matthijs $ */
 
 /*
  * Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
@@ -1816,7 +1816,6 @@ hsm_open(const char *config,
     xmlXPathFreeObject(xpath_obj);
     xmlXPathFreeContext(xpath_ctx);
     xmlFreeDoc(doc);
-    xmlCleanupParser();
 
     if (result == HSM_OK && repositories == 0) {
         hsm_ctx_set_error(_hsm_ctx, HSM_NO_REPOSITORIES, "hsm_open()",

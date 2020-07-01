@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: c_kasp.xml.in 3876 2010-09-03 07:07:36Z jakob $ -->
+<!-- $Id: c_kasp.xml.in 4294 2011-01-13 19:58:29Z jakob $ -->
 
 <KASP>
 <Policy name="Policy1">

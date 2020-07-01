@@ -1,4 +1,4 @@
-# $Id: acx_rt.m4 3626 2010-07-27 12:23:29Z rb $
+# $Id: acx_rt.m4 4294 2011-01-13 19:58:29Z jakob $
 
 AC_DEFUN([ACX_RT],[
 	RT_LIBS="-lrt"

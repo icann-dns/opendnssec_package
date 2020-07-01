@@ -1,5 +1,5 @@
 #
-# $Id: auditor.rb 4184 2010-11-11 16:01:15Z alex $
+# $Id: auditor.rb 4294 2011-01-13 19:58:29Z jakob $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
