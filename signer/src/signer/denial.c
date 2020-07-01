@@ -32,10 +32,13 @@
  */
 
 #include "config.h"
+#include "shared/allocator.h"
 #include "shared/log.h"
 #include "signer/denial.h"
 #include "signer/domain.h"
-#include "signer/zone.h"
+#include "signer/nsec3params.h"
+
+#include <ldns/ldns.h>
 
 #define SE_MAX_RRTYPE_COUNT 65536
 
@@ -47,192 +50,134 @@ static const char* denial_str = "denial";
  *
  */
 denial_type*
-denial_create(void* zoneptr, ldns_rdf* dname)
+denial_create(ldns_rdf* owner)
 {
+    allocator_type* allocator = NULL;
     denial_type* denial = NULL;
-    zone_type* zone = (zone_type*) zoneptr;
-    if (!dname || !zoneptr) {
+    char* str = NULL;
+
+    if (!owner) {
+        ods_log_error("[%s] unable to create denial of existence data point: "
+            "no owner name", denial_str);
         return NULL;
     }
-    denial = (denial_type*) allocator_alloc(
-        zone->allocator, sizeof(denial_type));
+    ods_log_assert(owner);
+
+    allocator = allocator_create(malloc, free);
+    if (!allocator) {
+        str = ldns_rdf2str(owner);
+        ods_log_error("[%s] unable to create denial of existence data point: "
+            "%s: create allocator failed", denial_str, str?str:"(null)");
+        free((void*)str);
+        return NULL;
+    }
+    ods_log_assert(allocator);
+
+    denial = (denial_type*) allocator_alloc(allocator, sizeof(denial_type));
     if (!denial) {
-        ods_log_error("[%s] unable to create denial: allocator_alloc() "
-            "failed", denial_str);
+        str = ldns_rdf2str(denial->owner);
+        ods_log_error("[%s] unable to create denial of existence data point: "
+            "%s: allocator failed", denial_str, str?str:"(null)");
+        free((void*)str);
+        allocator_cleanup(allocator);
         return NULL;
     }
-    denial->dname = dname;
-    denial->zone = zoneptr;
-    denial->domain = NULL; /* no back reference yet */
-    denial->node = NULL; /* not in db yet */
-    denial->rrset = NULL;
+    ods_log_assert(denial);
+
+    denial->allocator = allocator;
+    denial->owner = ldns_rdf_clone(owner);
     denial->bitmap_changed = 0;
     denial->nxt_changed = 0;
+    denial->rrset = NULL;
+    denial->domain = NULL;
     return denial;
 }
 
 
 /**
- * Create NSEC(3) Type Bitmaps Field.
+ * Create NSEC(3) bitmap.
  *
  */
 static void
 denial_create_bitmap(denial_type* denial, ldns_rr_type types[],
     size_t* types_count)
 {
+    ldns_rbnode_t* node = LDNS_RBTREE_NULL;
     domain_type* domain = NULL;
     rrset_type* rrset = NULL;
 
-    ods_log_assert(denial);
     ods_log_assert(denial->domain);
 
     domain = (domain_type*) denial->domain;
-    rrset = domain->rrsets;
-    while (rrset) {
-        ldns_rr_type dstatus = domain_is_occluded(domain);
-        if (dstatus == LDNS_RR_TYPE_SOA) {
-            /* Authoritative or delegation */
-            dstatus = domain_is_delegpt(domain);
-            if (dstatus == LDNS_RR_TYPE_SOA ||
-                rrset->rrtype == LDNS_RR_TYPE_NS ||
-                rrset->rrtype == LDNS_RR_TYPE_DS) {
+    node = ldns_rbtree_first(domain->rrsets);
 
-                types[*types_count] = rrset->rrtype;
-                *types_count = *types_count + 1;
-            }
-        }
-        rrset = rrset->next;
+    while (node && node != LDNS_RBTREE_NULL) {
+        rrset = (rrset_type*) node->data;
+        types[*types_count] = rrset->rr_type;
+        *types_count = *types_count + 1;
+        node = ldns_rbtree_next(node);
     }
     return;
 }
 
 
 /**
- * Create NSEC3 Next Hashed Owner Name Field.
- *
- */
-static ldns_rdf*
-denial_create_nsec3_nxt(ldns_rdf* nxt)
-{
-    ldns_status status = LDNS_STATUS_OK;
-    ldns_rdf* next_owner_label = NULL;
-    ldns_rdf* next_owner_rdf = NULL;
-    char* next_owner_string = NULL;
-
-    ods_log_assert(nxt);
-    next_owner_label = ldns_dname_label(nxt, 0);
-    if (!next_owner_label) {
-        ods_log_alert("[%s] unable to create NSEC3 Next: "
-            "ldns_dname_label() failed", denial_str);
-        return NULL;
-    }
-    next_owner_string = ldns_rdf2str(next_owner_label);
-    if (!next_owner_string) {
-        ods_log_alert("[%s] unable to create NSEC3 Next: "
-            "ldns_rdf2str() failed", denial_str);
-        ldns_rdf_deep_free(next_owner_label);
-        return NULL;
-    }
-    if (next_owner_string[strlen(next_owner_string)-1] == '.') {
-        next_owner_string[strlen(next_owner_string)-1] = '\0';
-    }
-    status = ldns_str2rdf_b32_ext(&next_owner_rdf, next_owner_string);
-    if (status != LDNS_STATUS_OK) {
-        ods_log_alert("[%s] unable to create NSEC3 Next: "
-            "ldns_str2rdf_b32_ext() failed", denial_str);
-    }
-    free((void*)next_owner_string);
-    ldns_rdf_deep_free(next_owner_label);
-    return next_owner_rdf;
-}
-
-
-/**
- * Create NSEC(3) RR.
+ * Create NSEC RR.
  *
  */
 static ldns_rr*
 denial_create_nsec(denial_type* denial, denial_type* nxt, uint32_t ttl,
-    ldns_rr_class klass, nsec3params_type* n3p)
+    ldns_rr_class klass)
 {
     ldns_rr* nsec_rr = NULL;
-    ldns_rr_type rrtype = LDNS_RR_TYPE_NSEC;
-    ldns_rr_type dstatus = LDNS_RR_TYPE_FIRST;
     ldns_rdf* rdf = NULL;
-    domain_type* domain = NULL;
     ldns_rr_type types[SE_MAX_RRTYPE_COUNT];
     size_t types_count = 0;
-    int i = 0;
+
     ods_log_assert(denial);
-    ods_log_assert(denial->dname);
+    ods_log_assert(denial->owner);
     ods_log_assert(nxt);
-    ods_log_assert(nxt->dname);
+    ods_log_assert(nxt->owner);
+
     nsec_rr = ldns_rr_new();
     if (!nsec_rr) {
-        ods_log_alert("[%s] unable to create NSEC(3) RR: "
-            "ldns_rr_new() failed", denial_str);
+        ods_log_alert("[%s] unable to create NSEC RR: ldns error",
+            denial_str);
         return NULL;
     }
-    /* RRtype */
-    if (n3p) {
-        rrtype = LDNS_RR_TYPE_NSEC3;
-    }
-    ldns_rr_set_type(nsec_rr, rrtype);
-    /* owner */
-    rdf = ldns_rdf_clone(denial->dname);
+    ods_log_assert(nsec_rr);
+
+    ldns_rr_set_type(nsec_rr, LDNS_RR_TYPE_NSEC);
+    rdf = ldns_rdf_clone(denial->owner);
     if (!rdf) {
-        ods_log_alert("[%s] unable to create NSEC(3) RR: "
-            "ldns_rdf_clone(owner) failed", denial_str);
+        ods_log_alert("[%s] unable to create NSEC RR: failed to clone owner",
+            denial_str);
         ldns_rr_free(nsec_rr);
         return NULL;
     }
     ldns_rr_set_owner(nsec_rr, rdf);
-    /* NSEC3 parameters */
-    if (n3p) {
-        /* set all to NULL first, then call nsec3_add_param_rdfs. */
-        for (i=0; i < SE_NSEC3_RDATA_NSEC3PARAMS; i++) {
-            ldns_rr_push_rdf(nsec_rr, NULL);
-        }
-        ldns_nsec3_add_param_rdfs(nsec_rr, n3p->algorithm, n3p->flags,
-            n3p->iterations, n3p->salt_len, n3p->salt_data);
-    }
-    /* NXT */
-    if (n3p) {
-        rdf = denial_create_nsec3_nxt(nxt->dname);
-    } else {
-        rdf = ldns_rdf_clone(nxt->dname);
-    }
+
+    rdf = ldns_rdf_clone(nxt->owner);
     if (!rdf) {
-        ods_log_alert("[%s] unable to create NSEC(3) RR: "
-            "create next field failed", denial_str);
+        ods_log_alert("[%s] unable to create NSEC RR: failed to clone nxt",
+            denial_str);
         ldns_rr_free(nsec_rr);
         return NULL;
     }
     ldns_rr_push_rdf(nsec_rr, rdf);
-    /* Type Bit Maps */
+
+    /* create types bitmap */
     denial_create_bitmap(denial, types, &types_count);
-    if (n3p) {
-        domain = (domain_type*) denial->domain;
-        dstatus = domain_is_occluded(domain);
-        if (dstatus == LDNS_RR_TYPE_SOA) {
-            dstatus = domain_is_delegpt(domain);
-            if (dstatus != LDNS_RR_TYPE_NS && domain->rrsets) {
-                 /* Authoritative domain, not empty: add RRSIGs */
-                 types[types_count] = LDNS_RR_TYPE_RRSIG;
-                 types_count++;
-            }
-        }
-        /* and don't add NSEC3 type... */
-    } else {
-        types[types_count] = LDNS_RR_TYPE_RRSIG;
-        types_count++;
-        types[types_count] = LDNS_RR_TYPE_NSEC;
-        types_count++;
-    }
-    rdf = ldns_dnssec_create_nsec_bitmap(types, types_count, rrtype);
+    types[types_count] = LDNS_RR_TYPE_RRSIG;
+    types_count++;
+    types[types_count] = LDNS_RR_TYPE_NSEC;
+    types_count++;
+
+    rdf = ldns_dnssec_create_nsec_bitmap(types,
+        types_count, LDNS_RR_TYPE_NSEC);
     if (!rdf) {
-        ods_log_alert("[%s] unable to create NSEC(3) RR: "
-            "ldns_dnssec_create_nsec_bitmap() failed", denial_str);
+        ods_log_alert("[%s] unable to create NSEC RR: failed to create bitmap",
+            denial_str);
         ldns_rr_free(nsec_rr);
         return NULL;
     }
@@ -244,123 +189,279 @@ denial_create_nsec(denial_type* denial, denial_type* nxt, uint32_t ttl,
 
 
 /**
- * Apply differences at denial.
+ * Add NSEC to the Denial of Existence data point.
  *
  */
-void
-denial_diff(denial_type* denial)
-{
-    if (denial && denial->rrset) {
-        rrset_diff(denial->rrset, 0, 0);
-    }
-    return;
-}
-
-
-/**
- * Add NSEC(3) to the Denial of Existence data point.
- *
- */
-void
-denial_add_rr(denial_type* denial, ldns_rr* rr)
-{
-    rr_type* record = NULL;
-    zone_type* zone = NULL;
-    ods_log_assert(denial);
-    ods_log_assert(rr);
-    zone = (zone_type*) denial->zone;
-    ods_log_assert(zone);
-    ods_log_assert(zone->signconf);
-    if (!denial->rrset) {
-        if (zone->signconf->nsec3params) {
-            denial->rrset = rrset_create(denial->zone, LDNS_RR_TYPE_NSEC3);
-        } else {
-            denial->rrset = rrset_create(denial->zone, LDNS_RR_TYPE_NSEC);
-        }
-        if (!denial->rrset) {
-            ods_fatal_exit("[%s] unable to nsecify: rrset_create() failed",
-                denial_str);
-        }
-    }
-    ods_log_assert(denial->rrset);
-    record = rrset_add_rr(denial->rrset, rr);
-    ods_log_assert(record);
-    ods_log_assert(record->rr);
-    record->owner = (void*) denial;
-    denial_diff(denial);
-    denial->bitmap_changed = 0;
-    denial->nxt_changed = 0;
-    return;
-}
-
-
-/**
- * Nsecify Denial of Existence data point.
- *
- */
-void
-denial_nsecify(denial_type* denial, denial_type* nxt, uint32_t* num_added)
+ods_status
+denial_nsecify(denial_type* denial, denial_type* nxt, uint32_t ttl,
+    ldns_rr_class klass)
 {
     ldns_rr* nsec_rr = NULL;
-    zone_type* zone = NULL;
-    ods_log_assert(denial);
-    ods_log_assert(nxt);
-    zone = (zone_type*) denial->zone;
-    ods_log_assert(zone);
-    ods_log_assert(zone->signconf);
-    if (denial->nxt_changed || denial->bitmap_changed) {
-        /* create new NSEC(3) rr */
-        nsec_rr = denial_create_nsec(denial, nxt, zone->default_ttl,
-            zone->klass, zone->signconf->nsec3params);
-        if (!nsec_rr) {
-            ods_fatal_exit("[%s] unable to nsecify: denial_create_nsec() "
-                "failed", denial_str);
-        }
-        denial_add_rr(denial, nsec_rr);
-        if (num_added) {
-            (*num_added)++;
-        }
+    ods_status status = ODS_STATUS_OK;
+
+    if (!denial) {
+        ods_log_error("[%s] unable to nsecify: no data point", denial_str);
+        return ODS_STATUS_ASSERT_ERR;
     }
-    return;
+    ods_log_assert(denial);
+
+    if (!nxt) {
+        ods_log_error("[%s] unable to nsecify: no next", denial_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(nxt);
+
+    if (denial->nxt_changed || denial->bitmap_changed) {
+        /* assert there is a NSEC RRset */
+        if (!denial->rrset) {
+            denial->rrset = rrset_create(LDNS_RR_TYPE_NSEC);
+            if (!denial->rrset) {
+                 ods_log_alert("[%s] unable to nsecify: failed to "
+                "create NSEC RRset", denial_str);
+                return ODS_STATUS_ERR;
+            }
+        }
+        ods_log_assert(denial->rrset);
+        /* create new NSEC rr */
+        nsec_rr = denial_create_nsec(denial, nxt, ttl, klass);
+        if (!nsec_rr) {
+            ods_log_alert("[%s] unable to nsecify: failed to "
+                "create NSEC RR", denial_str);
+            return ODS_STATUS_ERR;
+        }
+        /* delete old NSEC RR(s)... */
+        status = rrset_wipe_out(denial->rrset);
+        if (status != ODS_STATUS_OK) {
+            ods_log_alert("[%s] unable to nsecify: failed to "
+                "wipe out NSEC RRset", denial_str);
+            ldns_rr_free(nsec_rr);
+            return status;
+        }
+        /* ...and add the new one */
+        if (!rrset_add_rr(denial->rrset, nsec_rr)) {
+            ods_log_alert("[%s] unable to nsecify: failed to "
+                "add NSEC to RRset", denial_str);
+            ldns_rr_free(nsec_rr);
+            return ODS_STATUS_ERR;
+        }
+        /* commit */
+        status = rrset_commit(denial->rrset);
+        if (status != ODS_STATUS_OK) {
+            ods_log_alert("[%s] unable to nsecify: failed to "
+                "commit the NSEC RRset", denial_str);
+            return status;
+        }
+
+        /* ok */
+        denial->bitmap_changed = 0;
+        denial->nxt_changed = 0;
+    }
+    return ODS_STATUS_OK;
 }
 
 
 /**
- * Print Denial of Existence data point.
+ * Create NSEC3 RR.
  *
  */
-void
-denial_print(FILE* fd, denial_type* denial, ods_status* status)
+static ldns_rr*
+denial_create_nsec3(denial_type* denial, denial_type* nxt, uint32_t ttl,
+    ldns_rr_class klass, nsec3params_type* nsec3params)
 {
-    if (!denial || !fd) {
-        if (status) {
-            ods_log_crit("[%s] unable to print denial: denial of fd missing",
-                denial_str);
-            *status = ODS_STATUS_ASSERT_ERR;
-        }
-        return;
+    ldns_status status = LDNS_STATUS_OK;
+    ldns_rr* nsec_rr = NULL;
+    ldns_rdf* rdf = NULL;
+    ldns_rdf* next_owner_label = NULL;
+    ldns_rdf* next_owner_rdf = NULL;
+    char* next_owner_string = NULL;
+    domain_type* domain = NULL;
+    ldns_rr_type types[SE_MAX_RRTYPE_COUNT];
+    size_t types_count = 0;
+    int i = 0;
+
+    ods_log_assert(denial);
+    ods_log_assert(denial->owner);
+    ods_log_assert(nxt);
+    ods_log_assert(nxt->owner);
+    ods_log_assert(nsec3params);
+
+    nsec_rr = ldns_rr_new();
+    if (!nsec_rr) {
+        ods_log_alert("[%s] unable to create NSEC3 RR: ldns error",
+            denial_str);
+        return NULL;
     }
-    if (denial->rrset) {
-        rrset_print(fd, denial->rrset, 0, status);
+    ods_log_assert(nsec_rr);
+
+    ldns_rr_set_type(nsec_rr, LDNS_RR_TYPE_NSEC3);
+    rdf = ldns_rdf_clone(denial->owner);
+    if (!rdf) {
+        ods_log_alert("[%s] unable to create NSEC3 RR: failed to clone owner",
+            denial_str);
+        ldns_rr_free(nsec_rr);
+        return NULL;
     }
-    return;
+    ldns_rr_set_owner(nsec_rr, rdf);
+
+    /* set all to NULL first, then call nsec3_add_param_rdfs. */
+    for (i=0; i < SE_NSEC3_RDATA_NSEC3PARAMS; i++) {
+        ldns_rr_push_rdf(nsec_rr, NULL);
+    }
+    ldns_nsec3_add_param_rdfs(nsec_rr, nsec3params->algorithm,
+        nsec3params->flags, nsec3params->iterations,
+        nsec3params->salt_len, nsec3params->salt_data);
+    /* nxt owner label */
+    next_owner_label = ldns_dname_label(nxt->owner, 0);
+    if (!next_owner_label) {
+        ods_log_alert("[%s] unable to create NSEC3 RR: failed to get nxt "
+            "owner label", denial_str);
+        ldns_rr_free(nsec_rr);
+        return NULL;
+    }
+    next_owner_string = ldns_rdf2str(next_owner_label);
+    if (!next_owner_string) {
+        ods_log_alert("[%s] unable to create NSEC3 RR: failed to get nxt "
+            "owner string", denial_str);
+        ldns_rdf_deep_free(next_owner_label);
+        ldns_rr_free(nsec_rr);
+        return NULL;
+    }
+    if (next_owner_string[strlen(next_owner_string)-1] == '.') {
+        next_owner_string[strlen(next_owner_string)-1] = '\0';
+    }
+    status = ldns_str2rdf_b32_ext(&next_owner_rdf, next_owner_string);
+    free((void*)next_owner_string);
+    ldns_rdf_deep_free(next_owner_label);
+    if (status != LDNS_STATUS_OK) {
+        ods_log_alert("[%s] unable to create NSEC3 RR: failed to create nxt "
+            "owner rdf: %s", denial_str, ldns_get_errorstr_by_id(status));
+        ldns_rr_free(nsec_rr);
+        return NULL;
+    }
+    ldns_rr_push_rdf(nsec_rr, next_owner_rdf);
+
+    /* create types bitmap */
+    denial_create_bitmap(denial, types, &types_count);
+    /* only add RRSIG type if we have authoritative data to sign */
+    domain = (domain_type*) denial->domain;
+    if (domain_count_rrset(domain) > 0 &&
+        (domain->dstatus == DOMAIN_STATUS_APEX ||
+         domain->dstatus == DOMAIN_STATUS_AUTH ||
+         domain->dstatus == DOMAIN_STATUS_DS)) {
+        types[types_count] = LDNS_RR_TYPE_RRSIG;
+        types_count++;
+    }
+    /* and don't add NSEC3 type... */
+    rdf = ldns_dnssec_create_nsec_bitmap(types,
+        types_count, LDNS_RR_TYPE_NSEC3);
+    if (!rdf) {
+        ods_log_alert("[%s] unable to create NSEC3 RR: failed to create "
+            "bitmap", denial_str);
+        ldns_rr_free(nsec_rr);
+        return NULL;
+    }
+    ldns_rr_push_rdf(nsec_rr, rdf);
+    ldns_rr_set_ttl(nsec_rr, ttl);
+    ldns_rr_set_class(nsec_rr, klass);
+    return nsec_rr;
 }
 
 
 /**
- * Cleanup Denial of Existence data point.
+ * Add NSEC3 to the Denial of Existence data point.
+ *
+ */
+ods_status
+denial_nsecify3(denial_type* denial, denial_type* nxt, uint32_t ttl,
+    ldns_rr_class klass, nsec3params_type* nsec3params)
+{
+    ldns_rr* nsec_rr = NULL;
+    ods_status status = ODS_STATUS_OK;
+
+    if (!denial) {
+        ods_log_error("[%s] unable to nsecify3: no data point", denial_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(denial);
+
+    if (!nxt) {
+        ods_log_error("[%s] unable to nsecify3: no next", denial_str);
+        return ODS_STATUS_ASSERT_ERR;
+    }
+    ods_log_assert(nxt);
+
+    if (denial->nxt_changed || denial->bitmap_changed) {
+        /* assert there is a NSEC RRset */
+        if (!denial->rrset) {
+            denial->rrset = rrset_create(LDNS_RR_TYPE_NSEC3);
+            if (!denial->rrset) {
+                 ods_log_alert("[%s] unable to nsecify3: failed to "
+                "create NSEC3 RRset", denial_str);
+                return ODS_STATUS_ERR;
+            }
+        }
+        ods_log_assert(denial->rrset);
+        /* create new NSEC3 rr */
+        nsec_rr = denial_create_nsec3(denial, nxt, ttl, klass, nsec3params);
+        if (!nsec_rr) {
+            ods_log_alert("[%s] unable to nsecify3: failed to "
+                "create NSEC3 RR", denial_str);
+            return ODS_STATUS_ERR;
+        }
+        ods_log_assert(nsec_rr);
+        /* delete old NSEC RR(s) */
+        status = rrset_wipe_out(denial->rrset);
+        if (status != ODS_STATUS_OK) {
+            ods_log_alert("[%s] unable to nsecify3: failed to "
+                "wipe out NSEC3 RRset", denial_str);
+            return status;
+        }
+       /* add the new one */
+        if (!rrset_add_rr(denial->rrset, nsec_rr)) {
+            ods_log_alert("[%s] unable to nsecify3: failed to "
+                "add NSEC3 to RRset", denial_str);
+            return ODS_STATUS_ERR;
+        }
+        /* commit */
+        status = rrset_commit(denial->rrset);
+        if (status != ODS_STATUS_OK) {
+            ods_log_alert("[%s] unable to nsecify3: failed to "
+                "commit the NSEC3 RRset", denial_str);
+            return status;
+        }
+        /* ok */
+        denial->bitmap_changed = 0;
+        denial->nxt_changed = 0;
+    }
+    return ODS_STATUS_OK;
+}
+
+
+/**
+ * Clean up Denial of Existence data point.
  *
  */
 void
 denial_cleanup(denial_type* denial)
 {
-    zone_type* zone = NULL;
+    allocator_type* allocator;
+
     if (!denial) {
         return;
     }
-    zone = (zone_type*) denial->zone;
-    ldns_rdf_deep_free(denial->dname);
-    rrset_cleanup(denial->rrset);
-    allocator_deallocate(zone->allocator, (void*) denial);
+    allocator = denial->allocator;
+
+    if (denial->owner) {
+        ldns_rdf_deep_free(denial->owner);
+        denial->owner = NULL;
+    }
+    if (denial->rrset) {
+        rrset_cleanup(denial->rrset);
+        denial->rrset = NULL;
+    }
+
+    allocator_deallocate(allocator, (void*) denial);
+    allocator_cleanup(allocator);
     return;
+
 }

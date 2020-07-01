@@ -30,11 +30,8 @@
 /* Define to 1 if you have the `atoi' function. */
 #undef HAVE_ATOI
 
-/* Define to 1 if you have the `b64_ntop' function. */
-#undef HAVE_B64_NTOP
-
-/* Define to 1 if you have the `b64_pton' function. */
-#undef HAVE_B64_PTON
+/* Define this to enable auditor support. */
+#undef HAVE_AUDITOR
 
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
@@ -77,12 +74,6 @@
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
-
-/* Define to 1 if you have the `EVP_sha1' function. */
-#undef HAVE_EVP_SHA1
-
-/* Define to 1 if you have the `EVP_sha256' function. */
-#undef HAVE_EVP_SHA256
 
 /* Define to 1 if you have the `exit' function. */
 #undef HAVE_EXIT
@@ -138,11 +129,11 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `crypto' library (-lcrypto). */
-#undef HAVE_LIBCRYPTO
-
 /* Define to 1 if you have the `cunit' library (-lcunit). */
 #undef HAVE_LIBCUNIT
+
+/* Define to 1 if you have a functional curl library. */
+#undef HAVE_LIBCURL
 
 /* Define to 1 if you have the `ldns' library (-lldns). */
 #undef HAVE_LIBLDNS
@@ -168,7 +159,7 @@
 /* Define to 1 if you have the `listen' function. */
 #undef HAVE_LISTEN
 
-/* Define if you have LoadLibrary */
+/* Whether LoadLibrary is available */
 #undef HAVE_LOADLIBRARY
 
 /* Define to 1 if you have the `localtime_r' function. */
@@ -272,20 +263,11 @@
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
 
-/* Define to 1 if you have the `snprintf' function. */
-#undef HAVE_SNPRINTF
-
-/* Have the sockaddr_un.sun_len member. */
-#undef HAVE_SOCKADDR_SUN_LEN
-
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
 /* Define to 1 if you have the <sqlite3.h> header file. */
 #undef HAVE_SQLITE3_H
-
-/* Define if you have the SSL libraries installed. */
-#undef HAVE_SSL
 
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT
@@ -380,9 +362,6 @@
 /* Define to 1 if you have the <time.h> header file. */
 #undef HAVE_TIME_H
 
-/* union semun is defined */
-#undef HAVE_UNION_SEMUN
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -434,18 +413,84 @@
 /* Default configuration file. */
 #undef HSM_DEFAULT_CONFIG
 
+/* Defined if libcurl supports AsynchDNS */
+#undef LIBCURL_FEATURE_ASYNCHDNS
+
+/* Defined if libcurl supports IDN */
+#undef LIBCURL_FEATURE_IDN
+
+/* Defined if libcurl supports IPv6 */
+#undef LIBCURL_FEATURE_IPV6
+
+/* Defined if libcurl supports KRB4 */
+#undef LIBCURL_FEATURE_KRB4
+
+/* Defined if libcurl supports libz */
+#undef LIBCURL_FEATURE_LIBZ
+
+/* Defined if libcurl supports NTLM */
+#undef LIBCURL_FEATURE_NTLM
+
+/* Defined if libcurl supports SSL */
+#undef LIBCURL_FEATURE_SSL
+
+/* Defined if libcurl supports SSPI */
+#undef LIBCURL_FEATURE_SSPI
+
+/* Defined if libcurl supports DICT */
+#undef LIBCURL_PROTOCOL_DICT
+
+/* Defined if libcurl supports FILE */
+#undef LIBCURL_PROTOCOL_FILE
+
+/* Defined if libcurl supports FTP */
+#undef LIBCURL_PROTOCOL_FTP
+
+/* Defined if libcurl supports FTPS */
+#undef LIBCURL_PROTOCOL_FTPS
+
+/* Defined if libcurl supports HTTP */
+#undef LIBCURL_PROTOCOL_HTTP
+
+/* Defined if libcurl supports HTTPS */
+#undef LIBCURL_PROTOCOL_HTTPS
+
+/* Defined if libcurl supports IMAP */
+#undef LIBCURL_PROTOCOL_IMAP
+
+/* Defined if libcurl supports LDAP */
+#undef LIBCURL_PROTOCOL_LDAP
+
+/* Defined if libcurl supports POP3 */
+#undef LIBCURL_PROTOCOL_POP3
+
+/* Defined if libcurl supports RTSP */
+#undef LIBCURL_PROTOCOL_RTSP
+
+/* Defined if libcurl supports SMTP */
+#undef LIBCURL_PROTOCOL_SMTP
+
+/* Defined if libcurl supports TELNET */
+#undef LIBCURL_PROTOCOL_TELNET
+
+/* Defined if libcurl supports TFTP */
+#undef LIBCURL_PROTOCOL_TFTP
+
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
 
+/* Path to the OpenDNSSEC kaspcheck binary */
+#undef ODS_AU_KASPCHECK
+
 /* Path to the OpenDNSSEC ods-control binary */
 #undef ODS_EN_CONTROL
 
-/* Path to the OpenDNSSEC kaspcheck binary */
-#undef ODS_EN_KASPCHECK
-
 /* Command to send a SIGHUP to the ods-enforcerd process */
 #undef ODS_EN_NOTIFY
+
+/* Path to the OpenDNSSEC auditor binary */
+#undef ODS_SE_AUDITOR
 
 /* Path to the OpenDNSSEC config file */
 #undef ODS_SE_CFGFILE
@@ -457,13 +502,10 @@
 #undef ODS_SE_ENGINE
 
 /* File magic for storing backups from the OpenDNSSEC signer engine */
+#undef ODS_SE_FILE_MAGIC
+
+/* File magic for storing backups from the OpenDNSSEC signer engine */
 #undef ODS_SE_FILE_MAGIC_V1
-
-/* File magic for storing backups from the OpenDNSSEC signer engine */
-#undef ODS_SE_FILE_MAGIC_V2
-
-/* File magic for storing backups from the OpenDNSSEC signer engine */
-#undef ODS_SE_FILE_MAGIC_V3
 
 /* Maximum line length that the OpenDNSSEC signer client can handle */
 #undef ODS_SE_MAXLINE
@@ -618,6 +660,9 @@
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
+
+/* Define curl_free() as free() if our version of curl lacks curl_free. */
+#undef curl_free
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t

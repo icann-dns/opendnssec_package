@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: conf.xml.in 7018 2013-02-05 13:59:43Z sion $ -->
+<!-- $Id: conf.xml.in 6065 2012-01-16 09:45:47Z jerry $ -->
 
 <Configuration>
 
@@ -35,6 +35,10 @@
 		
 		<PolicyFile>@OPENDNSSEC_CONFIG_DIR@/kasp.xml</PolicyFile>
 		<ZoneListFile>@OPENDNSSEC_CONFIG_DIR@/zonelist.xml</ZoneListFile>
+
+	<!--
+		<ZoneFetchFile>@OPENDNSSEC_CONFIG_DIR@/zonefetch.xml</ZoneFetchFile>
+	-->
 	</Common>
 
 	<Enforcer>
@@ -44,19 +48,16 @@
 			<Group>opendnssec</Group>
 		</Privileges>
 -->
-<!-- NOTE: Enforcer worker threads are not used; this option is ignored -->
-<!--
-		<WorkerThreads>4</WorkerThreads>
--->
+
 		<Datastore><SQLite>@OPENDNSSEC_STATE_DIR@/kasp.db</SQLite></Datastore>
 		<Interval>PT3600S</Interval>
 		<!-- <ManualKeyGeneration/> -->
 		<!-- <RolloverNotification>P14D</RolloverNotification> -->
 		
 		<!-- the <DelegationSignerSubmitCommand> will get all current
-		     DNSKEYs (as a RRset) on standard input (with optional CKA_ID)
+		     DNSKEYs (as a RRset) on standard input
 		-->
-		<!-- <DelegationSignerSubmitCommand>@OPENDNSSEC_SBIN_DIR@/simple-dnskey-mailer.sh</DelegationSignerSubmitCommand> -->
+		<!-- <DelegationSignerSubmitCommand>@OPENDNSSEC_SBIN_DIR@/eppclient</DelegationSignerSubmitCommand> -->
 	</Enforcer>
 
 	<Signer>
@@ -73,12 +74,6 @@
 		<SignerThreads>4</SignerThreads>
 -->
 
-<!--
-		<Listener>
-			<Interface><Port>53</Port></Interface>
-		</Listener>
--->
-
 		<!-- the <NotifyCommmand> will expand the following variables:
 
 		     %zone      the name of the zone that was signed
@@ -91,5 +86,16 @@
 		<NotifyCommand>/usr/sbin/rndc reload %zone</NotifyCommand>
 -->
 	</Signer>
+
+	<Auditor>
+<!--
+		<Privileges>
+			<User>opendnssec</User>
+			<Group>opendnssec</Group>
+		</Privileges>
+-->
+
+		<WorkingDirectory>@OPENDNSSEC_STATE_DIR@/tmp</WorkingDirectory>
+	</Auditor>
 
 </Configuration>

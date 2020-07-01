@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.h 6291 2012-04-26 14:35:16Z sion $
+ * $Id: ksmutil.h 6292 2012-04-27 09:39:55Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -73,9 +73,7 @@ xmlDocPtr add_zone_node(const char *docname,
                         const char *policy_name, 
                         const char *sig_conf_name, 
                         const char *input_name, 
-                        const char *output_name,
-                        const char *input_type, 
-                        const char *output_type);
+                        const char *output_name);
 xmlDocPtr del_zone_node(const char *docname,
                         const char *zone_name);
 void list_zone_node(const char *docname, int *zone_ids);
@@ -87,11 +85,9 @@ void ksm_log_msg(const char *format);
 int ListKeys(int zone_id);
 int PurgeKeys(int zone_id, int policy_id);
 int cmd_genkeys();
-int cmd_delkey();
 void SetPolicyDefaults(KSM_POLICY *policy, char *name);
 int fix_file_perms(const char *dbschema);
 int CountKeys(int *zone_id, int keytag, const char *cka_id, int *key_count, char **temp_cka_id, int *temp_key_state, int *temp_keypair_id);
-int GetKeyState(const char *cka_id, int *temp_key_state, int *temp_keypair_id);
 int MarkDSSeen(int keypair_id, int zone_id, int policy_id, const char *datetime, int key_state);
 int RetireOldKey(int zone_id, int policy_id, const char *datetime);
 int CountKeysInState(int keytype, int keystate, int* count, int zone_id);
@@ -104,7 +100,6 @@ int get_policy_name_from_id(KSM_ZONE *zone);
 int append_zone(xmlDocPtr doc, KSM_ZONE *zone);
 int ShellQuoteString(const char* string, char* buffer, size_t buflen);
 int rename_signconf(const char* zonelist_filename, const char* o_zone);
-int ListDS(int zone_id);
 
 #ifdef __cplusplus
 }

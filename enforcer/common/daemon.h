@@ -1,5 +1,5 @@
 /*
- * $Id: daemon.h 7385 2013-11-05 16:00:17Z sara $
+ * $Id: daemon.h 7313 2013-09-13 15:22:06Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -114,7 +114,6 @@ typedef struct
     int manualKeyGeneration;
     int rolloverNotify;
     char* DSSubmitCmd;
-    int DSSubCKA_ID;
 	char* policy;
 
     int log_user; /* log facility (or default of LOG_DAEMON) */

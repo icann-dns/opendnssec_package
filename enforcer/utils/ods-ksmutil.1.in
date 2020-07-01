@@ -1,5 +1,5 @@
-.TH "ods\-ksmutil" "1" "February 2010" OpenDNSSEC "OpenDNSSEC ods\-ksmutil"
-.\" $Id: ods-ksmutil.1.in 7416 2013-11-21 08:34:02Z matthijs $
+.TH "ods\-ksmutil" "1" "February 2010" OpenDNSSEC "OpenDNSSEC ods-ksmutil"
+.\" $Id: ods-ksmutil.1.in 7414 2013-11-21 08:12:10Z matthijs $
 .SH "NAME"
 .LP
 .B ods\-ksmutil
@@ -17,11 +17,8 @@
 .br
 .B ods\-ksmutil zonelist import|export
 .br
-.B ods\-ksmutil key 
-.RS
-.B		generate|import|export|list|purge|rollover|ksk\-retire|ds\-seen|delete
+.B ods\-ksmutil key generate|import|export|list|purge|rollover|ksk\-retire|ds\-seen
 .RB ...
-.RE
 .br
 .B ods\-ksmutil rollover list
 .RB ...
@@ -41,7 +38,7 @@
 .I ods\-ksmutil
 manages the operation of the KASP Enforcer, which is the part of OpenDNSSEC
 that triggers key generation and signing operations on domains based on
-policies with user\-defined timing and security requirements.
+policies with user-defined timing and security requirements.
 Since everything beyond this management utility is usually automatic,
 .I ods\-ksmutil
 is the primary tool for managing OpenDNSSEC.  Among the functions of
@@ -62,7 +59,7 @@ detailing any options that they support.
 .SH "GENERIC OPTIONS"
 .LP
 .TP
-.B \-c \fIconfigfile\fB, \-\-config \fIconfigfile\fB
+.B -c \fIconfigfile\fB, \-\-config \fIconfigfile\fB
 Change the conf.xml file that is used from the default.
 .TP
 .B help
@@ -101,17 +98,16 @@ not deleted.
 .SH "ZONE MANAGEMENT SUBCOMMANDS"
 .LP
 .TP
-.B zone add \-\-zone|\-z \fIzone\fB [\-\-policy|\-p \fIname\fB] [\-\-in\-type|\-j \fItype\fB] [\-\-out\-type|\-q \fItype\fB] [\-\-input|\-i \fIinput\fB] [\-\-output|\-o \fIoutput\fB] [\-\-no\-xml]
+.B zone add \-\-zone|\-z \fIzone\fB [--policy|-p \fIname\fB] [\-\-input|-i \fIinput\fB] [\-\-output|-o \fIoutput\fB] [\-\-no\-xml]
 Add a zone to both zonelist.xml and the database.  This is equivalent to
 manually editing zonelist.xml and then running the
 .B update zonelist
 subcommand.
 The \-\-zone option names the zone to add; the \-\-policy option names
-the policy to use instead of default; the \-\-in\-type and \-\-out\-type
-specify the type of input and output adapters (default is File); the \-\-input option specifies a
-non\-standard location for the unsigned zone (default is 
-@OPENDNSSEC_STATE_DIR@/unsigned/ZONE) or the DNS input file(default is @OPENDNSSEC_CONFIG_DIR@/addns.xml); the \-\-output option specifies a non\-standard 
-location for the signed zone (default is @OPENDNSSEC_STATE_DIR@/signed/ZONE) or the DNS output file(default is @OPENDNSSEC_CONFIG_DIR@/addns.xml).
+the policy to use instead of default; the \-\-input option specifies a
+non-standard location for the unsigned zone (default is 
+@OPENDNSSEC_STATE_DIR@/unsigned/ZONE); the \-\-output option specifies a non-standard 
+location for the signed zone (default is @OPENDNSSEC_STATE_DIR@/signed/ZONE).
 The \-\-no\-xml flag stops the zonelist.xml file from being updated. This is
 suitable for a batch mode where you will add multiple zones and then just write
 zonelist once at the end.
@@ -213,7 +209,7 @@ Rollover active keys on the named zone or policy, respectively.
 This command is used to intiate manual rollovers; if it is not given,
 OpenDNSSEC will automatically rollover keys when the need arises. (Or, in the 
 case of KSKs it will start the rollover process, to finish the KSK rollover see
-ksk\-roll below.)
+ksk-roll below.)
 
 The \-\-keytype option specifies the type of key to roll. Alternatively the \-\-all option can be used which will roll both types of keys. After running, the KASP Enforcer will be woken up so that the signer can be sent the new information.
 
@@ -222,11 +218,11 @@ If the policy that the zone is on specifies that keys are shared then all zones 
 If there are no keys ready to take over from the current key then the rollover will not occur immediately, but will be put off until the is a key in the ready state.
 
 .TP
-.B key ksk\-retire \-\-zone|\-z \fIzone\fB
+.B key ksk-retire \-\-zone|\-z \fIzone\fB
 .TP
-.B key ksk\-retire \-\-keytag|\-x \fIkeytag\fB
+.B key ksk-retire \-\-keytag|\-x \fIkeytag\fB
 .TP
-.B key ksk\-retire \-\-cka_id|\-k \fIckaid\fB
+.B key ksk-retire \-\-cka_id|\-k \fIckaid\fB
 Indicate to OpenDNSSEC that a currently active key should be retired.
 If key identifiers are not provided then the oldest key in the zone 
 will be retired.
@@ -235,9 +231,9 @@ If only one key is in the active state then this command will exit
 with an error message, as completing would leave no active keys.
 
 .TP
-.B key ds\-seen \-\-zone|\-z \fIzone\fB  \-\-keytag|\-x \fIkeytag\fB  [\-\-no\-notify|\-l] [\-\-no\-retire|\-f]
+.B key ds-seen \-\-zone|\-z \fIzone\fB  \-\-keytag|\-x \fIkeytag\fB  [\-\-no-notify|\-l] [\-\-no\-retire|\-f]
 .TP
-.B key ds\-seen \-\-zone|\-z \fIzone\fB  \-\-cka_id|\-k \fIckaid\fB  [\-\-no\-notify|\-l] [\-\-no\-retire|\-f]
+.B key ds-seen \-\-zone|\-z \fIzone\fB  \-\-cka_id|\-k \fIckaid\fB  [\-\-no-notify|\-l] [\-\-no\-retire|\-f]
 Indicate to OpenDNSSEC that a submitted DS record has appeared in the
 parent zone, and thereby trigger the completion of a KSK rollover.
 Note that this action is not yet standardised, and can therefore not
@@ -260,21 +256,11 @@ An optional \-\-no\-retire flag can also be passed in, without this the
 existing key is moved into the retired state at the same time as making 
 the new key active. If you wish to delay this step then pass in this flag 
 and use the ksk\-retire command when needed.
-
-.TP
-.B key delete \-\-cka_id|\-k \fIckaid\fB [\-\-no\-hsm]
-Remove a named key from the system.
-
-Keys in the GENERATE or DEAD state can be safely removed from the system as
-they are not in use.
-
-The \-\-no\-hsm flag can be provided if you want to leave the key material on the HSM.
-
 .br
 .TP
-.B rollover list
+.B ods-ksmutil rollover list
 List the expected dates and times of upcoming rollovers.  This can be
-used to get an idea of upcoming work, such as the non\-standardised
+used to get an idea of upcoming work, such as the non-standardised
 submission of DS records to a registry.
 .SH "POLICY ADMINISTRATION SUBCOMMANDS"
 .LP
@@ -289,7 +275,7 @@ Update the database with the contents of kasp.xml; identical to "update kasp".
 * Experimental *
 
 Remove any policies which have no zones associated with them.
-Note that this command has only been tested in a lab environment and so caution is recommended. 
+Note that this command has only been tested in a lab environment and so caution is recommended.
 .SH "REPOSITORY AND BACKUP SUBCOMMANDS"
 .LP
 .TP
@@ -301,41 +287,40 @@ List the backups that have been made on the given repository.
 The \-\-repository option specifies what repository to list.
 .TP
 .B backup prepare \-\-repository|\-r name 
-Start a two\-phase key backup procedure. 
+Start a two-phase key backup procedure. 
 Prepare the keys generated up to here for backup.  Any keys generated 
 automatically by OpenDNSSEC after this command are not guaranteed to be 
 backed up, and will therefore not be taken into account when committing 
 the prepared keys for use by OpenDNSSEC.  The next command is usually 
 either \fBbackup commit\fR or, in case of failure of the key backup 
 itself, \fBbackup rollback\fR.  This sequence works reliably if the 
-KASP Enforcer is running.  If it is not, the single\-phase backup of 
-\fBbackup done\fR provides a one\-phase backup alternative. 
+KASP Enforcer is running.  If it is not, the single-phase backup of 
+\fBbackup done\fR provides a one-phase backup alternative. 
 .TP 
 .B backup commit \-\-repository|\-r name 
-Successfully end a two\-phase key backup procedure. 
+Successfully end a two-phase key backup procedure. 
 After a key backup has succeeded, release all previously prepared keys 
 for service by OpenDNSSEC.  Any keys that were generated since the last 
 issued preparation will not be released as it is uncertain whether these 
 are actually backed up. 
 .TP 
 .B backup rollback \-\-repository|\-r name 
-Safely end a failed two\-phase key backup procedure. 
+Safely end a failed two-phase key backup procedure. 
 After a key backup has failed, rollback all previously prepapared keys 
 to the state where they are generated, but not yet available for service 
 by OpenDNSSEC.  After fixing this problem, a new attempt to backup the 
 keys can be made. 
 .TP
-.B backup done \-\-repository|\-r name [\-\-force]
-*DEPRECATED*
-
-Indicate that a backup of the given repository has been done, all non\-backed up keys will now be marked as backed up.
+.B backup done \-\-repository|\-r name
+Indicate that a backup of the given repository has been done, all non-backed up keys will now be marked as backed up.
 The \-\-repository option specifies what repository to list.
+This is a necessary step for repositories that have the RequireBackup flag set.
 
 Note that the KASP Enforcer may take the initiative to generate keys after
-the backup has started and before the backup is done.  This single\-phase 
+the backup has started and before the backup is done.  This single-phase 
 backup command waives that, which is safe when the KASP Enforcer is not 
 running.  If you intend to keep the Enforcer running, you will instead 
-want to use the two\-phase \fBbackup prepare\fR followed by either 
+want to use the two-phase \fBbackup prepare\fR followed by either 
 \fBbackup commit\fR or \fBbackup rollback\fR.
 .TP
 .B database backup [\-\-output|\-o output]
@@ -348,7 +333,7 @@ the output goes to the usual enforcer.db.backup file.
 .LP
 .TP
 .B start|stop|notify
-Start, stop or send "SIGHUP" to the ods\-enforcerd process.
+Start, stop or send "SIGHUP" to the ods-enforcerd process.
 .SH "KEY STATES"
 .LP
 .TP
@@ -387,18 +372,18 @@ When specifying a generation/retire time for a key being imported the following 
 YYYYMMDD[HH[MM[SS]]]
 (all numeric)
 .TP
-D\-MMM\-YYYY[:| ]HH[:MM[:SS]]
+D-MMM-YYYY[:| ]HH[:MM[:SS]]
 .TP
-DD\-MMM\-YYYY[:| ]HH[:MM[:SS]]
+DD-MMM-YYYY[:| ]HH[:MM[:SS]]
 .TP
-YYYY\-MMM\-DD[:| ]HH[:MM[:SS]]
+YYYY-MMM-DD[:| ]HH[:MM[:SS]]
 (alphabetic month)
 .TP
-D\-MM\-YYYY[:| ]HH[:MM[:SS]]
+D-MM-YYYY[:| ]HH[:MM[:SS]]
 .TP
-DD\-MM\-YYYY[:| ]HH[:MM[:SS]]
+DD-MM-YYYY[:| ]HH[:MM[:SS]]
 .TP
-YYYY\-MM\-DD[:| ]HH[:MM[:SS]]
+YYYY-MM-DD[:| ]HH[:MM[:SS]]
 (numeric month)
 .SH "FILES"
 .LP
@@ -422,7 +407,7 @@ The location that is usually configured in conf.xml to contain unsigned zones.
 The location that is usually configured in conf.xml to contain signed zones.
 .SH "SEE ALSO"
 .LP
-ods\-control(8), ods\-enforcerd(8), ods\-hsmspeed(1),
+ods\-auditor(1), ods\-control(8), ods\-enforcerd(8), ods\-hsmspeed(1),
 ods\-hsmutil(1), ods\-kaspcheck(1), ods\-signer(8),
 ods\-signerd(8), ods\-timing(5), opendnssec(7),
 .B http://www.opendnssec.org/

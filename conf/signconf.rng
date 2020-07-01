@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: signconf.rnc 7358 2013-10-11 11:47:27Z matthijs $
+  $Id: signconf.rnc 7344 2013-10-09 09:03:39Z matthijs $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -119,6 +119,10 @@
       </element>
       <!-- What parameters to use for the SOA record -->
       <ref name="soa"/>
+      <optional>
+        <!-- Auditing parameters -->
+        <ref name="audit"/>
+      </optional>
     </element>
   </define>
   <define name="algorithm">
@@ -184,6 +188,12 @@
           <data type="string"/>
         </element>
       </element>
+    </element>
+  </define>
+  <!-- This section is taken directly from the corresponding KASP policy -->
+  <define name="audit">
+    <element name="Audit">
+      <empty/>
     </element>
   </define>
 </grammar>

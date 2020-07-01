@@ -1,5 +1,5 @@
 /*
- * $Id: duration.c 7352 2013-10-09 12:33:09Z matthijs $
+ * $Id: duration.c 7353 2013-10-09 12:34:54Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -278,46 +278,30 @@ duration2string(duration_type* duration)
     if (duration->years > 0) {
         count = digits_in_number(duration->years);
         num = (char*) calloc(count+2, sizeof(char));
-        if (num) {
-            snprintf(num, count+2, "%uY", (uint32_t) duration->years);
-            str = strncat(str, num, count+2);
-            free((void*) num);
-        } else {
-            goto duration2string_num_calloc_failed;
-        }
+        snprintf(num, count+2, "%uY", (uint32_t) duration->years);
+        str = strncat(str, num, count+2);
+        free((void*) num);
     }
     if (duration->months > 0) {
         count = digits_in_number(duration->months);
         num = (char*) calloc(count+2, sizeof(char));
-        if (num) {
-            snprintf(num, count+2, "%uM", (uint32_t) duration->months);
-            str = strncat(str, num, count+2);
-            free((void*) num);
-        } else {
-            goto duration2string_num_calloc_failed;
-        }
+        snprintf(num, count+2, "%uM", (uint32_t) duration->months);
+        str = strncat(str, num, count+2);
+        free((void*) num);
     }
     if (duration->weeks > 0) {
         count = digits_in_number(duration->weeks);
         num = (char*) calloc(count+2, sizeof(char));
-        if (num) {
-            snprintf(num, count+2, "%uW", (uint32_t) duration->weeks);
-            str = strncat(str, num, count+2);
-            free((void*) num);
-        } else {
-            goto duration2string_num_calloc_failed;
-        }
+        snprintf(num, count+2, "%uW", (uint32_t) duration->weeks);
+        str = strncat(str, num, count+2);
+        free((void*) num);
     }
     if (duration->days > 0) {
         count = digits_in_number(duration->days);
         num = (char*) calloc(count+2, sizeof(char));
-        if (num) {
-            snprintf(num, count+2, "%uD", (uint32_t) duration->days);
-            str = strncat(str, num, count+2);
-            free((void*) num);
-        } else {
-            goto duration2string_num_calloc_failed;
-        }
+        snprintf(num, count+2, "%uD", (uint32_t) duration->days);
+        str = strncat(str, num, count+2);
+        free((void*) num);
     }
     if (T) {
         str = strncat(str, "T", 1);
@@ -325,43 +309,26 @@ duration2string(duration_type* duration)
     if (duration->hours > 0) {
         count = digits_in_number(duration->hours);
         num = (char*) calloc(count+2, sizeof(char));
-        if (num) {
-            snprintf(num, count+2, "%uH", (uint32_t) duration->hours);
-            str = strncat(str, num, count+2);
-            free((void*) num);
-        } else {
-            goto duration2string_num_calloc_failed;
-        }
+        snprintf(num, count+2, "%uH", (uint32_t) duration->hours);
+        str = strncat(str, num, count+2);
+        free((void*) num);
     }
     if (duration->minutes > 0) {
         count = digits_in_number(duration->minutes);
         num = (char*) calloc(count+2, sizeof(char));
-        if (num) {
-            snprintf(num, count+2, "%uM", (uint32_t) duration->minutes);
-            str = strncat(str, num, count+2);
-            free((void*) num);
-        } else {
-            goto duration2string_num_calloc_failed;
-        }
+        snprintf(num, count+2, "%uM", (uint32_t) duration->minutes);
+        str = strncat(str, num, count+2);
+        free((void*) num);
     }
     if (duration->seconds > 0 ||
         (!D && !duration->hours && !duration->minutes)) {
         count = digits_in_number(duration->seconds);
         num = (char*) calloc(count+2, sizeof(char));
-        if (num) {
-            snprintf(num, count+2, "%uS", (uint32_t) duration->seconds);
-            str = strncat(str, num, count+2);
-            free((void*) num);
-        } else {
-            goto duration2string_num_calloc_failed;
-        }
+        snprintf(num, count+2, "%uS", (uint32_t) duration->seconds);
+        str = strncat(str, num, count+2);
+        free((void*) num);
     }
     return str;
-
-duration2string_num_calloc_failed:
-    ods_log_error("[%s] cannot create string: malloc error", duration_str);
-    free((void*) str);
-    return NULL;
 }
 
 
@@ -455,7 +422,6 @@ leap_days(int y1, int y2)
 }
 
 
-#ifdef ENFORCER_TIMESHIFT
 /*
  * Code taken from NSD 3.2.5, which is
  * code adapted from Python 2.4.1 sources (Lib/calendar.py).
@@ -464,8 +430,7 @@ static time_t
 mktime_from_utc(const struct tm *tm)
 {
     int year = 1900 + tm->tm_year;
-    time_t days = 365 * ((time_t) (year - 1970)) +
-        ((time_t) leap_days(1970, year));
+    time_t days = 365 * (year - 1970) + leap_days(1970, year);
     time_t hours;
     time_t minutes;
     time_t seconds;
@@ -504,7 +469,6 @@ timeshift2time(const char *time)
 	}
         return timeshift;
 }
-#endif
 
 
 /**

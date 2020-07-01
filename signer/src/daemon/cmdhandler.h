@@ -1,5 +1,5 @@
 /*
- * $Id: cmdhandler.h 5945 2011-11-30 11:54:30Z matthijs $
+ * $Id: cmdhandler.h 4518 2011-02-24 15:39:09Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -42,10 +42,13 @@
 
 #define ODS_SE_MAX_HANDLERS 5
 
+/* back reference to the engine */
+struct engine_struct;
+
 typedef struct cmdhandler_struct cmdhandler_type;
 struct cmdhandler_struct {
     allocator_type* allocator;
-    void* engine;
+    struct engine_struct* engine;
     struct sockaddr_un listen_addr;
     ods_thread_type thread_id;
     int listen_fd;

@@ -1,5 +1,5 @@
 /*
- * $Id: database_connection_lite.c 7018 2013-02-05 13:59:43Z sion $
+ * $Id: database_connection_lite.c 1942 2009-09-30 11:21:48Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -44,6 +44,7 @@
 #include "ksm/message.h"
 
 static sqlite3* m_dbhandle = NULL;  /* Non-NULL if connected */
+
 
 
 /*+
@@ -153,12 +154,12 @@ int DbDisconnect(DB_HANDLE dbhandle)
 {
     int status = 0;     /* Return status */
 
-	if (dbhandle) {
+    if (dbhandle) {
 		if (dbhandle == m_dbhandle) {
 			m_dbhandle = NULL;
 		}
-		sqlite3_close((sqlite3*) dbhandle);
-	}
+        sqlite3_close((sqlite3*) dbhandle);
+    }
     else {
         status = MsgLog(DBS_NOTCONN);
     }

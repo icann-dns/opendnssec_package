@@ -1,5 +1,5 @@
 /*
- * $Id: file.c 7180 2013-07-03 09:24:52Z matthijs $
+ * $Id: file.c 6498 2012-08-02 21:56:06Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,7 +35,6 @@
 #include "shared/file.h"
 #include "shared/log.h"
 
-#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -48,7 +47,6 @@
 #define BUFFER_SIZE (16 * 1024) /* use 16K buffers */
 
 static const char* file_str = "file";
-static unsigned int file_count = 0;
 
 
 /**
@@ -86,11 +84,14 @@ ods_fgetc(FILE* fd, unsigned int* line_nr)
     ods_log_assert(line_nr);
 
     c = fgetc(fd);
+    if (c == '\r') { /* carriage return */
+        c = ' ';
+    }
     if (c == '\n') {
         (*line_nr)++;
     }
     if (c == EOF && errno != 0) {
-        ods_log_crit("[%s] fgetc() failed, enough memory? (%s)",
+        ods_log_error("[%s] fgetc() failed, enough memory? (%s)",
             file_str, strerror(errno));
     }
     return c;
@@ -193,7 +194,7 @@ ods_fopen(const char* file, const char* dir, const char* mode)
     char* openf = NULL;
 
     ods_log_assert(mode);
-    ods_log_deeebug("[%s] open file %s%s file=%s mode=%s", file_str,
+    ods_log_debug("[%s] open file %s%s file=%s mode=%s", file_str,
         (dir?"dir=":""), (dir?dir:""), (file?file:"(null)"),
         ods_file_mode2str(mode));
 
@@ -226,12 +227,9 @@ ods_fopen(const char* file, const char* dir, const char* mode)
         if (len_file) {
             fd = fopen(openf, mode);
             if (!fd) {
-                ods_log_debug("[%s] unable to open file %s for %s: %s",
+                ods_log_error("[%s] unable to open file %s for %s: %s",
                     file_str, openf?openf:"(null)",
                     ods_file_mode2str(mode), strerror(errno));
-            } else {
-                file_count++;
-                ods_log_debug("[%s] openfile %s count %u", file_str, openf?openf:"(null)", file_count);
             }
         }
         free((void*) openf);
@@ -247,7 +245,6 @@ void
 ods_fclose(FILE* fd)
 {
     if (fd) {
-        file_count--;
         fclose(fd);
     }
     return;
@@ -292,18 +289,21 @@ ods_file_lastmodified(const char* file)
     int ret;
     struct stat buf;
     FILE* fd;
+
     ods_log_assert(file);
+
     if ((fd = ods_fopen(file, NULL, "r")) != NULL) {
         ret = stat(file, &buf);
-        if (ret == -1) {
-            ods_log_error("[%s] unable to stat file %s: %s", file_str,
-                file, strerror(errno));
-        }
         ods_fclose(fd);
+        if (ret == -1) {
+            ods_log_error("[%s] unable to stat file %s: %s",
+                    file_str, file, strerror(errno));
+            return 0;
+        }
         return buf.st_mtime;
     } else {
         ods_log_error("[%s] unable to stat file %s: ods_fopen() failed",
-            file_str, file);
+            file_str, file, strerror(errno));
     }
     return 0;
 }
@@ -328,38 +328,6 @@ ods_strcmp(const char* s1, const char* s2)
         }
     }
     return strncmp(s1, s2, strlen(s1));
-}
-
-
-/**
- * Compare a string lowercased
- *
- */
-int
-ods_strlowercmp(const char* str1, const char* str2)
-{
-    while (str1 && str2 && *str1 != '\0' && *str2 != '\0') {
-        if (tolower((int)*str1) != tolower((int)*str2)) {
-            if (tolower((int)*str1) < tolower((int)*str2)) {
-                return -1;
-            }
-            return 1;
-        }
-        str1++;
-        str2++;
-    }
-    if (str1 && str2) {
-        if (*str1 == *str2) {
-            return 0;
-        } else if (*str1 == '\0') {
-            return -1;
-        }
-    } else if (!str1 && !str2) {
-        return 0;
-    } else if (!str1 && str2) {
-        return -1;
-    }
-    return 1;
 }
 
 
@@ -565,45 +533,5 @@ ods_str_trim(char* str)
         str++;
     }
     *str = '\0';
-    return;
-}
-
-
-/**
- * Add a string to a list of strings. Taken from ods-enforcer.
- *
- */
-void
-ods_str_list_add(char*** list, char* str)
-{
-    char** old = NULL;
-    size_t count = 0;
-
-    if (*list) {
-        for (count=0; (*list)[count]; ++count) {
-            ;
-        }
-        old = *list;
-
-        *list = (char**) calloc(sizeof(char*), count+2);
-        if (!*list) {
-            ods_fatal_exit("[%s] fatal ods_str_list_add(): calloc() failed",
-                file_str);
-        }
-        if (old) {
-            memcpy(*list, old, count * sizeof(char*));
-        }
-        free(old);
-        (*list)[count] = str;
-        (*list)[count+1] = NULL;
-    } else {
-        /** List is NULL, allocate new */
-        *list = calloc(sizeof(char*), 2);
-        if (!*list) {
-            ods_fatal_exit("[%s] fatal ods_str_list_add(): calloc() failed",
-                file_str);
-        }
-        (*list)[0] = str;
-    }
     return;
 }
