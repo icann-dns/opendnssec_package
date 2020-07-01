@@ -1,0 +1,7 @@
+  * Imported Upstream version 1.4.8.2
+  * Refresh patches for 1.4.8.2 release
+  * Move OpenDNSSEC under Pkg DNS umbrella
+  * Install the convert_database.pl and sql schema scripts to
+    opendnssec-common (Closes: #764435)
+  * The fix of failing signing a local zone on ARM was fixed in the new
+    upstream version (Closes: #798518)
