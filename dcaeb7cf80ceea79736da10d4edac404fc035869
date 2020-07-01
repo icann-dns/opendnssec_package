@@ -1,0 +1,2 @@
+  * Swap mariadb-client with mysql-client in Build-Depends
+    (Closes: #751912)
