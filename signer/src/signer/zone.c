@@ -1,5 +1,5 @@
 /*
- * $Id: zone.c 5072 2011-05-10 08:19:06Z matthijs $
+ * $Id: zone.c 5227 2011-06-12 08:51:24Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

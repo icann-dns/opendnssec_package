@@ -1,5 +1,5 @@
 .TH "opendnssec" "7" "February 2010" "OpenDNSSEC" "OpenDNSSEC overview"
-.\" $Id: opendnssec.7.in 4998 2011-04-21 12:29:27Z jakob $
+.\" $Id: opendnssec.7.in 5227 2011-06-12 08:51:24Z jakob $
 .SH "NAME"
 .LP
 .B OpenDNSSEC

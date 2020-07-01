@@ -1,4 +1,4 @@
-# $Id: acx_rpath.m4 4998 2011-04-21 12:29:27Z jakob $
+# $Id: acx_rpath.m4 5227 2011-06-12 08:51:24Z jakob $
 
 dnl Add option to disable the evil rpath. Check whether to use rpath or not.
 dnl Adds the --disable-rpath option. Uses trick to edit the ./libtool.

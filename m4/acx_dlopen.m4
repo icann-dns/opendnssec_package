@@ -1,4 +1,4 @@
-# $Id: acx_dlopen.m4 4998 2011-04-21 12:29:27Z jakob $
+# $Id: acx_dlopen.m4 5227 2011-06-12 08:51:24Z jakob $
 
 AC_DEFUN([ACX_DLOPEN],[
   AC_CHECK_FUNC(dlopen, [AC_DEFINE(HAVE_DLOPEN,1,[Define if you have dlopen])],

@@ -1,4 +1,4 @@
-$Id: MIGRATION 4998 2011-04-21 12:29:27Z jakob $
+$Id: MIGRATION 5227 2011-06-12 08:51:24Z jakob $
 
 This file gives you instructions on how to migrate from one version of
 OpenDNSSEC to another.
