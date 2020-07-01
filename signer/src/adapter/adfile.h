@@ -1,5 +1,5 @@
 /*
- * $Id: adfile.h 5944 2011-11-30 11:53:46Z matthijs $
+ * $Id: adfile.h 4566 2011-03-15 14:02:32Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -40,6 +40,8 @@
 
 #include <stdio.h>
 
+struct zone_struct;
+
 /**
  * File adapter.
  *
@@ -47,29 +49,37 @@
 /** NULL */
 
 /**
- * Read zone from input file adapter.
- * \param[in] zone zone reference
+ * Initialize file adapters.
  * \return ods_status status
  *
  */
-ods_status adfile_read(void* zone);
+ods_status adfile_init(void);
 
 /**
- * Read zone from backup file.
- * \param[in] zone zone reference
+ * Read zone from input file adapter.
+ * \param[in] zone zone structure
  * \param[in] filename read from this specific file
  * \return ods_status status
  *
  */
-ods_status adbackup_read(void* zone, const char* filename);
+ods_status adfile_read(struct zone_struct* zone, const char* filename);
+
+/**
+ * Read zone from backup file.
+ * \param[in] zone zone structure
+ * \param[in] filename read from this specific file
+ * \return ods_status status
+ *
+ */
+ods_status adbackup_read(struct zone_struct* zone, const char* filename);
 
 /**
  * Write zone to output file adapter.
- * \param[in] zone zone reference
+ * \param[in] zone zone structure
  * \param[in] filename write to this specific file
  * \return ods_status status
  *
  */
-ods_status adfile_write(void* zone, const char* filename);
+ods_status adfile_write(struct zone_struct* zone, const char* filename);
 
 #endif /* ADAPTER_ADFILE_H */

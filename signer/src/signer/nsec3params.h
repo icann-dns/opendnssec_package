@@ -1,5 +1,5 @@
 /*
- * $Id: nsec3params.h 6181 2012-02-21 14:12:17Z matthijs $
+ * $Id: nsec3params.h 4550 2011-03-11 11:42:01Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,6 +35,7 @@
 #define SIGNER_NSEC3PARAMS_H
 
 #include "config.h"
+#include "shared/allocator.h"
 #include "shared/status.h"
 
 #include <ctype.h>
@@ -53,7 +54,7 @@
  */
 typedef struct nsec3params_struct nsec3params_type;
 struct nsec3params_struct {
-    void* sc;
+    allocator_type* allocator;
     uint8_t     algorithm;
     uint8_t     flags;
     uint16_t    iterations;
@@ -75,7 +76,6 @@ ods_status nsec3params_create_salt(const char* salt_str, uint8_t* salt_len,
 
 /**
  * Create new NSEC3 parameters.
- * \param[in] sc signer configuration reference
  * \param[in] algo algorithm
  * \param[in] flags flags, Opt-Out or Opt-In
  * \param[in] iter number of iterations
@@ -83,7 +83,7 @@ ods_status nsec3params_create_salt(const char* salt_str, uint8_t* salt_len,
  * \return nsec3params_type* the created nsec3params
  *
  */
-nsec3params_type* nsec3params_create(void* sc, uint8_t algo, uint8_t flags,
+nsec3params_type* nsec3params_create(uint8_t algo, uint8_t flags,
     uint16_t iter, const char* salt);
 
 /**
@@ -98,6 +98,15 @@ nsec3params_type* nsec3params_create(void* sc, uint8_t algo, uint8_t flags,
  */
 void nsec3params_backup(FILE* fd, uint8_t algo, uint8_t flags,
     uint16_t iter, const char* salt, ldns_rr* rr);
+
+/**
+ * Recover NSEC3 parameters from backup.
+ * \param[in] fd file descriptor of key backup file
+ * \param[out] rr the NSEC3PARAMS resource record
+ * \return nsec3params_type* the recovered nsec3params
+ *
+ */
+nsec3params_type* nsec3params_recover_from_backup(FILE* fd, ldns_rr** rr);
 
 /**
  * Convert salt to string.

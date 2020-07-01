@@ -1,5 +1,5 @@
 /*
- * $Id: database_support_mysql.c 6138 2012-02-03 14:58:00Z sion $
+ * $Id: database_support_mysql.c 2592 2009-12-09 15:06:39Z rb $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -467,99 +467,4 @@ int DbLastRowId(DB_HANDLE handle, DB_ID* id)
 	 */
 
 	return (*id != 0) ? 0 : DBS_NOSUCHROW;
-}
-
-/*+
- * DbQuoteString - Return quoted version of the input string
- *
- * Description:
- * 		Return quoted version of the input string
- *
- * Arguments:
- * 		DB_HANDLE handle
- * 			Handle to the database connection. (MySQL checks character set of
- *												current connection).
- *
- * 		const char* in
- * 			String to quote
- *
- * 		char* buffer
- * 			Quoted string
- *
- * Returns:
- * 		int
- * 			Status return
- *
- * 				0		Success
- * 				Other	Error code.  An error message will have been output.
--*/
-
-int DbQuoteString(DB_HANDLE handle, const char* in, char* buffer, size_t buflen)
-{
-
-	unsigned long	length = 0;
-
-    if (in == NULL) {
-        return MsgLog(DBS_INVARG, "NULL input string to DbQuoteString");
-    }
-
-	length = mysql_real_escape_string((MYSQL*) handle, buffer, in, (unsigned long) strlen(in));
-
-	return ( length <= buflen ) ? 0 : 1;
-}
-
-/*+
- * DbDateDiff - Return SQL statement for a date plus or minus a delta
- *
- * Description:
- * 		Return quoted version of the input string
- *
- * Arguments:
- *
- * 		const char* start
- * 			Start date
- *
- * 		int delta
- * 			Difference in seconds
- *
- * 		int sign
- * 			-1 to subtract the delta, +1 to add
- *
- * 		char* buffer
- * 			SQL string
- *
- * Returns:
- * 		int
- * 			Status return
- *
- * 				0		Success
- * 				Other	Error code.  An error message will have been output.
--*/
-
-int DbDateDiff(const char* start, int delta, int sign, char* buffer, size_t buflen)
-{
-	int nchar;
-
-    if (start == NULL) {
-        return MsgLog(DBS_INVARG, "NULL input string to DbDateDiff");
-    }
-
-	if (sign == 1) {
-		nchar = snprintf(buffer, buflen,
-				"DATE_ADD('%s', INTERVAL %d SECOND)", start, delta);
-	}
-	else if (sign == -1) {
-		nchar = snprintf(buffer, buflen,
-				"DATE_ADD('%s', INTERVAL -%d SECOND)", start, delta);
-	}
-	else {
-        return MsgLog(DBS_INVARG, "Invalid sign to DbDateDiff");
-    }
-
-	if (nchar >= buflen || nchar < 0) {
-		return 1;
-	}
-
-	return 0;
-
 }

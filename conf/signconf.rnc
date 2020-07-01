@@ -1,4 +1,4 @@
-# $Id: signconf.rnc 6002 2012-01-04 14:50:37Z jakob $
+# $Id: signconf.rnc 5133 2011-05-17 14:45:50Z sion $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -79,7 +79,10 @@ zone = element Zone {
 		},
 
 		# What parameters to use for the SOA record
-		soa
+		soa,
+		
+		# Auditing parameters
+		audit?
 	}
 
 algorithm = element Algorithm { xsd:nonNegativeInteger { maxInclusive = "255" } }
@@ -113,3 +116,6 @@ nsec3 = element NSEC3 {
 			element Salt { xsd:string }
 		}
 	}
+
+# This section is taken directly from the corresponding KASP policy
+audit = element Audit { empty }

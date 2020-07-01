@@ -1,5 +1,5 @@
 /*
- * $Id: hsmcheck.c 6167 2012-02-14 15:36:50Z rb $
+ * $Id: hsmcheck.c 6123 2012-02-02 09:04:39Z rb $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.

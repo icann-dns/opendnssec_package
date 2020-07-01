@@ -1,5 +1,5 @@
 /*
- * $Id: file.h 5946 2011-11-30 11:55:04Z matthijs $
+ * $Id: file.h 6244 2012-04-03 13:56:27Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -81,10 +81,12 @@ int ods_skip_whitespace(FILE* fd, unsigned int* line_nr);
  * \param[in] file filename without extension
  * \param[in] suffix extension.
  * \param[in] dir directory or not
+ * \param[in] no_slash no forward slashes and such characters allowed
  * \return char* concatenation of file and suffix
  *
  */
-char* ods_build_path(const char* file, const char* suffix, int dir);
+char* ods_build_path(const char* file, const char* suffix, int dir,
+    int no_slash);
 
 /**
  * Open a file.
@@ -128,15 +130,6 @@ time_t ods_file_lastmodified(const char* file);
  *
  */
 int ods_strcmp(const char* s1, const char* s2);
-
-/**
- * Compare strings lowercased.
- * \param[in] s1 one string
- * \param[in] s2 another string
- * \return -1, 0 or 1
- *
- */
-int ods_strlowercmp(const char* s1, const char* s2);
 
 /**
  * Replace a substring in string.

@@ -1,5 +1,5 @@
 /*
- * $Id: kaspaccess.c 4141 2010-10-25 15:26:40Z sion $
+ * $Id: kaspaccess.c 6307 2012-05-04 09:36:03Z jerry $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -134,6 +134,20 @@ kaspConnect(DAEMONCONFIG* config, DB_HANDLE	*handle)
         exit(-1);
     }
 
+}
+
+/*
+* Try and connect to the DB
+*/
+int
+kaspTryConnect(DAEMONCONFIG* config, DB_HANDLE	*handle)
+{
+    /* Note that all these XML derived strings are unsigned chars */
+	if (DbConnect(handle, (char *)config->schema, (char *)config->host, (char *)config->password, (char *)config->user, (char *)config->port) != 0) {
+		return 1;
+    }
+
+	return 0;
 }
 
 /*

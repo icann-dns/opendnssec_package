@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: conf.rnc 6204 2012-03-12 10:30:26Z matthijs $
+  $Id: conf.rnc 6065 2012-01-16 09:45:47Z jerry $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -102,6 +102,12 @@
         <element name="ZoneListFile">
           <data type="string"/>
         </element>
+        <optional>
+          <!-- Location to store the zonefetch XML file (optional) -->
+          <element name="ZoneFetchFile">
+            <data type="string"/>
+          </element>
+        </optional>
       </element>
       <!-- Configuration parameters for the KASP Enforcer -->
       <element name="Enforcer">
@@ -160,6 +166,15 @@
           </optional>
           <optional>
             <!--
+              Location of the signer tools
+              DEFAULT: $(libexecdir)/opendnssec
+            -->
+            <element name="ToolsDirectory">
+              <data type="string"/>
+            </element>
+          </optional>
+          <optional>
+            <!--
               Number of Worker Threads
               DEFAULT: 4
             -->
@@ -177,14 +192,6 @@
             </element>
           </optional>
           <optional>
-            <!-- Listener -->
-            <element name="Listener">
-              <zeroOrMore>
-                <ref name="interface"/>
-              </zeroOrMore>
-            </element>
-          </optional>
-          <optional>
             <!--
               System command to call after a zone has been (re)signed
               
@@ -192,6 +199,23 @@
               '%zonefile' in the string will be replaced by the zone file
             -->
             <element name="NotifyCommand">
+              <data type="string"/>
+            </element>
+          </optional>
+        </element>
+      </optional>
+      <optional>
+        <element name="Auditor">
+          <optional>
+            <!-- User & group to drop privs to -->
+            <ref name="privs"/>
+          </optional>
+          <optional>
+            <!--
+              Location to store intermediate audit information
+              DEFAULT: $(localstatedir)/opendnssec/tmp
+            -->
+            <element name="WorkingDirectory">
               <data type="string"/>
             </element>
           </optional>
@@ -269,38 +293,5 @@
     <element name="SQLite">
       <data type="string"/>
     </element>
-  </define>
-  <define name="interface">
-    <element name="Interface">
-      <ref name="localAddress"/>
-    </element>
-  </define>
-  <define name="ipv4">
-    <element name="IPv4">
-      <data type="string"/>
-    </element>
-  </define>
-  <define name="ipv6">
-    <element name="IPv6">
-      <data type="string"/>
-    </element>
-  </define>
-  <define name="port">
-    <element name="Port">
-      <data type="positiveInteger">
-        <param name="maxInclusive">65535</param>
-      </data>
-    </element>
-  </define>
-  <define name="localAddress">
-    <optional>
-      <choice>
-        <ref name="ipv4"/>
-        <ref name="ipv6"/>
-      </choice>
-    </optional>
-    <optional>
-      <ref name="port"/>
-    </optional>
   </define>
 </grammar>
