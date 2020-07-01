@@ -1,0 +1,2 @@
+  * Add Pre-Depends: dpkg (>= 1.15.7.2~) to opendnssec-enforcer-mysql for
+    dpkg-maintscript-helper.
