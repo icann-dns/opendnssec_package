@@ -1,5 +1,5 @@
 /*
- * $Id: daemon.c 4269 2010-12-15 10:59:36Z sion $
+ * $Id: daemon.c 6198 2012-03-07 10:07:35Z matthijs $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -234,7 +234,7 @@ main(int argc, char *argv[]){
     if (writepid(&config) == -1) {
         log_msg(&config, LOG_ERR, "cannot write the pidfile %s: %s",
                 config.pidfile, strerror(errno));
-							exit(1);
+        exit(1);
     }
 
     atexit(exit_function);
