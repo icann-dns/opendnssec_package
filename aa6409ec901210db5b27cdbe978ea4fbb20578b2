@@ -1,0 +1,5 @@
+  * New upstream version 1.4.7
+   - SUPPORT-147: Zone updating via zone transfer can get stuck (Håvard
+     Eidnes)
+   - Crash on 'retransfer' command when not using DNS adapters.
+  * Recommend softhsm2 instead of softhsm
