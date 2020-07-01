@@ -1,0 +1,8 @@
+  * Define and use SQLITE3_SONAME macro from d/rules instead of hardcoded
+    libsqlite3.so (Closes: #843590, #849803)
+  * Cleanup old parts of README.Debian for 2.x release
+  * Install schema.sqlite and schema.mysql to /usr/share/opendnssec
+  * Fix schema.sqlite and schema.mysql paths to /usr/share/opendnssec
+    (Closes: #843589)
+  * Add pkg-config to Build-Depends (needed to resolve libsqlite3.so
+    SONAME)
