@@ -179,8 +179,7 @@ CTAGS = ctags
 CSCOPE = cscope
 DIST_SUBDIRS = common libhsm enforcer conf tools signer
 am__DIST_COMMON = $(srcdir)/Doxyfile.in $(srcdir)/Makefile.in NEWS \
-	compile config.guess config.sub depcomp install-sh ltmain.sh \
-	missing
+	compile config.guess config.sub install-sh ltmain.sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
