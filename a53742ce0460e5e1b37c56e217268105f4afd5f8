@@ -1,0 +1,5 @@
+  * New upstream version 1.3.14
+  * Update patches for 1.3.14 release
+  * Imported Upstream version 1.3.13
+  * Remove upstream patches which were fixed in more recent upstream versions
+  * Fix type 's/signed/signer/ stop' (Closes: #681677)
