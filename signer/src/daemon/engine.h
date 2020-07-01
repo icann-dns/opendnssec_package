@@ -1,5 +1,5 @@
 /*
- * $Id: engine.h 4496 2011-02-17 11:30:22Z matthijs $
+ * $Id: engine.h 6111 2012-01-30 15:11:45Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -88,6 +88,20 @@ struct engine_struct {
  */
 void engine_start(const char* cfgfile, int cmdline_verbosity,
     int daemonize, int info, int single_run);
+
+/**
+ * Start drudgers.
+ * \param[in] engine engine
+ *
+ */
+void engine_start_drudgers(engine_type* engine);
+
+/**
+ * Stop drudgers.
+ * \param[in] engine engine
+ *
+ */
+void engine_stop_drudgers(engine_type* engine);
 
 /**
  * Wake up workers.

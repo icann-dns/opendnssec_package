@@ -1,5 +1,5 @@
 /*
- * $Id: tools.c 5849 2011-11-14 08:43:44Z matthijs $
+ * $Id: tools.c 6125 2012-02-02 09:30:21Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -381,8 +381,8 @@ tools_output(zone_type* zone)
     zone->zonedata->outbound_serial = zone->zonedata->internal_serial;
     status = adapter_write(zone);
     if (status != ODS_STATUS_OK) {
-        ods_log_error("[%s] unable to write zone %s: adapter failed",
-            tools_str, zone->name);
+        ods_log_error("[%s] unable to write zone %s: adapter failed (%s)",
+            tools_str, zone->name, ods_status2str(status));
         zone->zonedata->outbound_serial = outbound_serial;
         return status;
     }

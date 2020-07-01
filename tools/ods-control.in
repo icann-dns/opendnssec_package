@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: ods-control.in 5340 2011-07-26 15:30:53Z matthijs $
+# $Id: ods-control.in 6139 2012-02-06 13:29:36Z jerry $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation)
 # All rights reserved.
@@ -82,7 +82,7 @@ case "$1" in
 	'start')
 		if [ -r "$enforcer_pid_file" ]; then
 			echo "Enforcer is already running"
-			RETVAL=-1
+			RETVAL=1
 		else
 			echo "Starting enforcer..."
 			"$sbindir/ods-enforcerd"
