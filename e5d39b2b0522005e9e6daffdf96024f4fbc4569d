@@ -1,0 +1,2 @@
+  * Add Pre-Depends: dpkg (>= 1.17.5) for dpkg-maintscript-helper
+    (Closes: #768065)
