@@ -1,0 +1,3 @@
+  * Also add empty postinst and postrm maintainer scripts to
+    opendnssec-enforcer-mysql package to allow upgrades from jessie
+    (Closes: #848111)
