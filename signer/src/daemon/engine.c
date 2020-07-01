@@ -1,5 +1,5 @@
 /*
- * $Id: engine.c 5656 2011-09-30 06:45:25Z matthijs $
+ * $Id: engine.c 5874 2011-11-18 08:40:54Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -160,7 +160,7 @@ self_pipe_trick(engine_type* engine)
     ods_log_assert(engine->cmdhandler);
 
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd <= 0) {
+    if (sockfd < 0) {
         ods_log_error("[%s] cannot connect to command handler: "
             "socket() failed: %s\n", engine_str, strerror(errno));
         return 1;

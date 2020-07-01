@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signerd.c 4300 2011-01-27 09:23:44Z matthijs $
+ * $Id: ods-signerd.c 5984 2012-01-02 14:50:59Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -116,6 +116,9 @@ main(int argc, char* argv[])
         switch (c) {
             case '1':
                 single_run = 1;
+                break;
+            case 'c':
+                cfgfile = optarg;
                 break;
             case 'd':
                 daemonize = 0;

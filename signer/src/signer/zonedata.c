@@ -1,5 +1,5 @@
 /*
- * $Id: zonedata.c 5820 2011-10-27 13:08:44Z matthijs $
+ * $Id: zonedata.c 6050 2012-01-10 11:25:28Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -404,6 +404,7 @@ zonedata_del_domain(zonedata_type* zd, domain_type* domain)
             "denial of existence data point", 1);
         return domain;
     }
+    domain->denial = NULL;
     log_rdf(domain->dname, "-DD", 6);
     return zonedata_del_domain_fixup(zd->domains, domain);
 }
@@ -991,6 +992,7 @@ zonedata_nsecify(zonedata_type* zd, ldns_rr_class klass, uint32_t ttl,
                         "delete denial of existence data point", zd_str);
                     return ODS_STATUS_ERR;
                 }
+                domain->denial = NULL;
             }
             node = ldns_rbtree_next(node);
             continue;
@@ -1085,6 +1087,7 @@ zonedata_nsecify3(zonedata_type* zd, ldns_rr_class klass,
                         "delete denial of existence data point", zd_str);
                     return ODS_STATUS_ERR;
                 }
+                domain->denial = NULL;
             }
             node = ldns_rbtree_next(node);
             continue;
@@ -1108,6 +1111,7 @@ zonedata_nsecify3(zonedata_type* zd, ldns_rr_class klass,
                             "delete denial of existence data point", zd_str);
                         return ODS_STATUS_ERR;
                     }
+                    domain->denial = NULL;
                 }
                 node = ldns_rbtree_next(node);
                 continue;
@@ -1252,7 +1256,7 @@ zonedata_update_serial(zonedata_type* zd, signconf_type* sc)
     if (!zd->initialized) {
         zd->internal_serial = soa;
     } else {
-        zd->internal_serial += update; /* automatically does % 2^32 */
+        zd->internal_serial = prev + update; /* automatically does % 2^32 */
     }
     ods_log_debug("[%s] update serial: %u + %u = %u", zd_str, prev, update,
         zd->internal_serial);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: conf.rnc 4688 2011-04-07 13:58:21Z matthijs $
+  $Id: conf.rnc 6065 2012-01-16 09:45:47Z jerry $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -79,12 +79,19 @@
         <optional>
           <!-- Configuration parameters for logging -->
           <element name="Logging">
-            <element name="Syslog">
-              <!-- syslog facility -->
-              <element name="Facility">
-                <ref name="syslogFacility"/>
+            <optional>
+              <element name="Verbosity">
+                <data type="nonNegativeInteger"/>
               </element>
-            </element>
+            </optional>
+            <optional>
+              <element name="Syslog">
+                <!-- syslog facility -->
+                <element name="Facility">
+                  <ref name="syslogFacility"/>
+                </element>
+              </element>
+            </optional>
           </element>
         </optional>
         <!-- Location to find the KASP file -->

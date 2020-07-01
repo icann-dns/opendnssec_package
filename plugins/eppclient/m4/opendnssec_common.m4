@@ -1,4 +1,4 @@
-# $Id: opendnssec_common.m4 4698 2011-04-12 08:53:30Z rb $
+# $Id: opendnssec_common.m4 6065 2012-01-16 09:45:47Z jerry $
 
 AC_DEFUN([OPENDNSSEC_COMMON],[
 
@@ -77,7 +77,7 @@ AC_DEFINE_UNQUOTED(ODS_SE_SOCKFILE,      ["$OPENDNSSEC_SIGNER_SOCKET"],      [Pa
 AC_DEFINE_UNQUOTED(ODS_SE_WORKDIR,       ["$OPENDNSSEC_SIGNER_WORKINGDIR"],  [Path to the OpenDNSSEC signer engine working directory])
 AC_DEFINE_UNQUOTED(ODS_SE_CFGFILE,       ["$OPENDNSSEC_CONFIG_FILE"],        [Path to the OpenDNSSEC config file])
 AC_DEFINE_UNQUOTED(ODS_SE_RNGDIR,        ["$OPENDNSSEC_SCHEMA_DIR"],         [Path to the OpenDNSSEC data files])
-AC_DEFINE_UNQUOTED(ODS_SE_ENGINE,        ["$OPENDNSSEC_SIGNER_ENGINE -vvv"], [Path to the OpenDNSSEC signer engine binary])
+AC_DEFINE_UNQUOTED(ODS_SE_ENGINE,        ["$OPENDNSSEC_SIGNER_ENGINE"],      [Path to the OpenDNSSEC signer engine binary])
 AC_DEFINE_UNQUOTED(ODS_SE_CLI,           ["$OPENDNSSEC_SIGNER_CLI"],         [Path to the OpenDNSSEC signer client binary])
 AC_DEFINE_UNQUOTED(ODS_SE_AUDITOR,       ["$OPENDNSSEC_SIGNER_AUDITOR"],     [Path to the OpenDNSSEC auditor binary])
 AC_DEFINE_UNQUOTED(ODS_SE_MAXLINE,       [1024],                             [Maximum line length that the OpenDNSSEC signer client can handle])
