@@ -1,5 +1,5 @@
 /*
- * $Id: test_ksm_request.c 4168 2010-11-04 14:19:59Z sion $
+ * $Id: test_ksm_request.c 5838 2011-11-08 14:28:05Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -109,7 +109,7 @@ static void TestKsmRequestKeys(void)
     status = KsmKeyGetUnallocated(policy_id, sm, bits, algorithm, zone_id, 1, &keypair_id);
     CU_ASSERT_EQUAL(status, 0);
 
-    status = KsmDnssecKeyCreate(zone_id, keypair_id, KSM_TYPE_ZSK, KSM_STATE_GENERATE, datetime, &dnsseckey_id);
+    status = KsmDnssecKeyCreate(zone_id, keypair_id, KSM_TYPE_ZSK, KSM_STATE_GENERATE, datetime, NULL, &dnsseckey_id);
     CU_ASSERT_EQUAL(status, 0);
 
     /* push the key into some state that update can operate on */

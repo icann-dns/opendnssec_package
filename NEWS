@@ -1,4 +1,34 @@
-$Id: NEWS 5620 2011-09-13 11:33:49Z jakob $
+$Id: NEWS 5870 2011-11-17 12:07:45Z rb $
+
+OpenDNSSEC 1.3.3 - 2011-11-17
+
+Bugfixes:
+* Auditor: Handle ruby 1.9 differences in ods-kaspcheck.
+* Auditor: Require dnsruby 1.53 for bugfixes.
+* Bugfix #262: Drudgers seem to be in a waiting state, but the RRset FIFO 
+  queue is full. Do an additional broadcast.
+* Enforcer: Check HSM connection when waking up from sleep, attempt to
+  reconnect if it is not valid. (r5511 in trunk, ported into the branch due
+  to issues seen when CKR_DEVICE_ERROR returned by HSM.)
+* libhsm: Added hsm_check_context() to check if the associated sessions are
+  still alive. (Required for the above.)
+* ods-ksmutil: key import was not setting the retire time.
+* Signer Engine: Fix a threading issue, that could leave a zone without
+  a task.
+* Signer Engine: Update the signed zone file if only the $TTL or explicit
+  TTL has been changed.
+* Signer Engine: Remove the NSEC3PARAM RR when doing NSEC3 to NSEC rollover.
+* Signer Engine: Deal with carriage returns (dos format) in zone file.
+* Signer Engine: <Refresh> is PT0S means that refresh equals signtime.
+* Signer Engine: Defense in depth in signer for duplicate keys.
+* Signer Engine: Make sure that all required zonelist elements exist, 
+  otherwise error.
+* Signer Engine: Warn the user if the serial is b0rk, and you can not 
+  use the serial from the signconf.
+* Signer Engine: Log Auditor exit code.
+* Fix a similar bug like #257: Error in ods-signerd, where a corrupted
+  backup file results in an invalid pointer free().
+
 
 OpenDNSSEC 1.3.2 - 2011-09-13
 

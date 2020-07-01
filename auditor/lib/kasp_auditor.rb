@@ -1,5 +1,5 @@
 #
-# $Id: kasp_auditor.rb 4448 2011-02-15 15:28:27Z rb $
+# $Id: kasp_auditor.rb 5830 2011-11-04 13:59:24Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -59,6 +59,9 @@ module KASPAuditor
   def KASPAuditor.exit(msg, err, log = nil)
     if (log)
       log.log(LOG_ERR, msg)
+    end
+    if (err != 0)
+      log.log(LOG_ERR, "Audit failed")
     end
     print msg + "\n"
     Kernel.exit(err)
@@ -196,9 +199,9 @@ module KASPAuditor
       # Preparse the input and output files
       do_audit = true
       pids=[]
-      new_pid = normalise_and_sort(input_file, "in", pid, working, config)
+      new_pid = normalise_and_sort(input_file, "in", pid, working, config, syslog)
       pids.push(new_pid)
-      new_pid = normalise_and_sort(output_file, "out", pid, working, config)
+      new_pid = normalise_and_sort(output_file, "out", pid, working, config, syslog)
       pids.push(new_pid)
       pids.each {|id|
         ret_id, ret_status = Process.wait2(id)
@@ -233,8 +236,8 @@ module KASPAuditor
     end
 
     # Prepare the input unsigned and signed files for auditing
-    def normalise_and_sort(f, prefix, pid, working, config)
-      pp = Preparser.new(config)
+    def normalise_and_sort(f, prefix, pid, working, config, log)
+      pp = Preparser.new(config, log)
       parsed_file = working+get_name(f)+".#{prefix}.parsed.#{pid}"
       sorted_file = working+get_name(f)+".#{prefix}.sorted.#{pid}"
       delete_file(parsed_file)
