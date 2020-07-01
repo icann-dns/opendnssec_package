@@ -1,0 +1,4 @@
+  * Fix reading the tmpfiles (Thanks Michael Biebl for catching that)
+    (Closes: #852059)
+  * Add /var/lib/opendnssec/{signer,enforcer} to the list of managed
+    directories (Closes: #859418)
