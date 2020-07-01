@@ -1,0 +1,5 @@
+  * Make opendnssec binNMUable by unlinking the documentation
+    (Closes: #760830)
+  * Fix Vcs-URLs to point to anonscm.debian.org
+  * Fix invalid return usage in opendnssec-common preinst script
+    (Closes: #760852)
