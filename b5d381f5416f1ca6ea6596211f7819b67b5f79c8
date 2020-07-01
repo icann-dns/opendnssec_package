@@ -1,0 +1,4 @@
+  * Fix OpenSSL 1.1.0 Support (Closes: #828467)
+  * Imported Upstream version 2.0.3
+  * Add default-jdk to Build-Depends as "java is required for converting
+    RelaxNG Compact to RelaxNG"
