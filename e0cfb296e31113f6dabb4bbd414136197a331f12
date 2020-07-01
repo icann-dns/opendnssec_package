@@ -1,0 +1,5 @@
+  * Add NEWS about removal of OpenDNSSEC Auditor
+  * Add Conflicts/Replaces: opendnssec-auditor to opendnssec-common to
+    ensure clear removal of opendnssec-auditor from the system
+  * Update debian/{control,rules} to 1.4.0~a1 release
+  * Update patches for 1.4.0~a1 release
