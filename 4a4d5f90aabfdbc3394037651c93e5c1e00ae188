@@ -1,0 +1,4 @@
+  * Remove libcurl4-openssl-dev from Build-Depends
+  * Add libssl-dev to Build-Depends
+  * Introduce empty preinst script to circumvent error with faulty preinst
+    script in jessie (Closes: #848111)
