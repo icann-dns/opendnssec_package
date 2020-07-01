@@ -1,5 +1,5 @@
 /*
- * $Id: enforcer.c 7028 2013-02-13 11:41:17Z sion $
+ * $Id: enforcer.c 7213 2013-08-09 14:11:22Z sara $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -33,17 +33,16 @@
  * The bit that makes the daemon do something useful
  */
 
-#include "config.h"
-
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
 #include <syslog.h>
-#include <sys/stat.h>
 
 #include <libxml/xmlreader.h>
 #include <libxml/xpath.h>
+
+#include "config.h"
 
 #include "daemon.h"
 #include "daemon_util.h"
@@ -60,7 +59,7 @@
 #include "libhsm.h"
 #include "libhsmdns.h"
 
-int
+    int
 server_init(DAEMONCONFIG *config)
 {
     if (config == NULL) {
@@ -79,7 +78,7 @@ server_init(DAEMONCONFIG *config)
 /*
  * Main loop of enforcerd server
  */
-void
+    void
 server_main(DAEMONCONFIG *config)
 {
     DB_RESULT handle;
@@ -117,9 +116,9 @@ server_main(DAEMONCONFIG *config)
 /*    if (config->manualKeyGeneration == 0) {*/
         /* We keep the HSM connection open for the lifetime of the daemon */
         if (config->configfile != NULL) {
-            result = hsm_open(config->configfile, hsm_check_pin);
+            result = hsm_open(config->configfile, hsm_prompt_pin, NULL);
         } else {
-            result = hsm_open(OPENDNSSEC_CONFIG_FILE, hsm_check_pin);
+            result = hsm_open(OPENDNSSEC_CONFIG_FILE, hsm_prompt_pin, NULL);
         }
         if (result) {
             hsm_error_message = hsm_get_error(ctx);
@@ -248,8 +247,8 @@ server_main(DAEMONCONFIG *config)
 
         /* Communicate zones to the signer */
         KsmParameterCollectionCache(1); /* Enable caching of policy parameters while in do_communication() */
-		do_communication(config, policy);
-		KsmParameterCollectionCache(0);
+        do_communication(config, policy);
+        KsmParameterCollectionCache(0);
         
         DbFreeResult(handle);
 
@@ -304,6 +303,7 @@ server_main(DAEMONCONFIG *config)
 		/* Make sure that we can still talk to the HSM; this call exits if
 		   we can not (after trying to reconnect) */
 		check_hsm_connection(&ctx, config);
+
     }
 
     /*
@@ -360,7 +360,7 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
 
     /* Check datetime in case it came back NULL */
     if (rightnow == NULL) {
-        log_msg(config, LOG_ERR, "Couldn't turn \"now\" into a date, quitting...");
+        log_msg(config, LOG_DEBUG, "Couldn't turn \"now\" into a date, quitting...");
         exit(1);
     }
 
@@ -384,12 +384,13 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
             log_msg(config, LOG_INFO, "No zones on policy %s, skipping...", policy->name);
             StrFree(rightnow);
             return status; 
-        } 
+		}
     } else {
         log_msg(NULL, LOG_ERR, "Could not count zones on policy %s", policy->name);
         StrFree(rightnow);
         return status; 
     }
+	log_msg(config, LOG_INFO, "%d zone(s) found on policy \"%s\"\n", zone_count, policy->name);
 
     /* Find out how many ksk keys are needed for the POLICY */
     status = KsmKeyPredict(policy->id, KSM_TYPE_KSK, policy->shared_keys, config->interval, &ksks_needed, policy->ksk->rollover_scheme, zone_count);
@@ -403,10 +404,7 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
         log_msg(NULL, LOG_ERR, "Could not count current ksk numbers for policy %s", policy->name);
         /* TODO exit? continue with next policy? */
     }
-    /* Correct for shared keys */
-    if (policy->shared_keys == KSM_KEYS_SHARED) {
-        keys_in_queue /= zone_count;
-    }
+    /* Don't have to adjust the queue for shared keys as the prediction has already taken care of that.*/
 
     new_keys = ksks_needed - keys_in_queue;
     /* fprintf(stderr, "keygen(ksk): new_keys(%d) = keys_needed(%d) - keys_in_queue(%d)\n", new_keys, ksks_needed, keys_in_queue); */
@@ -423,6 +421,12 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
             new_keys = policy->ksk->sm_capacity - current_count;
         }
     }
+	if (new_keys <= 0 ) {
+		log_msg(config, LOG_INFO,"No new KSKs need to be created.\n");
+    }
+    else {
+		log_msg(config, LOG_INFO,"%d new KSK(s) (%d bits) need to be created.\n", new_keys, policy->ksk->bits);
+	}
 
     /* Create the required keys */
     for (i=new_keys ; i > 0 ; i--){
@@ -482,10 +486,7 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
         log_msg(NULL, LOG_ERR, "Could not count current zsk numbers for policy %s", policy->name);
         /* TODO exit? continue with next policy? */
     }
-    /* Correct for shared keys */
-    if (policy->shared_keys == KSM_KEYS_SHARED) {
-        keys_in_queue /= zone_count;
-    }
+    /* Don't have to adjust the queue for shared keys as the prediction has already taken care of that.*/
     /* Might have to account for ksks */
     if (same_keys) {
         keys_in_queue -= ksks_needed;
@@ -506,6 +507,14 @@ int do_keygen(DAEMONCONFIG *config, KSM_POLICY* policy, hsm_ctx_t *ctx)
             new_keys = policy->zsk->sm_capacity - current_count;
         }
     }
+
+	if (new_keys <= 0 ) {
+		/* Don't exit here, just fall through to the end */
+		log_msg(config, LOG_INFO, "No new ZSKs need to be created.\n");
+    }
+    else {
+		log_msg(config, LOG_INFO, "%d new ZSK(s) (%d bits) need to be created.\n", new_keys, policy->zsk->bits);
+	}
 
     /* Create the required keys */
     for (i = new_keys ; i > 0 ; i--) {
@@ -575,7 +584,7 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
     char* zone_name;
     char* current_policy;
     char* current_filename;
-    char *tag_name = NULL;
+    char *tag_name;
     int zone_id = -1;
     int signer_flag = 1; /* Is the signer responding? (1 == yes) */
     char* ksk_expected = NULL;  /* When is the next ksk rollover expected? */
@@ -727,7 +736,6 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
                 xmlXPathFreeObject(xpathObj);
                 /* TODO should we check that we have not written to this file in this run?*/
                 /* Make sure that enough keys are allocated to this zone */
-
                 status2 = allocateKeysToZone(policy, KSM_TYPE_ZSK, zone_id, config->interval, zone_name, config->manualKeyGeneration, 0);
                 if (status2 != 0) {
                     log_msg(config, LOG_ERR, "Error allocating zsks to zone %s", zone_name);
@@ -750,7 +758,7 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
                 }
 
                 /* turn this zone and policy into a file */
-                status2 = commGenSignConf(zone_name, zone_id, current_filename, policy, &signer_flag, config->interval, config->manualKeyGeneration, config->DSSubmitCmd, config->DSSubCKA_ID);
+                status2 = commGenSignConf(zone_name, zone_id, current_filename, policy, &signer_flag, config->interval, config->manualKeyGeneration, config->DSSubmitCmd);
                 if (status2 == -2) {
                     log_msg(config, LOG_ERR, "Signconf not written for %s", zone_name);
                     /* Don't return? try to parse the rest of the zones? */
@@ -776,7 +784,7 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
 
                     /* Check datetime in case it came back NULL */
                     if (datetime == NULL) {
-                        log_msg(config, LOG_ERR, "Couldn't turn \"now\" into a date, quiting...");
+                        log_msg(config, LOG_DEBUG, "Couldn't turn \"now\" into a date, quitting...");
                         unlink(config->pidfile);
                         exit(1);
                     }
@@ -798,8 +806,8 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
                             if (roll_time <= config->rolloverNotify) {
                                 log_msg(config, LOG_INFO, "Rollover of KSK expected at %s for %s", ksk_expected, zone_name);
                             }
+                            StrFree(ksk_expected);
                         }
-						StrFree(ksk_expected);
                     }
                     StrFree(datetime);
                 }
@@ -831,7 +839,7 @@ int do_communication(DAEMONCONFIG *config, KSM_POLICY* policy)
  *  returns 0 on success and -1 if something went wrong
  *                           -2 if the RequestKeys call failed
  */
-int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_POLICY *policy, int* signer_flag, int run_interval, int man_key_gen, const char* DSSubmitCmd, int DSSubCKA_ID)
+int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_POLICY *policy, int* signer_flag, int run_interval, int man_key_gen, const char* DSSubmitCmd)
 {
     int status = 0;
     int status2 = 0;
@@ -843,15 +851,15 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
     char *old_filename;     /* Keep a copy of the previous version, just in case! (Also gets
                                round potentially different behaviour of rename over existing
                                file.) */
-    int     gencnt;         /* Number of keys in generate state */
     char *signer_command;   /* how we will call the signer */
+    int     gencnt;         /* Number of keys in generate state */
     int     NewDS = 0;      /* Did we change the DS Set in any way? */
     char*   datetime = DtParseDateTimeString("now");
 
     /* Check datetime in case it came back NULL */
     if (datetime == NULL) {
         log_msg(NULL, LOG_DEBUG, "Couldn't turn \"now\" into a date, quitting...");
-        return -1;
+        exit(1);
     }
 
     if (zone_name == NULL || current_filename == NULL || policy == NULL)
@@ -875,8 +883,7 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
     if (file == NULL)
     {
         /* error */
-        log_msg(NULL, LOG_ERR, "Could not open: %s (%s)", temp_filename,
-		strerror(errno));
+        log_msg(NULL, LOG_ERR, "Could not open: %s", temp_filename);
         MemFree(datetime);
         StrFree(temp_filename);
         StrFree(old_filename);
@@ -982,6 +989,12 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
     fprintf(file, "\t\t\t<Minimum>PT%dS</Minimum>\n", policy->signer->soamin);
     fprintf(file, "\t\t\t<Serial>%s</Serial>\n", KsmKeywordSerialValueToName( policy->signer->serial) );
     fprintf(file, "\t\t</SOA>\n");
+
+    if (strncmp(policy->audit, "NULL", 4) != 0) {
+        fprintf(file, "\n");
+        fprintf(file, "\t\t<Audit />\n");
+        fprintf(file, "\n");
+    }
 
     fprintf(file, "\t</Zone>\n");
     fprintf(file, "</SignerConfiguration>\n");
@@ -1114,11 +1127,8 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
             if (status != 0)
             {
                 log_msg(NULL, LOG_ERR, "Could not call signer engine");
-                log_msg(NULL, LOG_INFO, "Will continue: call '%s' to manually update the zone", signer_command);
+                log_msg(NULL, LOG_INFO, "Will continue: call 'ods-signer update' to manually update zones");
                 *signer_flag = 0;
-            }
-            else {
-                log_msg(NULL, LOG_INFO, "Called signer engine: %s", signer_command);
             }
 
             StrFree(signer_command);
@@ -1138,7 +1148,7 @@ int commGenSignConf(char* zone_name, int zone_id, char* current_filename, KSM_PO
     /* If the DS set changed then log/do something about it */
     if (NewDS == 1) {
         log_msg(NULL, LOG_INFO, "DSChanged");
-        status = NewDSSet(zone_id, zone_name, DSSubmitCmd, DSSubCKA_ID);
+        status = NewDSSet(zone_id, zone_name, DSSubmitCmd);
     }
 
     StrFree(old_filename);
@@ -1224,7 +1234,7 @@ int allocateKeysToZone(KSM_POLICY *policy, int key_type, int zone_id, uint16_t i
     /* Check datetime in case it came back NULL */
     if (datetime == NULL) {
         log_msg(NULL, LOG_DEBUG, "Couldn't turn \"now\" into a date, quitting...");
-        return -1;
+        exit(1);
     }
 
     if (policy == NULL) {
@@ -1320,7 +1330,7 @@ int allocateKeysToZone(KSM_POLICY *policy, int key_type, int zone_id, uint16_t i
         } else {
             /* This shouldn't happen */
             log_msg(NULL, LOG_ERR, "KsmKeyGetUnallocated returned bad key_id %d for zone: %s; exiting...", key_pair_id, zone_name);
-            return -1;
+            exit(1);
         }
 
     }
@@ -1439,6 +1449,7 @@ int do_purge(int interval, int policy_id)
     DB_ROW      row = NULL;     /* Row data */
 
     char            buffer[KSM_SQL_SIZE];    /* Long enough for any statement */
+    unsigned int    nchar;          /* Number of characters converted */
 
     int         temp_id = -1;       /* place to store the key id returned */
     char*       temp_loc = NULL;    /* place to store location returned */
@@ -1455,7 +1466,7 @@ int do_purge(int interval, int policy_id)
 
     /* Check datetime in case it came back NULL */
     if (rightnow == NULL) {
-        log_msg(NULL, LOG_ERR, "Couldn't turn \"now\" into a date, quitting...");
+        log_msg(NULL, LOG_DEBUG, "Couldn't turn \"now\" into a date, quitting...");
         exit(1);
     }
 
@@ -1483,20 +1494,23 @@ int do_purge(int interval, int policy_id)
             DdsConditionInt(&sql1, "keypair_id", DQS_COMPARE_EQ, temp_id, 0);
             DdsConditionInt(&sql1, "(state", DQS_COMPARE_NE, KSM_STATE_DEAD, 1);
 
-			status = DbDateDiff(rightnow, interval, -1, buffer, KSM_SQL_SIZE);
-			if (status != 0) {
-				log_msg(NULL, LOG_ERR, "DbDateDiff failed\n");
-                DbStringFree(temp_loc);
+#ifdef USE_MYSQL
+            nchar = snprintf(buffer, sizeof(buffer),
+                    " or state = %d and DEAD > DATE_ADD('%s', INTERVAL -%d SECOND)) ", KSM_STATE_DEAD, rightnow, interval);
+#else
+            nchar = snprintf(buffer, sizeof(buffer),
+                    " or state = %d and DEAD > DATETIME('%s', '-%d SECONDS')) ", KSM_STATE_DEAD, rightnow, interval);
+#endif /* USE_MYSQL */
+
+			if (nchar >= sizeof(buffer)) {
+				log_msg(NULL, LOG_ERR, "Error: failed to create SQL statement to purge keys\n");
+				DbStringFree(temp_loc);
                 DbFreeRow(row);
                 StrFree(rightnow);
-				DusFree(sql);
-				DqsFree(sql1);
-                return status;
-			}	
+				return(-1);
+			}
 
-            StrAppend(&sql1, " or state = 6 and DEAD > ");
             StrAppend(&sql1, buffer);
-            StrAppend(&sql1, ")");
             DqsEnd(&sql1);
 
             status = DbIntQuery(DbHandle(), &count, sql1);
@@ -1507,7 +1521,6 @@ int do_purge(int interval, int policy_id)
                 DbStringFree(temp_loc);
                 DbFreeRow(row);
                 StrFree(rightnow);
-				DusFree(sql);
                 return status;
             }
 
@@ -1517,7 +1530,7 @@ int do_purge(int interval, int policy_id)
                 /* Delete from dnsseckeys */
                 sql2 = DdsInit("dnsseckeys");
                 DdsConditionInt(&sql2, "keypair_id", DQS_COMPARE_EQ, temp_id, 0);
-                DdsEnd(&sql2);
+                DdsEnd(&sql);
 
                 status = DbExecuteSqlNoResult(DbHandle(), sql2);
                 DdsFree(sql2);
@@ -1527,7 +1540,6 @@ int do_purge(int interval, int policy_id)
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
                     StrFree(rightnow);
-					DusFree(sql);
                     return status;
                 }
 
@@ -1544,7 +1556,6 @@ int do_purge(int interval, int policy_id)
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
                     StrFree(rightnow);
-					DusFree(sql);
                     return status;
                 }
 
@@ -1556,7 +1567,6 @@ int do_purge(int interval, int policy_id)
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
                     StrFree(rightnow);
-					DusFree(sql);
                     return -1;
                 }
 
@@ -1565,13 +1575,12 @@ int do_purge(int interval, int policy_id)
                 hsm_key_free(key);
 
                 if (!status) {
-                    log_msg(NULL, LOG_INFO, "Key remove successful: %s\n", temp_loc);
+                    log_msg(NULL, LOG_INFO, "Key remove successful.\n");
                 } else {
-                    log_msg(NULL, LOG_ERR, "Key remove failed: %s\n", temp_loc);
+                    log_msg(NULL, LOG_ERR, "Key remove failed.\n");
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
                     StrFree(rightnow);
-					DusFree(sql);
                     return -1;
                 }
             }
@@ -1598,7 +1607,7 @@ int do_purge(int interval, int policy_id)
     return status;
 }
 
-int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd, int DSSubCKA_ID) {
+int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd) {
     int     where = 0;		/* for the SELECT statement */
     char*   sql = NULL;     /* SQL statement (when verifying) */
     char*   sql2 = NULL;    /* SQL statement (if getting DS) */
@@ -1636,8 +1645,6 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd, int DS
 
     FILE *fp;
     int bytes_written = -1;
-
-	struct stat stat_ret; /* we will test the DSSubmitCmd */
 
     nchar = snprintf(buffer, sizeof(buffer), "(%d, %d, %d, %d, %d, %d, %d, %d)",
             KSM_STATE_PUBLISH, KSM_STATE_READY, KSM_STATE_ACTIVE,
@@ -1841,14 +1848,6 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd, int DS
                 }
             }
             StrAppend(&ds_buffer, temp_char);
-
-			/* Add the CKA_ID if asked */
-			if (DSSubCKA_ID) {
-				StrAppend(&ds_buffer, "; {cka_id = ");
-				StrAppend(&ds_buffer, data3.location);
-				StrAppend(&ds_buffer, "}");
-			}
-
             StrFree(temp_char);
 
 /*            StrAppend(&ds_buffer, "\n;KSK DS record (SHA1):\n");
@@ -1877,37 +1876,22 @@ int NewDSSet(int zone_id, const char* zone_name, const char* DSSubmitCmd, int DS
     }
 
     if (DSSubmitCmd[0] != '\0') {
-		/* First check that the command exists */
-		if (stat(DSSubmitCmd, &stat_ret) != 0) {
-			log_msg(NULL, LOG_WARNING, "Cannot stat file %s: %s", DSSubmitCmd, strerror(errno));
-		}
-		/* Then see if it is a regular file, then if usr, grp or all have execute set */
-		else if (S_ISREG(stat_ret.st_mode) && !(stat_ret.st_mode & S_IXUSR || stat_ret.st_mode & S_IXGRP || stat_ret.st_mode & S_IXOTH)) {
-			log_msg(NULL, LOG_WARNING, "File %s is not executable", DSSubmitCmd);
-		}
-		else {
+        /* send records to the configured command */
+        fp = popen(DSSubmitCmd, "w");
+        if (fp == NULL) {
+            log_msg(NULL, LOG_ERR, "Failed to run command: %s: %s", DSSubmitCmd, strerror(errno));
+            return -1;
+        }
+        bytes_written = fprintf(fp, "%s", ds_buffer);
+        if (bytes_written < 0) {
+            log_msg(NULL, LOG_ERR, "Failed to write to %s: %s", DSSubmitCmd, strerror(errno));
+            return -1;
+        }
 
-			/* send records to the configured command */
-			fp = popen(DSSubmitCmd, "w");
-			if (fp == NULL) {
-				log_msg(NULL, LOG_ERR, "Failed to run command: %s: %s", DSSubmitCmd, strerror(errno));
-				StrFree(insql);
-				return -1;
-			}
-			bytes_written = fprintf(fp, "%s", ds_buffer);
-			if (bytes_written < 0) {
-				log_msg(NULL, LOG_ERR, "Failed to write to %s: %s", DSSubmitCmd, strerror(errno));
-				return -1;
-			}
-
-			if (pclose(fp) == -1) {
-				log_msg(NULL, LOG_ERR, "Failed to close %s: %s", DSSubmitCmd, strerror(errno));
-				StrFree(ds_buffer);
-				StrFree(ds_seen_buffer);
-				StrFree(insql);
-				return -1;
-			}
-		}
+        if (pclose(fp) == -1) {
+            log_msg(NULL, LOG_ERR, "Failed to close %s: %s", DSSubmitCmd, strerror(errno));
+            return -1;
+        }
     }
 
     StrFree(ds_buffer);
@@ -1938,9 +1922,9 @@ void check_hsm_connection(hsm_ctx_t **ctx, DAEMONCONFIG *config)
 		result = hsm_close();
 
 		if (config->configfile != NULL) {
-			result = hsm_open(config->configfile, hsm_check_pin);
+			result = hsm_open(config->configfile, hsm_prompt_pin, NULL);
 		} else {
-			result = hsm_open(OPENDNSSEC_CONFIG_FILE, hsm_check_pin);
+			result = hsm_open(OPENDNSSEC_CONFIG_FILE, hsm_prompt_pin, NULL);
 		}
 		if (result) {
 			hsm_error_message = hsm_get_error(*ctx);
@@ -1981,3 +1965,4 @@ void check_hsm_connection(hsm_ctx_t **ctx, DAEMONCONFIG *config)
 	}
 
 }
+

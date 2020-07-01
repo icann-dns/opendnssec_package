@@ -35,6 +35,7 @@
 #define SHARED_ALLOCATOR_H
 
 #include "config.h"
+
 #include <stdlib.h>
 
 typedef struct allocator_struct allocator_type;

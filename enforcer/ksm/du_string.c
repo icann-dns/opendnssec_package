@@ -1,5 +1,5 @@
 /*
- * $Id: du_string.c 5336 2011-07-15 12:53:09Z sion $
+ * $Id: du_string.c 1241 2009-07-07 14:39:40Z rb $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -122,9 +122,9 @@ void DusSetString(char** sql, const char* field, const char* data, int clause)
     StrAppend(sql, " = ");
 
     if (data) {
-        StrAppend(sql, "'");
+        StrAppend(sql, "\"");
         StrAppend(sql, data);
-        StrAppend(sql, "'");
+        StrAppend(sql, "\"");
     }
     else {
         StrAppend(sql, "NULL");

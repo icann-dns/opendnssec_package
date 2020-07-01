@@ -1,5 +1,5 @@
 /*
- * $Id: stats.c 6036 2012-01-06 12:08:45Z matthijs $
+ * $Id: stats.c 7295 2013-09-11 10:18:25Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -43,6 +43,7 @@ stats_create(void)
 {
     stats_type* stats = (stats_type*) malloc(sizeof(stats_type));
     stats_clear(stats);
+    stats->stats_locked = 0;
     lock_basic_init(&stats->stats_lock);
     return stats;
 }
@@ -65,6 +66,7 @@ stats_clear(stats_type* stats)
     stats->sig_soa_count = 0;
     stats->sig_reuse = 0;
     stats->sig_time = 0;
+    stats->audit_time = 0;
     stats->start_time = 0;
     stats->end_time = 0;
 }
@@ -89,11 +91,11 @@ stats_log(stats_type* stats, const char* name, ldns_rr_type nsec_type)
     ods_log_info("[STATS] %s RR[count=%u time=%u(sec)] "
         "NSEC%s[count=%u time=%u(sec)] "
         "RRSIG[new=%u reused=%u time=%u(sec) avg=%u(sig/sec)] "
-        "TOTAL[time=%u(sec)] ",
+        "AUDIT[time=%u(sec)] TOTAL[time=%u(sec)] ",
         name?name:"(null)", stats->sort_count, stats->sort_time,
         nsec_type==LDNS_RR_TYPE_NSEC3?"3":"", stats->nsec_count,
         stats->nsec_time, stats->sig_count, stats->sig_reuse,
-        stats->sig_time, avsign,
+        stats->sig_time, avsign, stats->audit_time,
         (uint32_t) (stats->end_time - stats->start_time));
     return;
 }

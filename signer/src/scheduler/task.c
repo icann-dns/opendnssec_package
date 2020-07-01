@@ -1,5 +1,5 @@
 /*
- * $Id: task.c 7040 2013-02-15 08:19:53Z matthijs $
+ * $Id: task.c 4613 2011-03-22 07:54:50Z rb $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -37,7 +37,7 @@
 #include "shared/duration.h"
 #include "shared/file.h"
 #include "shared/log.h"
-#include "signer/zone.h"
+#include "signer/backup.h"
 
 static const char* task_str = "task";
 
@@ -47,24 +47,28 @@ static const char* task_str = "task";
  *
  */
 task_type*
-task_create(task_id what, time_t when, void* zone)
+task_create(task_id what, time_t when, const char* who, void* zone)
 {
     allocator_type* allocator = NULL;
     task_type* task = NULL;
 
-    if (!zone) {
+    if (!who || !zone) {
+        ods_log_error("[%s] cannot create: missing zone info", task_str);
         return NULL;
     }
+    ods_log_assert(who);
+    ods_log_assert(zone);
+
     allocator = allocator_create(malloc, free);
     if (!allocator) {
-        ods_log_error("[%s] unable to create task: allocator_create() failed",
-            task_str);
+        ods_log_error("[%s] cannot create: create allocator failed", task_str);
         return NULL;
     }
+    ods_log_assert(allocator);
+
     task = (task_type*) allocator_alloc(allocator, sizeof(task_type));
     if (!task) {
-        ods_log_error("[%s] unable to create task: allocator_alloc() failed",
-            task_str);
+        ods_log_error("[%s] cannot create: allocator failed", task_str);
         allocator_cleanup(allocator);
         return NULL;
     }
@@ -73,11 +77,62 @@ task_create(task_id what, time_t when, void* zone)
     task->interrupt = TASK_NONE;
     task->halted = TASK_NONE;
     task->when = when;
-    task->halted_when = 0;
     task->backoff = 0;
+    task->who = allocator_strdup(allocator, who);
+    task->dname = ldns_dname_new_frm_str(who);
     task->flush = 0;
     task->zone = zone;
     return task;
+}
+
+
+/**
+ * Recover a task from backup.
+ *
+ */
+task_type*
+task_recover_from_backup(const char* filename, void* zone)
+{
+    task_type* task = NULL;
+    FILE* fd = NULL;
+    const char* who = NULL;
+    int what = 0;
+    time_t when = 0;
+    int flush = 0;
+    time_t backoff = 0;
+
+    ods_log_assert(zone);
+    fd = ods_fopen(filename, NULL, "r");
+    if (fd) {
+        if (!backup_read_check_str(fd, ODS_SE_FILE_MAGIC) ||
+            !backup_read_check_str(fd, ";who:") ||
+            !backup_read_str(fd, &who) ||
+            !backup_read_check_str(fd, ";what:") ||
+            !backup_read_int(fd, &what) ||
+            !backup_read_check_str(fd, ";when:") ||
+            !backup_read_time_t(fd, &when) ||
+            !backup_read_check_str(fd, ";flush:") ||
+            !backup_read_int(fd, &flush) ||
+            !backup_read_check_str(fd, ";backoff:") ||
+            !backup_read_time_t(fd, &backoff) ||
+            !backup_read_check_str(fd, ODS_SE_FILE_MAGIC))
+        {
+            ods_log_error("[%s] unable to recover task from file %s: file corrupted",
+                task_str, filename?filename:"(null)");
+            task = NULL;
+        } else {
+            task = task_create((task_id) what, when, who, (void*) zone);
+            task->flush = flush;
+            task->backoff = backoff;
+        }
+        free((void*)who);
+        ods_fclose(fd);
+        return task;
+    }
+
+    ods_log_debug("[%s] unable to recover task from file %s: no such file or directory",
+        task_str, filename?filename:"(null)");
+    return NULL;
 }
 
 
@@ -107,6 +162,30 @@ task_backup(FILE* fd, task_type* task)
 
 
 /**
+ * Clean up task.
+ *
+ */
+void
+task_cleanup(task_type* task)
+{
+    allocator_type* allocator;
+
+    if (!task) {
+        return;
+    }
+    allocator = task->allocator;
+    if (task->dname) {
+        ldns_rdf_deep_free(task->dname);
+        task->dname = NULL;
+    }
+    allocator_deallocate(allocator, (void*) task->who);
+    allocator_deallocate(allocator, (void*) task);
+    allocator_cleanup(allocator);
+    return;
+}
+
+
+/**
  * Compare tasks.
  *
  */
@@ -115,18 +194,15 @@ task_compare(const void* a, const void* b)
 {
     task_type* x = (task_type*)a;
     task_type* y = (task_type*)b;
-    zone_type* zx = NULL;
-    zone_type* zy = NULL;
 
     ods_log_assert(x);
     ods_log_assert(y);
-    zx = (zone_type*) x->zone;
-    zy = (zone_type*) y->zone;
-    if (!ldns_dname_compare((const void*) zx->apex,
-        (const void*) zy->apex)) {
+
+    if (!ldns_dname_compare((const void*) x->dname, (const void*) y->dname)) {
         /* if dname is the same, consider the same task */
         return 0;
     }
+
     /* order task on time, what to do, dname */
     if (x->when != y->when) {
         return (int) x->when - y->when;
@@ -134,9 +210,7 @@ task_compare(const void* a, const void* b)
     if (x->what != y->what) {
         return (int) x->what - y->what;
     }
-    /* this is unfair, it prioritizes zones that are first in canonical line */
-    return ldns_dname_compare((const void*) zx->apex,
-        (const void*) zy->apex);
+    return ldns_dname_compare((const void*) x->dname, (const void*) y->dname);
 }
 
 
@@ -145,25 +219,32 @@ task_compare(const void* a, const void* b)
  *
  */
 const char*
-task_what2str(task_id what)
+task_what2str(int what)
 {
     switch (what) {
         case TASK_NONE:
-            return "[ignore]";
+            return "[do nothing with]";
             break;
         case TASK_SIGNCONF:
-            return "[configure]";
+            return "[load signconf for]";
             break;
         case TASK_READ:
             return "[read]";
             break;
+        case TASK_NSECIFY:
+            return "[nsecify]";
+            break;
         case TASK_SIGN:
             return "[sign]";
+            break;
+        case TASK_AUDIT:
+            return "[audit]";
             break;
         case TASK_WRITE:
             return "[write]";
             break;
         default:
+            return "[???]";
             break;
     }
     return "[???]";
@@ -175,14 +256,10 @@ task_what2str(task_id what)
  *
  */
 const char*
-task_who2str(task_type* task)
+task_who2str(const char* who)
 {
-    zone_type* zone = NULL;
-    if (task) {
-        zone = (zone_type*) task->zone;
-    }
-    if (zone && zone->name) {
-        return zone->name;
+    if (who) {
+        return who;
     }
     return "(null)";
 }
@@ -206,19 +283,14 @@ task2str(task_type* task, char* buftask)
         if (buftask) {
             (void)snprintf(buftask, ODS_SE_MAXLINE, "%s %s I will %s zone %s"
                 "\n", task->flush?"Flush":"On", strtime?strtime:"(null)",
-                task_what2str(task->what), task_who2str(task));
+                task_what2str(task->what), task_who2str(task->who));
             return buftask;
         } else {
             strtask = (char*) calloc(ODS_SE_MAXLINE, sizeof(char));
-            if (strtask) {
-                snprintf(strtask, ODS_SE_MAXLINE, "%s %s I will %s zone %s\n",
-                    task->flush?"Flush":"On", strtime?strtime:"(null)",
-                    task_what2str(task->what), task_who2str(task));
-                return strtask;
-            } else {
-                ods_log_error("[%s] unable to convert task to string: malloc "
-                    "error", task_str);
-            }
+            snprintf(strtask, ODS_SE_MAXLINE, "%s %s I will %s zone %s\n",
+                task->flush?"Flush":"On", strtime?strtime:"(null)",
+                task_what2str(task->what), task_who2str(task->who));
+            return strtask;
         }
     }
     return NULL;
@@ -241,7 +313,7 @@ task_print(FILE* out, task_type* task)
         }
         fprintf(out, "%s %s I will %s zone %s\n",
             task->flush?"Flush":"On", strtime?strtime:"(null)",
-            task_what2str(task->what), task_who2str(task));
+            task_what2str(task->what), task_who2str(task->who));
     }
     return;
 }
@@ -263,25 +335,7 @@ task_log(task_type* task)
         }
         ods_log_debug("[%s] %s %s I will %s zone %s", task_str,
             task->flush?"Flush":"On", strtime?strtime:"(null)",
-            task_what2str(task->what), task_who2str(task));
+            task_what2str(task->what), task_who2str(task->who));
     }
-    return;
-}
-
-
-/**
- * Clean up task.
- *
- */
-void
-task_cleanup(task_type* task)
-{
-    allocator_type* allocator;
-    if (!task) {
-        return;
-    }
-    allocator = task->allocator;
-    allocator_deallocate(allocator, (void*) task);
-    allocator_cleanup(allocator);
     return;
 }

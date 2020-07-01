@@ -1,5 +1,5 @@
 /*
- * $Id: database_support_lite.c 6230 2012-03-29 09:33:04Z sion $
+ * $Id: database_support_lite.c 1285 2009-07-15 14:07:41Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -473,99 +473,4 @@ int DbLastRowId(DB_HANDLE handle, DB_ID* id)
 	 */
 
 	return (*id != 0) ? 0 : DBS_NOSUCHROW;
-}
-
-/*+
- * DbQuoteString - Return quoted version of the input string
- *
- * Description:
- * 		Return quoted version of the input string
- *
- * Arguments:
- * 		DB_HANDLE handle
- * 			Handle to the database connection. (not used, but needed for MySQL
- *			version).
- *
- * 		const char* in
- * 			String to quote
- *
- * 		char* buffer
- * 			Quoted string
- *
- * Returns:
- * 		int
- * 			Status return
- *
- * 				0		Success
- * 				Other	Error code.  An error message will have been output.
--*/
-
-int DbQuoteString(DB_HANDLE handle, const char* in, char* buffer, size_t buflen)
-{
-
-	(void) handle;
-
-    if (in == NULL) {
-        return MsgLog(DBS_INVARG, "NULL input string to DbQuoteString");
-    }
-
-	sqlite3_snprintf(buflen, buffer, "%q", in);
-
-	return ( strlen(buffer) == 0 ) ? 1 : 0;
-}
-
-/*+
- * DbDateDiff - Return SQL statement for a date plus or minus a delta
- *
- * Description:
- * 		Return quoted version of the input string
- *
- * Arguments:
- *
- * 		const char* start
- * 			Start date
- *
- * 		int delta
- * 			Difference in seconds
- *
- * 		int sign
- * 			-1 to subtract the delta, +1 to add
- *
- * 		char* buffer
- * 			SQL string
- *
- * Returns:
- * 		int
- * 			Status return
- *
- * 				0		Success
- * 				Other	Error code.  An error message will have been output.
--*/
-
-int DbDateDiff(const char* start, int delta, int sign, char* buffer, size_t buflen)
-{
-	int nchar;
-
-    if (start == NULL) {
-        return MsgLog(DBS_INVARG, "NULL input string to DbDateDiff");
-    }
-
-	if (sign == 1) {
-		nchar = snprintf(buffer, buflen,
-				"DATETIME('%s', '+%d SECONDS')", start, delta);
-	}
-	else if (sign == -1) {
-		nchar = snprintf(buffer, buflen,
-				"DATETIME('%s', '-%d SECONDS')", start, delta);
-	}
-	else {
-        return MsgLog(DBS_INVARG, "Invalid sign to DbDateDiff");
-    }
-
-	if (nchar >= (int)buflen || nchar < 0) {
-		return 1;
-	}
-
-	return 0;
-
 }

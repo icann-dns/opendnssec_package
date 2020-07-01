@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signerd.c 7083 2013-04-03 13:27:51Z matthijs $
+ * $Id: ods-signerd.c 5984 2012-01-02 14:50:59Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -81,6 +81,8 @@ version(FILE* out)
     fprintf(out, "See source files for more license information\n");
     exit(0);
 }
+
+
 
 
 /**

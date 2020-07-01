@@ -1,5 +1,5 @@
 /*
- * $Id: message.c 7018 2013-02-05 13:59:43Z sion $
+ * $Id: message.c 4169 2010-11-04 14:24:23Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -50,6 +50,7 @@
 
 MSG_CODEBLOCK*  m_codeblock = NULL;
 int m_numblocks = 0;        /* Count of code blocks */
+
 
 
 /*+
@@ -422,5 +423,3 @@ void MsgRundown(void)
 
 	return;
 }
-
-

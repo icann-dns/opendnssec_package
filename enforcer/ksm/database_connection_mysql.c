@@ -1,5 +1,5 @@
 /*
- * $Id: database_connection_mysql.c 7018 2013-02-05 13:59:43Z sion $
+ * $Id: database_connection_mysql.c 4150 2010-11-01 11:55:30Z rb $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -45,6 +45,7 @@
 #include "ksm/string_util2.h"
 
 static MYSQL* m_dbhandle = NULL;  /* Non-NULL if connected */
+
 
 
 /*+
