@@ -1,0 +1,3 @@
+  * Imported Upstream version 1.3.7
+  * Add warning about HSM SCA 6000 returning invalid key material with
+    leading zeroes
