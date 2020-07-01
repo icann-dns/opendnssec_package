@@ -1,0 +1,4 @@
+  * Imported Upstream version 1.3.0
+  * Update dependency from libdns-ruby to ruby-dnsruby
+  * opensc-pkcs11.so is now located in /usr/lib/pkcs11/ in package
+    opensc (Closes: #632448)
