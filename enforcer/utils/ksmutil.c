@@ -1,5 +1,5 @@
 /*
- * $Id: ksmutil.c 7158 2013-06-17 12:19:48Z sara $
+ * $Id: ksmutil.c 7416 2013-11-21 08:34:02Z matthijs $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -113,16 +113,19 @@ char *o_keytype = NULL;
 char *o_time = NULL;
 char *o_retire = NULL;
 char *o_zone = NULL;
+char *o_zonetotal = NULL;
 char *o_keytag = NULL;
 static int all_flag = 0;
 static int auto_accept_flag = 0;
 static int ds_flag = 0;
 static int retire_flag = 1;
+static int notify_flag = 1;
 static int verbose_flag = 0;
 static int xml_flag = 1;
 static int td_flag = 0;
 static int force_flag = 0;
 static int hsm_flag = 1;
+static int check_repository_flag = 0;
 
 static int restart_enforcerd(void);
 
@@ -304,6 +307,7 @@ usage_keyimport ()
             "\t--keystate <state>                       aka -e\n"
             "\t--keytype <type>                         aka -t\n"
             "\t--time <time>                            aka -w\n"
+    		"\t[--check-repository]                     aka -C\n"
             "\t[--retire <retire>]                      aka -y\n");
 }
 
@@ -334,9 +338,10 @@ usage_keygen ()
 {
     fprintf(stderr,
             "  key generate\n"
-		    "\t--policy <policy>\n"
-            "\t--interval <interval>\n"
-            "\t--auto-accept\n");
+		    "\t--policy <policy>                        aka -p\n"
+            "\t--interval <interval>                    aka -n\n"
+            "\t[--zonetotal <total no. of zones>]       aka -Z\n"
+            "\t--auto-accept                            aka -A\n");
 }
 
     void
@@ -356,7 +361,8 @@ usage_keydsseen ()
             /*"\t--zone <zone> (or --all)                 aka -z\n"*/
             "\t--zone <zone>                            aka -z\n"
             "\t--keytag <keytag> | --cka_id <CKA_ID>    aka -x / -k\n"
-            "\t--no-retire\n");
+            "\t[--no-notify|-l]                         aka -l\n"
+            "\t[--no-retire|-f]                         aka -f\n");
 }
 
 	void
@@ -495,10 +501,27 @@ types_help()
             "key types:  KSK|ZSK\n");
 }
 
+/*
+ * Check if the file exists.
+ * @param filename: name of file to be checked.
+ * @return: (int) 1 if file exist, 0 otherwise.
+ *
+ */
+static int
+exist_file(const char* filename) {
+	int status = 0;
+	FILE *file = fopen(filename, "r");
+	if(file != NULL){
+		fclose(file);
+		status = 1;
+	}
+	return status;
+}
+
 /* 
  * Do initial import of config files into database
  */
-    int
+int
 cmd_setup ()
 {
     DB_HANDLE	dbhandle;
@@ -931,43 +954,65 @@ cmd_addzone ()
         StrAppend(&sig_conf_name, o_signerconf);
     }
 
+    /* in the case of a 'DNS' adapter using a default path */
+    if (o_in_type == NULL) {
+   		StrAppend(&input_type, "File");
+    } else {
+   		StrAppend(&input_type, o_in_type);
+   	}
+
     if (o_input == NULL) {
-        StrAppend(&input_name, OPENDNSSEC_STATE_DIR);
-        StrAppend(&input_name, "/unsigned/");
-        StrAppend(&input_name, o_zone);
+    	if(strcmp(input_type, "DNS")==0){
+       		StrAppend(&input_name, OPENDNSSEC_CONFIG_DIR);
+   			StrAppend(&input_name, "/addns.xml");
+       	}else{
+       		StrAppend(&input_name, OPENDNSSEC_STATE_DIR);
+   			StrAppend(&input_name, "/unsigned/");
+   			StrAppend(&input_name, o_zone);
+       	}
     }
     else if (*o_input != '/') {
-        StrAppend(&input_name, path);
-        StrAppend(&input_name, "/");
-        StrAppend(&input_name, o_input);
+    	StrAppend(&input_name, path);
+    	StrAppend(&input_name, "/");
+    	StrAppend(&input_name, o_input);
     } else {
-        StrAppend(&input_name, o_input);
+    	StrAppend(&input_name, o_input);
     }
 
-	if (o_in_type == NULL) {
-		StrAppend(&input_type, "File");
-	} else {
-		StrAppend(&input_type, o_in_type);
-	}
+    if (o_out_type == NULL) {
+   		StrAppend(&output_type, "File");
+   	} else {
+   		StrAppend(&output_type, o_out_type);
+   	}
 
     if (o_output == NULL) {
-        StrAppend(&output_name, OPENDNSSEC_STATE_DIR);
-        StrAppend(&output_name, "/signed/");
-        StrAppend(&output_name, o_zone);
+    	if(strcmp(output_type, "DNS") == 0){
+       		StrAppend(&output_name, OPENDNSSEC_CONFIG_DIR);
+   			StrAppend(&output_name, "/addns.xml");
+   		}else{
+   			StrAppend(&output_name, OPENDNSSEC_STATE_DIR);
+   			StrAppend(&output_name, "/signed/");
+   			StrAppend(&output_name, o_zone);
+   		}
+
     }
     else if (*o_output != '/') {
-        StrAppend(&output_name, path);
-        StrAppend(&output_name, "/");
-        StrAppend(&output_name, o_output);
+    	StrAppend(&output_name, path);
+    	StrAppend(&output_name, "/");
+    	StrAppend(&output_name, o_output);
     } else {
-        StrAppend(&output_name, o_output);
+    	StrAppend(&output_name, o_output);
     }
 
-	if (o_out_type == NULL) {
-		StrAppend(&output_type, "File");
-	} else {
-		StrAppend(&output_type, o_out_type);
-	}
+
+   	/* validate if the input file exist */
+   	if(!exist_file(input_name)){
+   		fprintf(stdout, "WARNING: The input file %s for zone %s does not currently exist. The zone will been added to the database anyway. \n",input_name, o_zone);
+   	}
+
+   	if(strcmp(output_type, "DNS") == 0 && !exist_file(output_name)){
+   		fprintf(stdout, "WARNING: The output file %s for zone %s does not currently exist. \n",output_name, o_zone);
+   	}
 
     free(path);
 
@@ -1568,6 +1613,7 @@ cmd_exportkeys ()
                 KSM_STATE_DSPUBLISH, KSM_STATE_DSREADY, KSM_STATE_KEYPUBLISH);
         if (nchar >= sizeof(buffer)) {
             status = -1;
+			hsm_close();
             return status;
         }
         DqsConditionKeyword(&sql, "STATE", DQS_COMPARE_IN, buffer, 0);
@@ -1608,6 +1654,7 @@ cmd_exportkeys ()
 
             if (!key) {
                 printf("Key %s in DB but not repository\n", data.location);
+				hsm_close();
                 return -1;
             }
 
@@ -1618,6 +1665,7 @@ cmd_exportkeys ()
                 if (status != 0) {
                     printf("Error: unable to find zone name for id %d\n", zone_id);
                     hsm_sign_params_free(sign_params);
+					hsm_close();
                     return(status);
                 }
                 sign_params->owner = ldns_rdf_new_frm_str(LDNS_RDF_TYPE_DNAME, zone_name);
@@ -1720,6 +1768,7 @@ cmd_exportkeys ()
         ldns_rr_free(ds_sha256_rr);
     }
 
+	hsm_close();
     DbDisconnect(dbhandle);
 
     return 0;
@@ -2988,9 +3037,15 @@ cmd_dsseen()
 				} else {
 					/* ...Unless this looks like a new zone, in which case poke
 					   the enforcerd*/
-					if (restart_enforcerd() != 0)
-					{
+					if (notify_flag == 1) {
+						if (restart_enforcerd() != 0) {
 						fprintf(stderr, "Could not HUP ods-enforcerd\n");
+						} else {
+							fprintf(stdout, "Performed a HUP ods-enforcerd\n"); /** too verbose? */
+					}
+					} else {
+						fprintf(stdout, "No HUP ods-enforcerd was performed as the '--no-notify' flag was specified.\n");
+						fprintf(stdout, "Warning: The enforcer must be manually notified or the changes will not take full effect until the next scheduled enforcer run.\n");						
 					}
 					return 0;
 				}
@@ -3009,11 +3064,16 @@ cmd_dsseen()
         }
     }
 
-    /* Need to poke the enforcer to wake it up */
-    if (restart_enforcerd() != 0)
-    {
+	if (notify_flag == 1) {
+		if (restart_enforcerd() != 0) {
         fprintf(stderr, "Could not HUP ods-enforcerd\n");
+		} else {
+			fprintf(stdout, "Performed a HUP ods-enforcerd\n"); /** too verbose? */
     }
+	} else {
+		fprintf(stdout, "No HUP ods-enforcerd was performed as the '--no-notify' flag was specified.\n");
+		fprintf(stdout, "Warning: The enforcer must be manually notified or the changes will not take full effect until the next scheduled enforcer run.\n");						
+	}
 
     /* Release sqlite lock file (if we have it) */
     db_disconnect(lock_fd);
@@ -3065,6 +3125,8 @@ cmd_import ()
 
     int user_certain;           /* Continue ? */
 
+	hsm_key_t *key = NULL;
+
     /* Chech that we got all arguments. */
 
     if (o_cka_id == NULL) {
@@ -3099,6 +3161,25 @@ cmd_import ()
         printf("Error: please specify the time of when the key entered the given state with the --time <time>\n");
         return(1);
     }
+
+    /* Check the key does not exist in the specified HSM */
+	status = hsm_open(config, hsm_prompt_pin);
+	if (status) {
+		hsm_print_error(NULL);
+		return(1);
+	}
+	key = hsm_find_key_by_id(NULL, o_cka_id);
+	hsm_close();
+	if (!key) {
+		if(check_repository_flag){
+			fprintf(stderr, "Error: No key with the CKA_ID %-33s exists in the repository %s. When the option [--check-repository] is used the key MUST exist in the repository for the key to be imported. \n", o_cka_id,o_repository);
+			return(1);
+		}else{
+			fprintf(stdout, "Warning: No key with the CKA_ID %-33s exists in the repository %s. The key will be imported into the database anyway. \n", o_cka_id,o_repository);
+		}
+	}else{
+		hsm_key_free(key);
+	}
 
     /* try to connect to the database */
     status = db_connect(&dbhandle, &lock_fd, 1);
@@ -3692,6 +3773,7 @@ main (int argc, char *argv[])
         {"auto-accept", no_argument,   0, 'A'},
         {"bits",    required_argument, 0, 'b'},
         {"config",  required_argument, 0, 'c'},
+        {"check-repository", no_argument,     0, 'C'},
         {"ds",      no_argument,       0, 'd'},
         {"keystate", required_argument, 0, 'e'},
         {"no-retire", no_argument,       0, 'f'},
@@ -3701,6 +3783,7 @@ main (int argc, char *argv[])
         {"input",   required_argument, 0, 'i'},
         {"in-type", required_argument, 0, 'j'},
         {"cka_id",  required_argument, 0, 'k'},
+        {"no-notify", no_argument,       0, 'l'},
         {"no-xml",  no_argument,        0, 'm'},
         {"no-hsm",  no_argument,        0, 'M'},
         {"interval",  required_argument, 0, 'n'},
@@ -3716,12 +3799,13 @@ main (int argc, char *argv[])
         {"keytag",  required_argument, 0, 'x'},
         {"retire",  required_argument, 0, 'y'},
         {"zone",    required_argument, 0, 'z'},
+		{"zonetotal", required_argument, 0, 'Z'},
         {0,0,0,0}
     };
 
     progname = argv[0];
 
-    while ((ch = getopt_long(argc, argv, "aAb:c:de:fFg:hi:j:k:mMn:o:p:q:r:s:t:vVw:x:y:z:", long_options, &option_index)) != -1) {
+    while ((ch = getopt_long(argc, argv, "aAb:Cc:de:fFg:hi:j:k:mMln:o:p:q:r:s:t:vVw:x:y:z:Z:", long_options, &option_index)) != -1) {
         switch (ch) {
             case 'a':
                 all_flag = 1;
@@ -3735,6 +3819,9 @@ main (int argc, char *argv[])
             case 'c':
                 config = StrStrdup(optarg);
                 break;
+            case 'C':
+            	check_repository_flag = 1;
+            	break;
             case 'd':
                 ds_flag = 1;
                 break;
@@ -3765,6 +3852,9 @@ main (int argc, char *argv[])
                 break;
             case 'k':
                 o_cka_id = StrStrdup(optarg);
+                break;
+            case 'l':
+                notify_flag = 0;
                 break;
             case 'm':
                 xml_flag = 0;
@@ -3818,6 +3908,9 @@ main (int argc, char *argv[])
 				}
 
                 break;
+			case 'Z':
+				o_zonetotal = StrStrdup(optarg);
+				break;
             default:
                 usage();
                 exit(1);
@@ -4469,6 +4562,7 @@ int update_policies(char* kasp_filename)
     xmlNode *childNode2;
     xmlNode *childNode3;
     xmlChar *opt_out_flag = (xmlChar *)"N";
+    xmlChar *nsec3param_ttl = NULL ;
     xmlChar *share_keys_flag = (xmlChar *)"N";
     xmlChar *man_roll_flag = (xmlChar *)"N";
     xmlChar *rfc5011_flag = (xmlChar *)"N";
@@ -4855,6 +4949,9 @@ int update_policies(char* kasp_filename)
                                 else if (xmlStrEqual(childNode2->name, (const xmlChar *)"Resalt")) {
                             SetParamOnPolicy(xmlNodeGetContent(childNode2), "resalt", "denial", policy->denial->resalt, policy->id, DURATION_TYPE);
                                 }
+								else if (xmlStrEqual(childNode2->name, (const xmlChar *)"TTL")) {
+									nsec3param_ttl = xmlNodeGetContent(childNode2);
+                                }
                                 else if (xmlStrEqual(childNode2->name, (const xmlChar *)"Hash")) {
                                     childNode3 = childNode2->children;
                                     while (childNode3){
@@ -4875,6 +4972,10 @@ int update_policies(char* kasp_filename)
                             }
                             /* Set things that we flagged */
                             SetParamOnPolicy(opt_out_flag, "optout", "denial", policy->denial->optout, policy->id, BOOL_TYPE);
+                            if (nsec3param_ttl == NULL)
+                            	nsec3param_ttl = (xmlChar *) StrStrdup("PT0S"); 
+                            SetParamOnPolicy(nsec3param_ttl, "ttl", "denial", policy->denial->ttl, policy->id, DURATION_TYPE);
+                            nsec3param_ttl = NULL;
                         } /* End of NSEC3 */
                         else if (xmlStrEqual(childNode->name, (const xmlChar *)"NSEC")) {
                             status = KsmParameterSet("version", "denial", 1, policy->id);
@@ -6238,6 +6339,10 @@ int append_policy(xmlDocPtr doc, KSM_POLICY *policy)
     else    /* NSEC3 */
     {
         nsec_node = xmlNewTextChild(denial_node, NULL, (const xmlChar *)"NSEC3", NULL);
+		if (policy->denial->ttl != 0) {
+			snprintf(temp_time, 32, "PT%dS", policy->denial->ttl);
+			(void) xmlNewTextChild(nsec_node, NULL, (const xmlChar *)"TTL", (const xmlChar *)temp_time);
+		}
         if (policy->denial->optout == 1)
         {
             (void) xmlNewTextChild(nsec_node, NULL, (const xmlChar *)"OptOut", NULL);
@@ -6607,6 +6712,10 @@ int ListKeys(int zone_id)
         ldns_rr_free(dnskey_rr);
     }
 
+    if (verbose_flag) {
+		hsm_close();
+    }
+
     return status;
 }
 
@@ -6700,6 +6809,7 @@ int PurgeKeys(int zone_id, int policy_id)
                 DbStringFree(temp_loc);
                 DbFreeRow(row);
 				DusFree(sql);
+				hsm_close();
                 return status;
             }
 
@@ -6721,6 +6831,7 @@ int PurgeKeys(int zone_id, int policy_id)
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
 					DusFree(sql);
+					hsm_close();
                     return status;
                 }
 
@@ -6737,6 +6848,7 @@ int PurgeKeys(int zone_id, int policy_id)
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
 					DusFree(sql);
+					hsm_close();
                     return status;
                 }
 
@@ -6748,6 +6860,7 @@ int PurgeKeys(int zone_id, int policy_id)
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
 					DusFree(sql);
+					hsm_close();
                     return -1;
                 }
 
@@ -6762,6 +6875,7 @@ int PurgeKeys(int zone_id, int policy_id)
                     DbStringFree(temp_loc);
                     DbFreeRow(row);
 					DusFree(sql);
+					hsm_close();
                     return -1;
                 }
             }
@@ -6787,6 +6901,8 @@ int PurgeKeys(int zone_id, int policy_id)
     DbFreeRow(row);
 
     DbStringFree(temp_loc);
+
+	hsm_close();
 
     return status;
 }
@@ -6951,6 +7067,7 @@ int cmd_genkeys()
         printf("Couldn't turn \"now\" into a date, quitting...\n");
         db_disconnect(lock_fd);
         KsmPolicyFree(policy);
+		hsm_close();
         exit(1);
     }
 
@@ -6967,28 +7084,61 @@ int cmd_genkeys()
     } 
     DbFreeResult(result); 
 
-    if (status == 0) { 
+    if (status != 0) {
+        printf("Could not count zones on policy %s\n", policy->name);
+        db_disconnect(lock_fd);
+		if (ctx) {
+			hsm_destroy_context(ctx);
+		}
+		hsm_close();
+		KsmPolicyFree(policy);
+        return status; 
+    }
+    printf("Info: %d zone(s) found on policy \"%s\"\n", zone_count, policy->name);
+
+	/* If the zone total has been specified manually then use this 
+	instead but report how it differs from the actual number of zones*/
+    if (o_zonetotal) {
+	  /* Check the value is numeric*/
+      if (StrIsDigits(o_zonetotal)) {
+        status = StrStrtoi(o_zonetotal, &zone_count);
+        if (status != 0) {
+            printf("Error: Unable to convert zonetotal \"%s\"; to an integer\n", o_zonetotal);
+            db_disconnect(lock_fd);
+            KsmPolicyFree(policy);
+			hsm_close();
+            exit(1);
+        }
+      } else {
+          printf("Error: zonetotal \"%s\"; should be numeric only\n", o_zonetotal);
+          db_disconnect(lock_fd);
+          KsmPolicyFree(policy);
+		  hsm_close();
+          exit(1);
+      }
+      /* Check the value is greater than 0*/
+      if (zone_count < 1) { 
+          printf("Error: zonetotal parameter value of %d is invalid - the value must be greater than 0\n", zone_count);
+	      db_disconnect(lock_fd);
+          KsmPolicyFree(policy);
+		  hsm_close();
+          exit(1); 
+      }
+	  printf("Info: Keys will actually be generated for a total of %d zone(s) as specified by zone total parameter\n", zone_count);
+	}
+	else {
         /* make sure that we have at least one zone */ 
         if (zone_count == 0) { 
-            printf("No zones on policy %s, skipping...", policy->name);
-	    db_disconnect(lock_fd);
-	    if (ctx) {
-		    hsm_destroy_context(ctx);
-	    }
-	    hsm_close();
+            printf("No zones on policy %s, skipping...\n", policy->name);
+	    	db_disconnect(lock_fd);
+		    if (ctx) {
+			    hsm_destroy_context(ctx);
+		    }
+		    hsm_close();
             KsmPolicyFree(policy);
             return status; 
         } 
-    } else {
-        printf("Could not count zones on policy %s", policy->name);
-        db_disconnect(lock_fd);
-	if (ctx) {
-		hsm_destroy_context(ctx);
 	}
-	hsm_close();
-	KsmPolicyFree(policy);
-        return status; 
-    }
 
     /* Find out how many ksk keys are needed for the POLICY */
     status = KsmKeyPredict(policy->id, KSM_TYPE_KSK, policy->shared_keys, interval, &ksks_needed, policy->ksk->rollover_scheme, zone_count);
@@ -7008,13 +7158,10 @@ int cmd_genkeys()
         KsmPolicyFree(policy);
 		return(1);
     }
-    /* Correct for shared keys */
-    if (policy->shared_keys == KSM_KEYS_SHARED) {
-        ksks_in_queue /= zone_count;
-    }
+    /* Don't have to adjust the queue for shared keys as the prediction has already taken care of that.*/
 
     new_ksks = ksks_needed - ksks_in_queue;
-    /* fprintf(stderr, "keygen(ksk): new_keys(%d) = keys_needed(%d) - keys_in_queue(%d)\n", new_keys, ksks_needed, keys_in_queue); */
+    /* fprintf(stderr, "keygen(ksk): new_ksks(%d) = ksks_needed(%d) - ksks_in_queue(%d)\n", new_ksks, ksks_needed, ksks_in_queue); */
 
     /* Find out how many ZSKs are needed for the POLICY */
     status = KsmKeyPredict(policy->id, KSM_TYPE_ZSK, policy->shared_keys, interval, &zsks_needed, 0, zone_count);
@@ -7034,17 +7181,22 @@ int cmd_genkeys()
         KsmPolicyFree(policy);
 		return(1);
     }
-    /* Correct for shared keys */
-    if (policy->shared_keys == KSM_KEYS_SHARED) {
-        zsks_in_queue /= zone_count;
-    }
-    /* Might have to account for ksks */
+	/* Don't have to adjust the queue for shared keys as the prediction has already taken care of that.*/
+    /* Need to account for how many ksks will be taken from the queue*/
     if (same_keys) {
-        zsks_in_queue -= ksks_needed;
-    }
+	 	/* If we need to generate any new ksks then there aren't enough keys on the queue to meet the demand for ksks.
+	 	   So we can't use any keys in the queue for zsks therefore we set the number available to 0 */
+		if (new_ksks >= 0) {
+			zsks_in_queue = 0;
+		} else {
+		 	/* Otherwise we can use any _not_ required for the ksks as zsk.
+		       So we set the number availble to equal those left over after we have taken all the ksk. */
+        	zsks_in_queue -= ksks_needed;
+		}
+     }
 
     new_zsks = zsks_needed - zsks_in_queue;
-    /* fprintf(stderr, "keygen(zsk): new_keys(%d) = keys_needed(%d) - keys_in_queue(%d)\n", new_keys, zsks_needed, keys_in_queue); */
+    /* fprintf(stderr, "keygen(zsk): new_zsks(%d) = zsks_needed(%d) - zsks_in_queue(%d)\n", new_zsks, zsks_needed, zsks_in_queue); */
 	
     /* Check capacity of HSM will not be exceeded */
 	if (policy->ksk->sm == policy->zsk->sm) {
@@ -7095,27 +7247,35 @@ int cmd_genkeys()
 	}
 
 	/* If there is no work to do exit here */
-	if (new_ksks == 0 && new_zsks == 0) {
-		printf("No keys to create, quitting...\n");
+	if (new_ksks <= 0 && new_zsks <= 0) {
+		printf("No keys need to be created, quitting...\n");
     
 		if (ctx) {
 			hsm_destroy_context(ctx);
 		}
-
-		hsm_close();
+		status = hsm_close();
+		printf("all done! hsm_close result: %d\n", status);
         db_disconnect(lock_fd);
         KsmPolicyFree(policy);
-		return(0);
+		return(status);		
 	}
 
 	/* Make sure that the user is happy */
 	if (!auto_accept_flag) {
-		printf("*WARNING* This will create %d KSKs (%d bits) and %d ZSKs (%d bits)\nAre you sure? [y/N] ", new_ksks, policy->ksk->bits, new_zsks, policy->zsk->bits);
+		printf("*WARNING* This will create %d KSKs (%d bits) and %d ZSKs (%d bits)\nAre you sure? [y/N] \n", new_ksks >= 0 ? new_ksks : 0, policy->ksk->bits, new_zsks >= 0 ? new_zsks : 0, policy->zsk->bits);
 
 		user_certain = getchar();
 		if (user_certain != 'y' && user_certain != 'Y') {
 			printf("Okay, quitting...\n");
-			exit(0);
+			
+			if (ctx) {
+				hsm_destroy_context(ctx);
+			}
+			status = hsm_close();
+			printf("all done! hsm_close result: %d\n", status);
+	        db_disconnect(lock_fd);
+	        KsmPolicyFree(policy);
+			return(status);
 		}
 	}
 	
@@ -7137,6 +7297,7 @@ int cmd_genkeys()
                 }
                 db_disconnect(lock_fd);
                 KsmPolicyFree(policy);
+				hsm_close();
                 exit(1);
             }
             id = hsm_get_key_id(ctx, key);
@@ -7151,6 +7312,7 @@ int cmd_genkeys()
                 }
                 db_disconnect(lock_fd);
                 KsmPolicyFree(policy);
+				hsm_close();
                 exit(1);
             }
             printf("Created KSK size: %i, alg: %i with id: %s in repository: %s and database.\n", policy->ksk->bits,
@@ -7160,6 +7322,7 @@ int cmd_genkeys()
             printf("Key algorithm %d unsupported by libhsm.\n", policy->ksk->algorithm);
             db_disconnect(lock_fd);
             KsmPolicyFree(policy);
+			hsm_close();
             exit(1);
         }
     }
@@ -7183,6 +7346,7 @@ int cmd_genkeys()
                 }
                 db_disconnect(lock_fd);
                 KsmPolicyFree(policy);
+				hsm_close();
                 exit(1);
             }
             id = hsm_get_key_id(ctx, key);
@@ -7197,6 +7361,7 @@ int cmd_genkeys()
                 }
                 db_disconnect(lock_fd);
                 KsmPolicyFree(policy);
+				hsm_close();
                 exit(1);
             }
             printf("Created ZSK size: %i, alg: %i with id: %s in repository: %s and database.\n", policy->zsk->bits,
@@ -7206,6 +7371,7 @@ int cmd_genkeys()
             printf("Key algorithm %d unsupported by libhsm.\n", policy->zsk->algorithm);
             db_disconnect(lock_fd);
             KsmPolicyFree(policy);
+			hsm_close();
             exit(1);
         }
     }
@@ -7334,12 +7500,14 @@ int cmd_delkey()
 
 		if (!key) {
 			printf("Key not found in HSM: %s\n", o_cka_id);
+			hsm_close();
 			return -1;
 		}
 
 		status = hsm_remove_key(NULL, key);
 
 		hsm_key_free(key);
+		hsm_close();
 	}
 
 	if (!status) {
@@ -7604,6 +7772,7 @@ int CountKeys(int *zone_id, int keytag, const char *cka_id, int *key_count, char
         KSM_STATE_READY, KSM_STATE_ACTIVE, KSM_STATE_DSSUB);
     if (nchar >= sizeof(buffer)) {
         printf("Error: Overran buffer in CountKeys\n");
+		hsm_close();
         return(-1);
     }
 
@@ -7716,6 +7885,8 @@ int CountKeys(int *zone_id, int keytag, const char *cka_id, int *key_count, char
     if (dnskey_rr != NULL) {
         ldns_rr_free(dnskey_rr);
     }
+
+	hsm_close();
 
     return status;
 }
@@ -9178,6 +9349,7 @@ int ListDS(int zone_id) {
 				DbStringFree(temp_location);
 				DbStringFree(temp_zone);
                 StrFree(sql);
+				hsm_close();
                 return status;
             }
 
@@ -9228,6 +9400,7 @@ int ListDS(int zone_id) {
 
 	DbFreeRow(row);
     StrFree(sql);
+	hsm_close();
 
 	return status;
 }

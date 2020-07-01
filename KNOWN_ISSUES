@@ -1,4 +1,4 @@
-$Id: KNOWN_ISSUES 7158 2013-06-17 12:19:48Z sara $
+$Id: KNOWN_ISSUES 7257 2013-09-02 12:15:55Z sara $
 
 OpenDNSSEC 1.4.0 - Known Restrictions
 
@@ -9,6 +9,7 @@ BUGS:
 -----
 
 OPENDNSSEC-332: Statistics on average sigs/sec not accurate
+OPENDNSSEC-437: Problem with invalid signatures on SOA RRset.
 
 
 Limitations on Number of Zones

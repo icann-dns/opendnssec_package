@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: kasp.xml.in 6261 2012-04-18 12:47:28Z jakob $ -->
+<!-- $Id: kasp.xml.in 7358 2013-10-11 11:47:27Z matthijs $ -->
 
 <!--
   
@@ -30,6 +30,7 @@
 
 		<Denial>
 			<NSEC3>
+				<!-- <TTL>PT0S</TTL> -->
 				<!-- <OptOut/> -->
 				<Resalt>P100D</Resalt>
 				<Hash>
