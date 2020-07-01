@@ -1,0 +1,5 @@
+  * Remove circular dependency between opendnssec-enforcer and its
+    backends (Closes: #744838)
+  * Add MariaDB as alternative to MySQL (Closes: #732901)
+  * d/control: Cleanup of conflicts and dependencies
+  * Install all doxygen documentation inside opendnssec-doc directory
