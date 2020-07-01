@@ -1,0 +1,6 @@
+  * New upstream release
+  * Remove manpage patches, merged upstream
+  * Tighten build and runtime dependencies due upstream changes
+   + ldns (>= 1.6.6~)
+   + libdns-rub (>= 1.49~)
+  * Improve init.d script to kill enforcer by name and not just pidfile
