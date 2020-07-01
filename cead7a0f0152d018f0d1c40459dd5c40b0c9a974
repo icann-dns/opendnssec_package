@@ -1,0 +1,5 @@
+  * Non-maintainer upload.
+  * New upstream release. (Closes: #869091, #870072) (LP: #1703836)
+    - refresh patches
+  * enforcer-*.install: ods-ksmutil was removed, drop from here too.
+  * source/local-options: Ignore files not on the tarball.
