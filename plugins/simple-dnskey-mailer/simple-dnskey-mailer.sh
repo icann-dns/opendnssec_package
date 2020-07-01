@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 #
-# $Id: ods-kasp2html.in 5320 2011-07-12 10:42:26Z jakob $
+# $Id: simple-dnskey-mailer.sh 5320 2011-07-12 10:42:26Z jakob $
 #
-# Copyright (c) 2010 Kirei AB. All rights reserved.
-#
+# Copyright (c) 2010 .SE (The Internet Infrastructure Foundation).
+# All rights reserved.
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
 # are met:
@@ -12,7 +13,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -24,30 +25,21 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# 
 
-XMLLINT=@XMLLINT@
-XSLTPROC=@XSLTPROC@
+# ***********************************************************************
+# *
+# * This script sends keys from OpenDNSSEC to the address specified below
+# *
+# * Set this up by specifying the path for this script in conf.xml
+# * using the <DelegationSignerSubmitCommand> tag.
+# *
+# ***********************************************************************
 
-KASP_SCHEMA=@OPENDNSSEC_DATA_DIR@/kasp.rng
-KASP_XSL=@OPENDNSSEC_DATA_DIR@/kasp2html.xsl
+# define and uncomment recipient below
+#RECIPIENT=user@example.com
 
-KASP_XML=$1
-
-
-if [ ! -x "$XMLLINT" ]; then
-        echo "error: xmllint required, but not found"
-        exit 1
-fi
-
-if [ ! -x "$XSLTPROC" ]; then
-        echo "error: xsltproc required, but not found"
-        exit 1
-fi
-
-if [ -f "$KASP_XML" ]; then
-        $XMLLINT --noout --relaxng $KASP_SCHEMA $KASP_XML && \
-        $XSLTPROC $KASP_XSL $KASP_XML
+if [ -n "$RECIPIENT" ]; then
+	cat | mail -s "New keys from OpenDNSSEC" $RECIPIENT
 else
-	echo "usage: $0 [kasp.xml]"
 fi

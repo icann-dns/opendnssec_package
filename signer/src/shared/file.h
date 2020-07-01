@@ -1,5 +1,5 @@
 /*
- * $Id: file.h 5227 2011-06-12 08:51:24Z jakob $
+ * $Id: file.h 5320 2011-07-12 10:42:26Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,6 +35,7 @@
 #define SHARED_FILE_H
 
 #include "config.h"
+#include "shared/status.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -151,10 +152,10 @@ char* ods_dir_name(const char* file);
  * Copy file.
  * \param[in] file1 from file name
  * \param[in] file2 to file name
- * \return 0 on success, 1 on error
+ * \return ods_status
  *
  */
-int ods_file_copy(const char* file1, const char* file2);
+ods_status ods_file_copy(const char* file1, const char* file2);
 
 /**
  * (Create) and change ownership of directories.

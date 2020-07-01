@@ -1,4 +1,4 @@
-# $Id: Makefile.am 5227 2011-06-12 08:51:24Z jakob $
+# $Id: Makefile.am 5320 2011-07-12 10:42:26Z jakob $
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -26,7 +26,8 @@ SUBDIRS += plugins/eppclient
 endif
 
 EXTRA_DIST =	$(srcdir)/KNOWN_ISSUES \
-		$(srcdir)/MIGRATION
+		$(srcdir)/MIGRATION \
+		$(srcdir)/plugins/simple-dnskey-mailer/simple-dnskey-mailer.sh
 
 
 install-data-hook:

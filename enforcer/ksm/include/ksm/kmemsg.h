@@ -44,7 +44,7 @@ static const char* m_messages[] = {
 	"INFO: Manual rollover due for %s of zone %s",
 	"ERROR: database version number incompatible with software; require %d, found %d. Please run the migration scripts",
 	"ERROR: Too many rows returned from dbadmin table; there should be only one.",
-	"WARNING: KSK Retirement reached; please submit the new DS for %s and use ods-ksmutil key ds-seen when the DS appears in the DNS.",
+	"WARNING: New KSK has reached the ready state; please submit the DS for %s and use ods-ksmutil key ds-seen when the DS appears in the DNS.",
 	"ERROR: Key %s in DB but not repository.",
 	"INFO: New DS records needed for the zone %s; details will follow",
 

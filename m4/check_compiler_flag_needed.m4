@@ -1,4 +1,4 @@
-# $Id: check_compiler_flag_needed.m4 5227 2011-06-12 08:51:24Z jakob $
+# $Id: check_compiler_flag_needed.m4 5320 2011-07-12 10:42:26Z jakob $
 
 # if the given code compiles without the flag, execute argument 4
 # if the given code only compiles with the flag, execute argument 3

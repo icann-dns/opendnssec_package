@@ -1,5 +1,5 @@
 /*
- * $Id: kmedef.h 5227 2011-06-12 08:51:24Z jakob $
+ * $Id: kmedef.h 5320 2011-07-12 10:42:26Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -81,7 +81,7 @@
 #define KME_MAN_ROLL_REQUIRED  (KME_BASE + 33)     /* INFO: Manual rollover due for %s of zone %s */
 #define KME_WRONG_DB_VER (KME_BASE + 34)     /* ERROR: database version number incompatible with software; require %d, found %d. Please run the migration scripts */
 #define KME_DB_ADMIN    (KME_BASE + 35)     /* ERROR: Too many rows returned from dbadmin table; there should be only one. */
-#define KME_DS_SUBMISSION    (KME_BASE + 36)     /* WARNING: KSK Retirement reached; please submit the new DS for %s and use ods-ksmutil key ds-seen when the DS appears in the DNS. */
+#define KME_DS_SUBMISSION    (KME_BASE + 36)     /* WARNING: New KSK has reached the ready state; please submit the DS for %s and use ods-ksmutil key ds-seen when the DS appears in the DNS. */
 #define KME_KEY_NOT_IN_REPO (KME_BASE + 37) /* ERROR: Key %s in DB but not repository. */
 #define KME_NEW_DS    (KME_BASE + 38) /* INFO: New DS records needed for the zone %s; details will follow */
 
