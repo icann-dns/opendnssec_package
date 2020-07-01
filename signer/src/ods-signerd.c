@@ -1,5 +1,5 @@
 /*
- * $Id: ods-signerd.c 5984 2012-01-02 14:50:59Z matthijs $
+ * $Id: ods-signerd.c 5985 2012-01-02 14:56:38Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

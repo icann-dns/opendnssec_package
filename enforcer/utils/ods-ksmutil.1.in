@@ -1,5 +1,5 @@
 .TH "ods-ksmutil" "1" "February 2010" OpenDNSSEC "OpenDNSSEC ods-ksmutil"
-.\" $Id: ods-ksmutil.1.in 4142 2010-10-26 08:29:16Z sion $
+.\" $Id: ods-ksmutil.1.in 6027 2012-01-05 10:04:50Z sion $
 .SH "NAME"
 .LP
 .B ods-ksmutil
@@ -17,8 +17,11 @@
 .br
 .B ods-ksmutil zonelist import|export
 .br
-.B ods-ksmutil key generate|import|export|list|purge|rollover|ksk-retire|ds-seen
+.B ods-ksmutil key 
+.RS
+.B		generate|import|export|list|purge|rollover|ksk\-retire|ds\-seen|delete
 .RB ...
+.RE
 .br
 .B ods-ksmutil rollover list
 .RB ...
@@ -240,9 +243,19 @@ An optional \-\-no\-retire flag can also be passed in, without this the
 existing key is moved into the retired state at the same time as making 
 the new key active. If you wish to delay this step then pass in this flag 
 and use the ksk\-retire command when needed.
+
+.TP
+.B key delete --cka_id|-k \fIckaid\fB [\-\-no\-hsm]
+Remove a named key from the system.
+
+Keys in the GENERATE or DEAD state can be safely removed from the system as
+they are not in use.
+
+The \-\-no\-hsm flag can be provided if you want to leave the key material on the HSM.
+
 .br
 .TP
-.B ods-ksmutil rollover list
+.B rollover list
 List the expected dates and times of upcoming rollovers.  This can be
 used to get an idea of upcoming work, such as the non-standardised
 submission of DS records to a registry.
@@ -385,7 +398,7 @@ The location that is usually configured in conf.xml to contain unsigned zones.
 The location that is usually configured in conf.xml to contain signed zones.
 .SH "SEE ALSO"
 .LP
-ods\-auditor(1), ods\-control(8), ods\-enforcerd(8), ods\-hsmspeed(1),
+ods\-control(8), ods\-enforcerd(8), ods\-hsmspeed(1),
 ods\-hsmutil(1), ods\-kaspcheck(1), ods\-signer(8),
 ods\-signerd(8), ods\-timing(5), opendnssec(7),
 .B http://www.opendnssec.org/

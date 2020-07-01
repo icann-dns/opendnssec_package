@@ -1,13 +1,14 @@
-# $Id: Makefile.am 4642 2011-03-24 14:10:21Z rb $
+# $Id: Makefile.am 5348 2011-08-03 13:01:40Z rb $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
-LIBHSM = ${top_builddir}/libhsm/src/libhsm.a
+LIBHSM = ${top_builddir}/libhsm/src/lib/libhsm.a
 LIBCOMPAT = ${top_builddir}/common/libcompat.a
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/common \
 	-I$(top_builddir)/common \
+	-I$(top_srcdir)/libhsm/src/lib \
 	-I$(srcdir)/../../ksm/include \
 	-I$(builddir)/../../ksm/include \
 	@CUNIT_INCLUDES@ \

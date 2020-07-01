@@ -1,5 +1,5 @@
 /*
- * $Id: file.h 5288 2011-07-05 08:34:55Z matthijs $
+ * $Id: file.h 5946 2011-11-30 11:55:04Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -128,6 +128,15 @@ time_t ods_file_lastmodified(const char* file);
  *
  */
 int ods_strcmp(const char* s1, const char* s2);
+
+/**
+ * Compare strings lowercased.
+ * \param[in] s1 one string
+ * \param[in] s2 another string
+ * \return -1, 0 or 1
+ *
+ */
+int ods_strlowercmp(const char* s1, const char* s2);
 
 /**
  * Replace a substring in string.

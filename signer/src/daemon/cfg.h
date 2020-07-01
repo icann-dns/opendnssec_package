@@ -1,5 +1,5 @@
 /*
- * $Id: cfg.h 4687 2011-04-07 13:54:23Z matthijs $
+ * $Id: cfg.h 5945 2011-11-30 11:54:30Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,10 +35,10 @@
 #define DAEMON_CONFIG_H
 
 #include "config.h"
-#include "adapter/adapter.h"
 #include "shared/allocator.h"
 #include "shared/locks.h"
 #include "shared/status.h"
+#include "wire/listener.h"
 
 #include <stdio.h>
 
@@ -49,10 +49,9 @@
 typedef struct engineconfig_struct engineconfig_type;
 struct engineconfig_struct {
     allocator_type* allocator;
-    adapter_type** adapters;
+    listener_type* interfaces;
     const char* cfg_filename;
     const char* zonelist_filename;
-    const char* zonefetch_filename;
     const char* log_filename;
     const char* pid_filename;
     const char* notify_command;
@@ -62,7 +61,6 @@ struct engineconfig_struct {
     const char* group;
     const char* chroot;
     int use_syslog;
-    int num_adapters;
     int num_worker_threads;
     int num_signer_threads;
     int verbosity;
@@ -70,7 +68,7 @@ struct engineconfig_struct {
 
 /**
  * Configure engine.
- * \param[in] allocator memory allocation
+ * \param[in] allocator memory allocator
  * \param[in] cfgfile config file
  * \param[in] cmdline_verbosity log level
  * \return engineconfig_type* engine configuration
@@ -83,6 +81,8 @@ engineconfig_type* engine_config(allocator_type* allocator,
  * Check configuration.
  * \param[in] config engine configuration
  * \return ods_status status
+ *         ODS_STATUS_OK: configuration settings ok
+ *         else: error in configuration settings
  *
  */
 ods_status engine_config_check(engineconfig_type* config);
