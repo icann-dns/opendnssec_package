@@ -1,5 +1,5 @@
 #
-# $Id: kasp_auditor.rb 3124 2010-03-31 10:28:01Z alex $
+# $Id: kasp_auditor.rb 3575 2010-07-15 13:21:02Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -25,6 +25,7 @@
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+require 'etc'
 begin
   require 'dnsruby'
 rescue LoadError
@@ -40,7 +41,6 @@ require 'kasp_auditor/auditor.rb'
 require 'kasp_auditor/partial_auditor.rb'
 require 'kasp_auditor/parse.rb'
 require 'kasp_auditor/preparser.rb'
-require 'etc'
 
 # This module provides auditing capabilities to OpenDNSSEC.
 # Once an unsigned zone has been signed, this module is used to check that

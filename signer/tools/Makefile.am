@@ -1,4 +1,4 @@
-# $Id: Makefile.am 3166 2010-04-12 08:11:17Z rb $
+# $Id: Makefile.am 3710 2010-08-10 13:19:17Z rb $
 
 AM_CPPFLAGS = @LIBHSM_INCLUDES@ @LDNS_INCLUDES@ @XML2_INCLUDES@
 
@@ -49,7 +49,12 @@ create_dnskey_DEPENDENCIES=	@BUILD_LIBHSM@
 finalizer_SOURCES=		finalizer.c util.c
 finalizer_LDADD=		@LDNS_LIBS@
 
-EXTRA_DIST = $(srcdir)/*.h $(srcdir)/quicksorter.c
+EXTRA_DIST =	$(srcdir)/privdrop.h \
+		$(srcdir)/logging.h \
+		$(srcdir)/util.h \
+		$(srcdir)/quicksorter_encode.h \
+		$(srcdir)/zone_fetcher.h \
+		$(srcdir)/quicksorter.c
 
 ../../libhsm/src/libhsm.la:
 	(cd ../../libhsm/src; ${MAKE} libhsm.la)

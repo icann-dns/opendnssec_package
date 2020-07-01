@@ -1,4 +1,4 @@
-# $Id: configure.ac 2881 2010-02-24 14:29:21Z jakob $
+# $Id: configure.ac 3765 2010-08-20 11:14:57Z rb $
 
 m4_sinclude([version.m4])
 
@@ -60,7 +60,7 @@ AC_REPLACE_FUNCS(strlcpy)
 AC_REPLACE_FUNCS(strlcat)
 
 ACX_LIBXML2
-ACX_LDNS(1,6,4)
+ACX_LDNS(1,6,6)
 ACX_DLOPEN
 
 AC_DEFINE_UNQUOTED([HSM_DEFAULT_CONFIG],["$OPENDNSSEC_CONFIG_FILE"],[Default configuration file.])

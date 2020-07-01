@@ -1,4 +1,4 @@
-# $Id: parse.rb 2657 2009-12-29 14:42:55Z alex $
+# $Id: parse.rb 3150 2010-04-08 11:36:13Z jakob $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #

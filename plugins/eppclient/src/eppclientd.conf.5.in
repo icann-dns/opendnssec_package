@@ -1,5 +1,5 @@
 .TH "eppclientd.conf" "5" "March 2010" "OpenDNSSEC" "OpenDNSSEC eppclientd.conf"
-.\" $Id: eppclientd.conf.5.in 2974 2010-03-09 13:06:48Z jakob $
+.\" $Id: eppclientd.conf.5.in 3150 2010-04-08 11:36:13Z jakob $
 .SH "NAME"
 .B eppclientd.conf
 \- OpenDNSSEC EPP plugin daemon configuration file

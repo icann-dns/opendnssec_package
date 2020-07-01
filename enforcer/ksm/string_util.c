@@ -1,5 +1,5 @@
 /*
- * $Id: string_util.c 1463 2009-08-04 13:31:31Z jakob $
+ * $Id: string_util.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

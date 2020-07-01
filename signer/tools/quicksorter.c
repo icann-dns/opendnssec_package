@@ -1,5 +1,5 @@
 /*
- * $Id: quicksorter.c 3207 2010-04-16 07:13:18Z matthijs $
+ * $Id: quicksorter.c 3633 2010-07-28 14:37:34Z matthijs $
  *
  * Copyright (c) 2010 .SE (The Internet Infrastructure Foundation).
  * All rights reserved.
@@ -369,6 +369,8 @@ int read_file(char* filename,
     while (1) {
         /* terminate line */
         char* end = strchr(ptr, '\n');
+
+        DEBUGF("debug: quicksorter ptr is %s\n", ptr);
         if (!end)
             break; /* end of file */
         *end = 0;

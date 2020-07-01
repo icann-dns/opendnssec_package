@@ -1,5 +1,5 @@
 /*
- * $Id: test.c 1270 2009-07-13 14:08:08Z sion $
+ * $Id: test.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

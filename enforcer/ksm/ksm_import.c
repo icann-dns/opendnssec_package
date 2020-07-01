@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_import.c 2983 2010-03-09 15:38:40Z sion $
+ * $Id: ksm_import.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

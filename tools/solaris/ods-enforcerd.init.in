@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: ods-enforcerd.init.in 2892 2010-02-24 23:06:49Z jakob $
+# $Id: ods-enforcerd.init.in 3150 2010-04-08 11:36:13Z jakob $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #

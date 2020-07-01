@@ -1,4 +1,4 @@
-# $Id: ZoneConfig.py 3106 2010-03-29 11:51:44Z matthijs $
+# $Id: ZoneConfig.py 3150 2010-04-08 11:36:13Z jakob $
 #
 # Copyright (c) 2009 NLNet Labs. All rights reserved.
 #

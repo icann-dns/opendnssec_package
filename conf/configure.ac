@@ -1,4 +1,4 @@
-# $Id: configure.ac 2890 2010-02-24 23:00:11Z jakob $
+# $Id: configure.ac 3150 2010-04-08 11:36:13Z jakob $
 
 m4_sinclude([version.m4])
 

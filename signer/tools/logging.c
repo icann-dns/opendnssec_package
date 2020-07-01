@@ -1,5 +1,5 @@
 /*
- * $Id: logging.c 2731 2010-01-28 09:43:12Z matthijs $
+ * $Id: logging.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *

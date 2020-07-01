@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_policy_value.c 1841 2009-09-22 10:43:03Z sion $
+ * $Id: ksm_policy_value.c 3150 2010-04-08 11:36:13Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

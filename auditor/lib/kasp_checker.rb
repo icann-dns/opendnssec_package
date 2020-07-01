@@ -1,5 +1,5 @@
 #
-# $Id: kasp_checker.rb 2695 2010-01-22 10:17:01Z rb $
+# $Id: kasp_checker.rb 3582 2010-07-15 15:25:19Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -378,6 +378,14 @@ module KASPChecker
               log(LOG_WARNING, "Jitter time (#{jitter_secs} seconds) is large" +
                   " compared to Validity/#{max_default_denial_type} " +
                   "(#{max_default_denial} seconds) for #{name} policy in #{kasp_file}")
+            end
+
+            # Error if jitter is greater than either Defaulyt or Denial Validity
+            if (jitter_secs > default_secs)
+              log(LOG_ERR, "Jitter time (#{jitter_secs}) is greater than the Default Validity (#{default_secs}) for #{name} policy in #{kasp_file}")
+            end
+            if (jitter_secs > denial_secs)
+              log(LOG_ERR, "Jitter time (#{jitter_secs}) is greater than the Denial Validity (#{denial_secs}) for #{name} policy in #{kasp_file}")
             end
 
             #   5. Warn if the InceptionOffset is greater than ten minutes. (Again arbitrary - but do we really expect the times on two systems to differ by more than this?)

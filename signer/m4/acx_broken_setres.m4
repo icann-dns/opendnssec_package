@@ -1,4 +1,4 @@
-# $Id: acx_broken_setres.m4 3122 2010-03-31 09:45:53Z matthijs $
+# $Id: acx_broken_setres.m4 3150 2010-04-08 11:36:13Z jakob $
 
 AC_DEFUN([ACX_BROKEN_SETRES],[
 
