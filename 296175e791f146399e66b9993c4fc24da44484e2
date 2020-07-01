@@ -1,0 +1,2 @@
+  * d/p/0016-mysql8_my_bool.patch: Reintroduce my_bool to fix build with
+    MySQL 8. (LP: #1863026)
