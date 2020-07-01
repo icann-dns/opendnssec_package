@@ -1,0 +1,2 @@
+  * Don't rebuild *.rng files, take them from upstream
+    + This should fix FTBFS on kfreebsd-amd64.
