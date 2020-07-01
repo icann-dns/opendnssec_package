@@ -1,0 +1,3 @@
+  * Use TLS variant of Vcs-* (Closes: #816179)
+  * Add signature verification to d/watch
+  * Imported Upstream version 1.4.10
