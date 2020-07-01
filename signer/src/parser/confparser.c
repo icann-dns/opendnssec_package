@@ -29,11 +29,12 @@
  *
  */
 
+#include "config.h"
+#include "compat.h"
 #include "parser/confparser.h"
 #include "parser/zonelistparser.h"
-#include "shared/allocator.h"
-#include "shared/log.h"
-#include "shared/status.h"
+#include "log.h"
+#include "status.h"
 #include "wire/acl.h"
 
 #include <libxml/xpath.h>
@@ -41,6 +42,7 @@
 #include <libxml/xmlreader.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/un.h>
 
 static const char* parser_str = "parser";
 
@@ -133,13 +135,117 @@ parse_file_check(const char* cfgfile, const char* rngfile)
 
 /* TODO: look how the enforcer reads this now */
 
+/**
+ * Parse the repositories.
+ *
+ */
+hsm_repository_t*
+parse_conf_repositories(const char* cfgfile)
+{
+    xmlDocPtr doc = NULL;
+    xmlXPathContextPtr xpathCtx = NULL;
+    xmlXPathObjectPtr xpathObj = NULL;
+    xmlNode* curNode = NULL;
+    xmlChar* xexpr = NULL;
+
+    int i;
+    char* name;
+    char* module;
+    char* tokenlabel;
+    char* pin;
+    uint8_t use_pubkey;
+    int require_backup;
+    hsm_repository_t* rlist = NULL;
+    hsm_repository_t* repo  = NULL;
+
+    /* Load XML document */
+    doc = xmlParseFile(cfgfile);
+    if (doc == NULL) {
+        ods_log_error("[%s] could not parse <RepositoryList>: "
+            "xmlParseFile() failed", parser_str);
+        return NULL;
+    }
+    /* Create xpath evaluation context */
+    xpathCtx = xmlXPathNewContext(doc);
+    if(xpathCtx == NULL) {
+        xmlFreeDoc(doc);
+        ods_log_error("[%s] could not parse <RepositoryList>: "
+            "xmlXPathNewContext() failed", parser_str);
+        return NULL;
+    }
+    /* Evaluate xpath expression */
+    xexpr = (xmlChar*) "//Configuration/RepositoryList/Repository";
+    xpathObj = xmlXPathEvalExpression(xexpr, xpathCtx);
+    if(xpathObj == NULL) {
+        xmlXPathFreeContext(xpathCtx);
+        xmlFreeDoc(doc);
+        ods_log_error("[%s] could not parse <RepositoryList>: "
+            "xmlXPathEvalExpression failed", parser_str);
+        return NULL;
+    }
+    /* Parse repositories */
+    if (xpathObj->nodesetval && xpathObj->nodesetval->nodeNr > 0) {
+        for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) {
+            repo = NULL;
+            name = NULL;
+            module = NULL;
+            tokenlabel = NULL;
+            pin = NULL;
+            use_pubkey = 1;
+            require_backup = 0;
+
+            curNode = xpathObj->nodesetval->nodeTab[i]->xmlChildrenNode;
+            name = (char *) xmlGetProp(xpathObj->nodesetval->nodeTab[i],
+                                             (const xmlChar *)"name");
+            while (curNode) {
+                if (xmlStrEqual(curNode->name, (const xmlChar *)"RequireBackup"))
+                    require_backup = 1;
+                if (xmlStrEqual(curNode->name, (const xmlChar *)"Module"))
+                    module = (char *) xmlNodeGetContent(curNode);
+                if (xmlStrEqual(curNode->name, (const xmlChar *)"TokenLabel"))
+                    tokenlabel = (char *) xmlNodeGetContent(curNode);
+                if (xmlStrEqual(curNode->name, (const xmlChar *)"PIN"))
+                    pin = (char *) xmlNodeGetContent(curNode);
+                if (xmlStrEqual(curNode->name, (const xmlChar *)"SkipPublicKey"))
+                    use_pubkey = 0;
+
+                curNode = curNode->next;
+            }
+            if (name && module && tokenlabel) {
+                repo = hsm_repository_new(name, module, tokenlabel, pin,
+                    use_pubkey, require_backup);
+            }
+            if (!repo) {
+               ods_log_error("[%s] unable to add %s repository: "
+                   "hsm_repository_new() failed", parser_str, name?name:"-");
+            } else {
+               repo->next = rlist;
+               rlist = repo;
+               ods_log_debug("[%s] added %s repository to repositorylist",
+                   parser_str, name);
+            }
+            free((void*)name);
+            free((void*)module);
+            free((void*)tokenlabel);
+            free((void*)pin);
+        }
+    }
+
+    xmlXPathFreeObject(xpathObj);
+    xmlXPathFreeContext(xpathCtx);
+    if (doc) {
+        xmlFreeDoc(doc);
+    }
+    return rlist;
+}
+
 
 /**
  * Parse the listener interfaces.
  *
  */
 listener_type*
-parse_conf_listener(allocator_type* allocator, const char* cfgfile)
+parse_conf_listener(const char* cfgfile)
 {
     listener_type* listener = NULL;
     interface_type* interface = NULL;
@@ -152,7 +258,6 @@ parse_conf_listener(allocator_type* allocator, const char* cfgfile)
     xmlNode* curNode = NULL;
     xmlChar* xexpr = NULL;
 
-    ods_log_assert(allocator);
     ods_log_assert(cfgfile);
 
     /* Load XML document */
@@ -181,7 +286,7 @@ parse_conf_listener(allocator_type* allocator, const char* cfgfile)
         return NULL;
     }
     /* Parse interfaces */
-    listener = listener_create(allocator);
+    listener = listener_create();
     ods_log_assert(listener);
     if (xpathObj->nodesetval && xpathObj->nodesetval->nodeNr > 0) {
         for (i = 0; i < xpathObj->nodesetval->nodeNr; i++) {
@@ -201,9 +306,9 @@ parse_conf_listener(allocator_type* allocator, const char* cfgfile)
                 interface = listener_push(listener, address,
                     acl_parse_family(address), port);
             } else {
-                interface = listener_push(listener, "", AF_INET, port);
+                interface = listener_push(listener, (char *)"", AF_INET, port);
                 if (interface) {
-                    interface = listener_push(listener, "", AF_INET6, port);
+                    interface = listener_push(listener, (char *)"", AF_INET6, port);
                 }
             }
             if (!interface) {
@@ -288,26 +393,53 @@ parse_conf_string(const char* cfgfile, const char* expr, int required)
     return NULL;
 }
 
+/*
+ *  TODO all parse routines parse the complete file. Yuk!
+ *  TODO make a parse_conf_bool for testing existence of empty elements
+ *      instead of abusing parse_conf_string
+ * */
 
 const char*
-parse_conf_zonelist_filename(allocator_type* allocator, const char* cfgfile)
+parse_conf_zonelist_filename(const char* cfgfile)
 {
-    const char* dup = NULL;
+    int lwd = 0;
+    int lzl = 0;
+    int found = 0;
+    char* dup = NULL;
     const char* str = parse_conf_string(
         cfgfile,
-        "//Configuration/Common/ZoneListFile",
-        1);
+        "//Configuration/Enforcer/WorkingDirectory",
+        0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        found = 1;
+    } else {
+        str = OPENDNSSEC_ENFORCER_WORKINGDIR;
+    }
+    lwd = strlen(str);
+    lzl = strlen(OPENDNSSEC_ENFORCER_ZONELIST);
+    if (lwd>0 && strncmp(str + (lwd-1), "/", 1) != 0) {
+        CHECKALLOC(dup = malloc(sizeof(char)*(lwd+lzl+2)));
+        memcpy(dup, str, sizeof(char)*(lwd+1));
+        strlcat(dup, "/", sizeof(char)*(lwd+2));
+        strlcat(dup, OPENDNSSEC_ENFORCER_ZONELIST, sizeof(char)*(lwd+lzl+2));
+        lwd += (lzl+1);
+    } else {
+        CHECKALLOC(dup = malloc(sizeof(char)*(lwd+lzl+1)));
+        memcpy(dup, str, sizeof(char)*(lwd+1));
+        strlcat(dup, OPENDNSSEC_ENFORCER_ZONELIST, sizeof(char)*(lwd+lzl+1));
+        lwd += (lzl+1);
+    }
+    if (found) {
         free((void*)str);
     }
-    return dup;
+    ods_log_assert(dup);
+    return (const char*) dup;
 }
 
 
 const char*
-parse_conf_log_filename(allocator_type* allocator, const char* cfgfile)
+parse_conf_log_filename(const char* cfgfile)
 {
     const char* dup = NULL;
     const char* str = parse_conf_string(cfgfile,
@@ -319,7 +451,7 @@ parse_conf_log_filename(allocator_type* allocator, const char* cfgfile)
             0);
     }
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     }
     return dup; /* NULL, Facility or Filename */
@@ -327,7 +459,7 @@ parse_conf_log_filename(allocator_type* allocator, const char* cfgfile)
 
 
 const char*
-parse_conf_pid_filename(allocator_type* allocator, const char* cfgfile)
+parse_conf_pid_filename(const char* cfgfile)
 {
     const char* dup = NULL;
     const char* str = parse_conf_string(
@@ -336,17 +468,17 @@ parse_conf_pid_filename(allocator_type* allocator, const char* cfgfile)
         0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     } else {
-        dup = allocator_strdup(allocator, ODS_SE_PIDFILE);
+        dup = strdup(ODS_SE_PIDFILE);
     }
     return dup;
 }
 
 
 const char*
-parse_conf_notify_command(allocator_type* allocator, const char* cfgfile)
+parse_conf_notify_command(const char* cfgfile)
 {
     const char* dup = NULL;
     const char* str = parse_conf_string(
@@ -355,7 +487,7 @@ parse_conf_notify_command(allocator_type* allocator, const char* cfgfile)
         0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     }
     return dup;
@@ -363,26 +495,30 @@ parse_conf_notify_command(allocator_type* allocator, const char* cfgfile)
 
 
 const char*
-parse_conf_clisock_filename(allocator_type* allocator, const char* cfgfile)
+parse_conf_clisock_filename(const char* cfgfile)
 {
-    const char* dup = NULL;
+    char* dup = NULL;
     const char* str = parse_conf_string(
         cfgfile,
         "//Configuration/Signer/SocketFile",
         0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     } else {
-        dup = allocator_strdup(allocator, ODS_SE_SOCKFILE);
+        dup = strdup(ODS_SE_SOCKFILE);
+    }
+    if (strlen(dup) >= sizeof(((struct sockaddr_un*)0)->sun_path)) {
+        dup[sizeof(((struct sockaddr_un*)0)->sun_path)-1] = '\0'; /* don't worry about just a few bytes 'lost' */
+        ods_log_warning("[%s] SocketFile path too long, truncated to %s", parser_str, dup);
     }
     return dup;
 }
 
 
 const char*
-parse_conf_working_dir(allocator_type* allocator, const char* cfgfile)
+parse_conf_working_dir(const char* cfgfile)
 {
     const char* dup = NULL;
     const char* str = parse_conf_string(
@@ -391,10 +527,10 @@ parse_conf_working_dir(allocator_type* allocator, const char* cfgfile)
         0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     } else {
-        dup = allocator_strdup(allocator, ODS_SE_WORKDIR);
+        dup = strdup(ODS_SE_WORKDIR);
     }
     ods_log_assert(dup);
     return dup;
@@ -402,7 +538,7 @@ parse_conf_working_dir(allocator_type* allocator, const char* cfgfile)
 
 
 const char*
-parse_conf_username(allocator_type* allocator, const char* cfgfile)
+parse_conf_username(const char* cfgfile)
 {
     const char* dup = NULL;
     const char* str = parse_conf_string(
@@ -411,7 +547,7 @@ parse_conf_username(allocator_type* allocator, const char* cfgfile)
         0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     }
     return dup;
@@ -419,7 +555,7 @@ parse_conf_username(allocator_type* allocator, const char* cfgfile)
 
 
 const char*
-parse_conf_group(allocator_type* allocator, const char* cfgfile)
+parse_conf_group(const char* cfgfile)
 {
     const char* dup = NULL;
     const char* str = parse_conf_string(
@@ -428,7 +564,7 @@ parse_conf_group(allocator_type* allocator, const char* cfgfile)
         0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     }
     return dup;
@@ -436,7 +572,7 @@ parse_conf_group(allocator_type* allocator, const char* cfgfile)
 
 
 const char*
-parse_conf_chroot(allocator_type* allocator, const char* cfgfile)
+parse_conf_chroot(const char* cfgfile)
 {
     const char* dup = NULL;
     const char* str = parse_conf_string(
@@ -445,7 +581,7 @@ parse_conf_chroot(allocator_type* allocator, const char* cfgfile)
         0);
 
     if (str) {
-        dup = allocator_strdup(allocator, str);
+        dup = strdup(str);
         free((void*)str);
     }
     return dup;

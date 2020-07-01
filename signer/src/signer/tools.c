@@ -32,7 +32,7 @@
 #include "config.h"
 #include "daemon/dnshandler.h"
 #include "adapter/adapter.h"
-#include "shared/log.h"
+#include "log.h"
 #include "signer/tools.h"
 #include "signer/zone.h"
 
@@ -112,7 +112,8 @@ tools_input(zone_type* zone)
         return status;
     }
     /* Denial of Existence Rollover? */
-    status = zone_publish_nsec3param(zone);
+    if (!zone->signconf->passthrough)
+        status = zone_publish_nsec3param(zone);
     if (status != ODS_STATUS_OK) {
         ods_log_error("[%s] unable to read zone %s: failed to "
             "publish nsec3param (%s)", tools_str, zone->name,
@@ -169,7 +170,6 @@ ods_closeall(int fd)
     while (fd < fdlimit) {
         close(fd++);
     }
-    return;
 }
 
 
@@ -219,7 +219,7 @@ tools_output(zone_type* zone, engine_type* engine)
     lock_basic_unlock(&zone->ixfr->ixfr_lock);
     /* kick the nameserver */
     if (zone->notify_ns) {
-        int status;
+	int pid_status;
         pid_t pid, wpid;
         ods_log_verbose("[%s] notify nameserver: %s", tools_str,
             zone->notify_ns);
@@ -243,16 +243,16 @@ tools_output(zone_type* zone, engine_type* engine)
                 ods_log_debug("[%s] notify nameserver process forked",
                     tools_str);
                 /** wait for completion  */
-                while((wpid = waitpid(pid, &status, 0)) <= 0) {
+                while((wpid = waitpid(pid, &pid_status, 0)) <= 0) {
                     if (errno != EINTR) {
                         break;
                     }
                 }
                 if (wpid == -1) {
-                    ods_log_error("[%s] notify nameserver failed: waitpid() ",
+                    ods_log_error("[%s] notify nameserver failed: waitpid() "
                         "failed (%s)", tools_str, strerror(errno));
-                } else if (!WIFEXITED(status)) {
-                    ods_log_error("[%s] notify nameserver failed: notify ",
+                } else if (!WIFEXITED(pid_status)) {
+                    ods_log_error("[%s] notify nameserver failed: notify "
                         "command did not terminate normally", tools_str);
                 } else {
                     ods_log_verbose("[%s] notify nameserver ok", tools_str);

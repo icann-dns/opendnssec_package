@@ -31,7 +31,7 @@
 
 #include "config.h"
 #include "scheduler/fifoq.h"
-#include "shared/log.h"
+#include "log.h"
 
 #include <ldns/ldns.h>
 
@@ -43,19 +43,15 @@ static const char* fifoq_str = "fifo";
  *
  */
 fifoq_type*
-fifoq_create(allocator_type* allocator)
+fifoq_create()
 {
     fifoq_type* fifoq;
-    if (!allocator) {
-        return NULL;
-    }
-    fifoq = (fifoq_type*) allocator_alloc(allocator, sizeof(fifoq_type));
+    CHECKALLOC(fifoq = (fifoq_type*) malloc(sizeof(fifoq_type)));
     if (!fifoq) {
         ods_log_error("[%s] unable to create fifoq: allocator_alloc() failed",
             fifoq_str);
         return NULL;
     }
-    fifoq->allocator = allocator;
     fifoq_wipe(fifoq);
     lock_basic_init(&fifoq->q_lock);
     lock_basic_set(&fifoq->q_threshold);
@@ -77,7 +73,6 @@ fifoq_wipe(fifoq_type* q)
         q->owner[i] = NULL;
     }
     q->count = 0;
-    return;
 }
 
 
@@ -141,8 +136,8 @@ fifoq_push(fifoq_type* q, void* item, worker_type* worker, int* tries)
     q->owner[q->count] = worker;
     q->count += 1;
     if (q->count == 1) {
-        ods_log_deeebug("[%s] threshold %u reached, notify drudgers",
-            fifoq_str, q->count);
+        ods_log_deeebug("[%s] threshold %lu reached, notify drudgers",
+            fifoq_str, (unsigned long) q->count);
         /* If no drudgers are waiting, this call has no effect. */
         lock_basic_broadcast(&q->q_threshold);
     }
@@ -157,20 +152,11 @@ fifoq_push(fifoq_type* q, void* item, worker_type* worker, int* tries)
 void
 fifoq_cleanup(fifoq_type* q)
 {
-    allocator_type* allocator;
-    lock_basic_type q_lock;
-    cond_basic_type q_threshold;
-    cond_basic_type q_nonfull;
     if (!q) {
         return;
     }
-    allocator = q->allocator;
-    q_lock = q->q_lock;
-    q_threshold = q->q_threshold;
-    q_nonfull = q->q_nonfull;
-    allocator_deallocate(allocator, (void*) q);
-    lock_basic_off(&q_threshold);
-    lock_basic_off(&q_nonfull);
-    lock_basic_destroy(&q_lock);
-    return;
+    lock_basic_off(&q->q_threshold);
+    lock_basic_off(&q->q_nonfull);
+    lock_basic_destroy(&q->q_lock);
+    free(q);
 }

@@ -29,12 +29,13 @@
  *
  */
 
-#include "shared/file.h"
-#include "shared/log.h"
-#include "shared/util.h"
+#include "file.h"
+#include "log.h"
+#include "util.h"
 #include "signer/backup.h"
 #include "signer/keys.h"
 #include "signer/signconf.h"
+#include "status.h"
 
 static const char* key_str = "keys";
 
@@ -44,22 +45,20 @@ static const char* key_str = "keys";
  *
  */
 keylist_type*
-keylist_create(void* sc)
+keylist_create(signconf_type* signconf)
 {
-    signconf_type* signconf = (signconf_type*) sc;
     keylist_type* kl = NULL;
 
-    if (!signconf || !signconf->allocator) {
+    if (!signconf) {
         return NULL;
     }
-    kl = (keylist_type*) allocator_alloc(signconf->allocator,
-        sizeof(keylist_type));
+    CHECKALLOC(kl = (keylist_type*) malloc((sizeof(keylist_type))));
     if (!kl) {
         ods_log_error("[%s] create list failed: allocator_alloc() failed",
             key_str);
         return NULL;
     }
-    kl->sc = sc;
+    kl->sc = signconf;
     kl->count = 0;
     kl->keys = NULL;
     return kl;
@@ -89,47 +88,19 @@ keylist_lookup_by_locator(keylist_type* kl, const char* locator)
 
 
 /**
- * Lookup a key in the key list by dnskey.
- *
- */
-key_type*
-keylist_lookup_by_dnskey(keylist_type* kl, ldns_rr* dnskey)
-{
-    uint16_t i = 0;
-    if (!kl || !dnskey || kl->count <= 0) {
-        return NULL;
-    }
-    for (i=0; i < kl->count; i++) {
-        if (&kl->keys[i] && kl->keys[i].dnskey) {
-            if (ldns_rr_compare(kl->keys[i].dnskey, dnskey) == 0) {
-                return &kl->keys[i];
-            }
-        }
-    }
-    return NULL;
-}
-
-
-/**
  * Push a key to the key list.
  *
  */
 key_type*
-keylist_push(keylist_type* kl, const char* locator,
-    uint8_t algorithm, uint32_t flags, int publish, int ksk, int zsk,
-    int rfc5011)
+keylist_push(keylist_type* kl, const char* locator, const char* resourcerecord,
+    uint8_t algorithm, uint32_t flags, int publish, int ksk, int zsk)
 {
     key_type* keys_old = NULL;
-    signconf_type* sc = NULL;
 
     ods_log_assert(kl);
-    ods_log_assert(locator);
-    ods_log_debug("[%s] add locator %s", key_str, locator);
 
-    sc = (signconf_type*) kl->sc;
     keys_old = kl->keys;
-    kl->keys = (key_type*) allocator_alloc(sc->allocator,
-        (kl->count + 1) * sizeof(key_type));
+    CHECKALLOC(kl->keys = (key_type*) malloc((kl->count + 1) * sizeof(key_type)));
     if (!kl->keys) {
         ods_fatal_exit("[%s] unable to add key: allocator_alloc() failed",
             key_str);
@@ -137,52 +108,18 @@ keylist_push(keylist_type* kl, const char* locator,
     if (keys_old) {
         memcpy(kl->keys, keys_old, (kl->count) * sizeof(key_type));
     }
-    allocator_deallocate(sc->allocator, (void*) keys_old);
+    free(keys_old);
     kl->count++;
     kl->keys[kl->count -1].locator = locator;
+    kl->keys[kl->count -1].resourcerecord = resourcerecord;
     kl->keys[kl->count -1].algorithm = algorithm;
     kl->keys[kl->count -1].flags = flags;
     kl->keys[kl->count -1].publish = publish;
     kl->keys[kl->count -1].ksk = ksk;
     kl->keys[kl->count -1].zsk = zsk;
-    kl->keys[kl->count -1].rfc5011 = rfc5011;
     kl->keys[kl->count -1].dnskey = NULL;
     kl->keys[kl->count -1].params = NULL;
     return &kl->keys[kl->count -1];
-}
-
-
-/**
- * Print key.
- *
- */
-static void
-key_print(FILE* fd, key_type* key)
-{
-    if (!fd || !key) {
-        return;
-    }
-    fprintf(fd, "\t\t\t<Key>\n");
-    fprintf(fd, "\t\t\t\t<Flags>%u</Flags>\n", key->flags);
-    fprintf(fd, "\t\t\t\t<Algorithm>%u</Algorithm>\n", key->algorithm);
-    if (key->locator) {
-        fprintf(fd, "\t\t\t\t<Locator>%s</Locator>\n", key->locator);
-    }
-    if (key->ksk) {
-        fprintf(fd, "\t\t\t\t<KSK />\n");
-    }
-    if (key->zsk) {
-        fprintf(fd, "\t\t\t\t<ZSK />\n");
-    }
-    if (key->publish) {
-        fprintf(fd, "\t\t\t\t<Publish />\n");
-    }
-    if (key->rfc5011) {
-        fprintf(fd, "\t\t\t\t<RFC5011 />\n");
-    }
-    fprintf(fd, "\t\t\t</Key>\n");
-    fprintf(fd, "\n");
-    return;
 }
 
 
@@ -197,27 +134,8 @@ key_log(key_type* key, const char* name)
         return;
     }
     ods_log_debug("[%s] zone %s key: LOCATOR[%s] FLAGS[%u] ALGORITHM[%u] "
-        "KSK[%i] ZSK[%i] PUBLISH[%i] RFC5011[%i]", key_str, name?name:"(null)", key->locator,
-        key->flags, key->algorithm, key->ksk, key->zsk, key->publish, key->rfc5011);
-    return;
-}
-
-
-/**
- * Print key list.
- *
- */
-void
-keylist_print(FILE* fd, keylist_type* kl)
-{
-    uint16_t i = 0;
-    if (!fd || !kl || kl->count <= 0) {
-        return;
-    }
-    for (i=0; i < kl->count; i++) {
-        key_print(fd, &kl->keys[i]);
-    }
-    return;
+        "KSK[%i] ZSK[%i] PUBLISH[%i]", key_str, name?name:"(null)", key->locator,
+        key->flags, key->algorithm, key->ksk, key->zsk, key->publish);
 }
 
 
@@ -235,7 +153,6 @@ keylist_log(keylist_type* kl, const char* name)
     for (i=0; i < kl->count; i++) {
         key_log(&kl->keys[i], name);
     }
-    return;
 }
 
 
@@ -252,7 +169,6 @@ key_delfunc(key_type* key)
     /* ldns_rr_free(key->dnskey); */
     hsm_sign_params_free(key->params);
     free((void*) key->locator);
-    return;
 }
 
 
@@ -264,16 +180,14 @@ void
 keylist_cleanup(keylist_type* kl)
 {
     uint16_t i = 0;
-    signconf_type* sc = NULL;
     if (!kl) {
         return;
     }
     for (i=0; i < kl->count; i++) {
         key_delfunc(&kl->keys[i]);
     }
-    sc = (signconf_type*) kl->sc;
-    allocator_deallocate(sc->allocator, (void*) kl->keys);
-    allocator_deallocate(sc->allocator, (void*) kl);
+    free(kl->keys);
+    free(kl);
 }
 
 
@@ -287,16 +201,14 @@ key_backup(FILE* fd, key_type* key, const char* version)
     if (!fd || !key) {
         return;
     }
-    fprintf(fd, ";;Key: locator %s algorithm %u flags %u publish %i ksk %i "
-        "zsk %i rfc5011 %i\n", key->locator, (unsigned) key->algorithm,
-        (unsigned) key->flags, key->publish, key->ksk, key->zsk, key->rfc5011);
+    fprintf(fd, ";;Key: locator %s algorithm %u flags %u publish %i ksk %i zsk %i keytag %d\n", key->locator, (unsigned) key->algorithm,
+        (unsigned) key->flags, key->publish, key->ksk, key->zsk, ldns_calc_keytag(key->dnskey));
     if (strcmp(version, ODS_SE_FILE_MAGIC_V2) == 0) {
         if (key->dnskey) {
             (void)util_rr_print(fd, key->dnskey);
         }
         fprintf(fd, ";;Keydone\n");
     }
-    return;
 }
 
 
@@ -308,13 +220,16 @@ key_type*
 key_recover2(FILE* fd, keylist_type* kl)
 {
     const char* locator = NULL;
+    const char* resourcerecord = NULL;
     uint8_t algorithm = 0;
     uint32_t flags = 0;
     int publish = 0;
     int ksk = 0;
     int zsk = 0;
-    int rfc5011 = 0;
-
+    int keytag = 0; /* We are not actually interested but we must
+        parse it to continue correctly in the stream.
+        When reading 1.4.8 or later version backup file, the real value of keytag is 
+        rfc5011, but not importat due to not using it.*/
     ods_log_assert(fd);
 
     if (!backup_read_check_str(fd, "locator") ||
@@ -329,8 +244,8 @@ key_recover2(FILE* fd, keylist_type* kl)
         !backup_read_int(fd, &ksk) ||
         !backup_read_check_str(fd, "zsk") ||
         !backup_read_int(fd, &zsk) ||
-        !backup_read_check_str(fd, "rfc5011") ||
-        !backup_read_int(fd, &rfc5011)) {
+        !backup_read_check_str(fd, "keytag") ||
+        !backup_read_int(fd, &keytag)) {
         if (locator) {
            free((void*)locator);
            locator = NULL;
@@ -338,8 +253,7 @@ key_recover2(FILE* fd, keylist_type* kl)
         return NULL;
     }
     /* key ok */
-    return keylist_push(kl, locator, algorithm, flags, publish, ksk,
-        zsk, rfc5011);
+    return keylist_push(kl, locator, resourcerecord, algorithm, flags, publish, ksk, zsk);
 }
 
 
@@ -357,5 +271,4 @@ keylist_backup(FILE* fd, keylist_type* kl, const char* version)
     for (i=0; i < kl->count; i++) {
         key_backup(fd, &kl->keys[i], version);
     }
-    return;
 }

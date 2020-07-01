@@ -30,7 +30,6 @@
 
 #include <ldns/ldns.h>
 
-
 /*! Extra information for signing rrsets (algorithm, expiration, etc) */
 typedef struct {
     /** The DNS signing algorithm identifier */
@@ -51,8 +50,7 @@ typedef struct {
 /*!
  * Returns an allocated hsm_sign_params_t with some defaults
  */
-hsm_sign_params_t *
-hsm_sign_params_new();
+hsm_sign_params_t * hsm_sign_params_new(void);
 
 
 /*!
@@ -79,26 +77,8 @@ The returned ldns_rr structure can be freed with ldns_rr_free()
 ldns_rr*
 hsm_sign_rrset(hsm_ctx_t *ctx,
                const ldns_rr_list* rrset,
-               const hsm_key_t *key,
+               const libhsm_key_t *key,
                const hsm_sign_params_t *sign_params);
-
-
-/*! Generate a base32 encoded hashed NSEC3 name
-
-\param ctx HSM context
-\param name Domain name to hash
-\param algorithm NSEC3 algorithm (must be 1 atm)
-\param iteration number of hash iterations
-\param salt_length the length of the salt
-\param salt the salt
-*/
-ldns_rdf *
-hsm_nsec3_hash_name(hsm_ctx_t *ctx,
-                    ldns_rdf *name,
-                    uint8_t algorithm,
-                    uint16_t iterations,
-                    uint8_t salt_length,
-                    uint8_t *salt);
 
 
 /*! Get DNSKEY RR
@@ -112,16 +92,17 @@ The returned ldns_rr structure can be freed with ldns_rr_free()
 */
 ldns_rr*
 hsm_get_dnskey(hsm_ctx_t *ctx,
-               const hsm_key_t *key,
+               const libhsm_key_t *key,
                const hsm_sign_params_t *sign_params);
 
-
-/*! Check if a given DNSSEC algorithm is supported
-
-\param ldns_algorithm algorithm number
-\return 0 if supported, -1 otherwise
-*/
-int
-hsm_supported_algorithm(ldns_algorithm algorithm);
+/** 
+ * Calculate keytag
+ * @param loc: Locator of keydata on HSM
+ * @param alg: Algorithm of key
+ * @param ksk: 0 for zsk, positive int for ksk|csk
+ * @param[out] keytag: the calculated keytag
+ * return: non-zero in case of failure
+ */
+int hsm_keytag(const char* loc, int alg, int ksk, uint16_t* keytag);
 
 #endif /* HSMDNS_H */

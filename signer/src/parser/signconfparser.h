@@ -33,8 +33,8 @@
 #define PARSER_SIGNCONFPARSER_H
 
 #include "parser/confparser.h"
-#include "shared/allocator.h"
-#include "shared/duration.h"
+#include "status.h"
+#include "duration.h"
 #include "signer/keys.h"
 #include "config.h"
 
@@ -59,12 +59,15 @@ duration_type* parse_sc_sig_resign_interval(const char* cfgfile);
 duration_type* parse_sc_sig_refresh_interval(const char* cfgfile);
 duration_type* parse_sc_sig_validity_default(const char* cfgfile);
 duration_type* parse_sc_sig_validity_denial(const char* cfgfile);
+duration_type* parse_sc_sig_validity_keyset(const char* cfgfile);
 duration_type* parse_sc_sig_jitter(const char* cfgfile);
 duration_type* parse_sc_sig_inception_offset(const char* cfgfile);
 duration_type* parse_sc_dnskey_ttl(const char* cfgfile);
+const char** parse_sc_dnskey_sigrrs(const char* cfgfile);
 duration_type* parse_sc_nsec3param_ttl(const char* cfgfile);
 duration_type* parse_sc_soa_ttl(const char* cfgfile);
 duration_type* parse_sc_soa_min(const char* cfgfile);
+duration_type* parse_sc_max_zone_ttl(const char* cfgfile);
 
 /**
  * Parse elements from the configuration file.
@@ -94,12 +97,17 @@ int parse_sc_nsec3_optout(const char* cfgfile);
 /**
  * Parse elements from the configuration file.
  * \param[in] cfgfile the configuration file name.
+ * \return boolean
+ */
+int parse_sc_passthrough(const char* cfgfile);
+
+/**
+ * Parse elements from the configuration file.
+ * \param[in] cfgfile the configuration file name.
  * \return const char* string
  *
  */
-const char* parse_sc_soa_serial(allocator_type* allocator,
-    const char* cfgfile);
-const char* parse_sc_nsec3_salt(allocator_type* allocator,
-    const char* cfgfile);
+const char* parse_sc_soa_serial(const char* cfgfile);
+const char* parse_sc_nsec3_salt(const char* cfgfile);
 
 #endif /* PARSER_SIGNCONFPARSER_H */

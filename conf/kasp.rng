@@ -34,6 +34,12 @@
           <attribute name="name">
             <data type="string"/>
           </attribute>
+          <optional>
+            <!-- Do not touch contents of zonefile. -->
+            <element name="Passthrough">
+              <empty/>
+            </element>
+          </optional>
           <!-- description of policy (free text) -->
           <element name="Description">
             <data type="string"/>
@@ -65,6 +71,11 @@
               <element name="Denial">
                 <data type="duration"/>
               </element>
+              <optional>
+                <element name="Keyset">
+                  <data type="duration"/>
+                </element>
+              </optional>
             </element>
             <!--
               how much should we jitter the signature expiration time?
@@ -77,6 +88,10 @@
             <element name="InceptionOffset">
               <data type="duration"/>
             </element>
+            <optional>
+              <!-- Maximum TTL that may be used in a zone. -->
+              <ref name="maxzonettl"/>
+            </optional>
           </element>
           <!-- use NSEC or NSEC3? -->
           <element name="Denial">
@@ -114,6 +129,16 @@
                 <!-- generic key definition, see below -->
                 <ref name="anykey"/>
                 <optional>
+                  <!-- Controlling minimize flags Enforcer -->
+                  <element name="KskRollType">
+                    <choice>
+                      <value>KskDoubleRRset</value>
+                      <value>KskDoubleDS</value>
+                      <value>KskDoubleSignature</value>
+                    </choice>
+                  </element>
+                </optional>
+                <optional>
                   <!--
                     use RFC 5011 for key rollover?
                     Not implemented yet
@@ -129,6 +154,44 @@
               <element name="ZSK">
                 <!-- generic key definition, see below -->
                 <ref name="anykey"/>
+                <optional>
+                  <!-- Controlling minimize flags Enforcer -->
+                  <element name="ZskRollType">
+                    <choice>
+                      <value>ZskDoubleSignature</value>
+                      <value>ZskPrePublication</value>
+                      <value>ZskDoubleRRsig</value>
+                    </choice>
+                  </element>
+                </optional>
+              </element>
+            </zeroOrMore>
+            <zeroOrMore>
+              <!-- Combined Signing Keys (CSK) parameters -->
+              <element name="CSK">
+                <!-- generic key definition, see below -->
+                <ref name="anykey"/>
+                <optional>
+                  <!-- Controlling minimize flags Enforcer -->
+                  <element name="CskRollType">
+                    <choice>
+                      <value>CskDoubleRRset</value>
+                      <value>CskSingleSignature</value>
+                      <value>CskDoubleDS</value>
+                      <value>CskDoubleSignature</value>
+                      <value>CskPrePublication</value>
+                    </choice>
+                  </element>
+                </optional>
+                <optional>
+                  <!--
+                    use RFC 5011 for key rollover?
+                    Not implemented yet
+                  -->
+                  <element name="RFC5011">
+                    <empty/>
+                  </element>
+                </optional>
               </element>
             </zeroOrMore>
           </element>
@@ -158,6 +221,10 @@
             <element name="SOA">
               <ref name="anysoa"/>
             </element>
+            <optional>
+              <!-- Expected time between submit and first publish -->
+              <ref name="registrationdelay"/>
+            </optional>
           </element>
         </element>
       </zeroOrMore>
@@ -277,8 +344,18 @@
       <data type="duration"/>
     </element>
   </define>
+  <define name="maxzonettl">
+    <element name="MaxZoneTTL">
+      <data type="duration"/>
+    </element>
+  </define>
   <define name="propagationdelay">
     <element name="PropagationDelay">
+      <data type="duration"/>
+    </element>
+  </define>
+  <define name="registrationdelay">
+    <element name="RegistrationDelay">
       <data type="duration"/>
     </element>
   </define>

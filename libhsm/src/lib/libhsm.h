@@ -31,7 +31,9 @@
 #include <stdint.h>
 #include <ldns/rbtree.h>
 
-/* Note that currently the MySQL kasp schema limits the number of HSMs to
+#define HSM_MAX_SESSIONS 100
+/* 
+ * Note that currently the MySQL kasp schema limits the number of HSMs to 
  * 127; so to increase it beyond that requires some database changes similar
  * to when keypairs(id) was increased, see svn r4465.
  *
@@ -76,7 +78,6 @@
 /*! HSM configuration */
 typedef struct {
     unsigned int use_pubkey;     /*!< Maintain public keys in HSM */
-    unsigned int allow_extract;  /*!< Generate CKA_EXTRACTABLE private keys */
 } hsm_config_t;
 
 /*! Data type to describe an HSM */
@@ -101,7 +102,7 @@ typedef struct {
     const char *       modulename;   /*!< name of the module, as in hsm_session_t.module.name */
     unsigned long      private_key;  /*!< private key within module */
     unsigned long      public_key;   /*!< public key within module */
-} hsm_key_t;
+} libhsm_key_t;
 
 /*! HSM Key Pair Information */
 typedef struct {
@@ -109,7 +110,19 @@ typedef struct {
   unsigned long algorithm;       /*!< key algorithm (cast from CKK_*)*/
   char          *algorithm_name; /*!< key algorithm name */
   unsigned long keysize;         /*!< key size */
-} hsm_key_info_t;
+} libhsm_key_info_t;
+
+/*! HSM Repositories */
+typedef struct hsm_repository_struct hsm_repository_t;
+struct hsm_repository_struct {
+    hsm_repository_t* next; /*!< next repository > */
+    char    *name;          /*!< name */
+    char    *module;        /*!< PKCS#11 module */
+    char    *tokenlabel;    /*!< PKCS#11 token label */
+    char    *pin;           /*!< PKCS#11 login credentials */
+    uint8_t require_backup; /*!< require a backup of keys before using new keys */
+    uint8_t use_pubkey;     /*!< use public keys in repository? */
+};
 
 /*! HSM context to keep track of sessions */
 typedef struct {
@@ -130,25 +143,60 @@ typedef struct {
 } hsm_ctx_t;
 
 
+/*! Set HSM Context Error
+
+If the ctx is given, and it's error value is still 0, the value will be
+set to 'error', and the error_message and error_action will be set to
+the given strings.
+
+\param ctx      HSM context
+\param error    error code
+\param action   action for which the error occured
+\param message  error message format string
+*/
+void
+hsm_ctx_set_error(hsm_ctx_t *ctx, int error, const char *action,
+                 const char *message, ...);
+
 /*! Open HSM library
 
-\param config path to OpenDNSSEC XML configuration file
+\param rlist Repository list.
 \param pin_callback This function will be called for tokens that have
                     no PIN configured. The default hsm_prompt_pin() can
                     be used. If this value is NULL, these tokens will
-                    be skipped
+                    be skipped.
 \return 0 if successful, !0 if failed
 
-Attaches all configured HSMs, querying for PINs (using the given
+Attaches all HSMs in the repository list, querying for PINs (using the given
 callback function) if not known.
 Also creates initial sessions (not part of any context; every API
 function that takes a context can be passed NULL, in which case the
 global context will be used) and log into each HSM.
 */
 int
-hsm_open(const char *config,
+hsm_open2(hsm_repository_t* rlist,
          char *(pin_callback)(unsigned int, const char *, unsigned int));
 
+
+/*! Create new repository as specified in conf.xml.
+
+\param name           Repository name.
+\param module         PKCS#11 module.
+\param tokenlabel     PKCS#11 token label.
+\param pin            PKCS#11 login credentials.
+\param use_pubkey     Whether to store the public key in the HSM.
+\return The created repository.
+*/
+hsm_repository_t *
+hsm_repository_new(char* name, char* module, char* tokenlabel, char* pin,
+    uint8_t use_pubkey, uint8_t require_backup);
+
+/*! Free configured repositories.
+
+\param r Repository list.
+*/
+void
+hsm_repository_free(hsm_repository_t* r);
 
 /*! Function that queries for a PIN, can be used as callback
     for hsm_open(). Stores the PIN in the shared memory.
@@ -182,7 +230,7 @@ hsm_check_pin(unsigned int id, const char *repository, unsigned int mode);
     with the HSM.
 */
 int
-hsm_logout_pin();
+hsm_logout_pin(void);
 
 
 /*! Close HSM library
@@ -192,7 +240,7 @@ hsm_logout_pin();
     called.
 */
 void
-hsm_close();
+hsm_close(void);
 
 
 /*! Create new HSM context
@@ -231,14 +279,14 @@ hsm_destroy_context(hsm_ctx_t *context);
 After the function has run, the value at count contains the number
 of keys found.
 
-The resulting key list can be freed with hsm_key_list_free()
+The resulting key list can be freed with libhsm_key_list_free()
 Alternatively, each individual key structure in the list could be
-freed with hsm_key_free()
+freed with free()
 
 \param context HSM context
 \param count location to store the number of keys found
 */
-hsm_key_t **
+libhsm_key_t **
 hsm_list_keys(hsm_ctx_t *context, size_t *count);
 
 
@@ -247,49 +295,31 @@ hsm_list_keys(hsm_ctx_t *context, size_t *count);
 After the function has run, the value at count contains the number
 of keys found.
 
-The resulting key list can be freed with hsm_key_list_free()
+The resulting key list can be freed with libhsm_key_list_free()
 Alternatively, each individual key structure in the list could be
-freed with hsm_key_free()
+freed with free()
 
 \param context HSM context
 \param count location to store the number of keys found
 \param repository repository to list the keys in
 */
-hsm_key_t **
+libhsm_key_t **
 hsm_list_keys_repository(hsm_ctx_t *context,
                          size_t *count,
                          const char *repository);
 
 
-/*! Count all known keys in all attached HSMs
-
-\param context HSM context
-*/
-size_t
-hsm_count_keys(hsm_ctx_t *context);
-
-
-/*! Count all known keys in a HSM
-
-\param context HSM context
-\param repository repository in where to count the keys
-*/
-size_t
-hsm_count_keys_repository(hsm_ctx_t *context,
-                          const char *repository);
-
-
 
 /*! Find a key pair by CKA_ID (as hex string)
 
-The returned key structure can be freed with hsm_key_free()
+The returned key structure can be freed with free()
 
 \param context HSM context
 \param id CKA_ID of key to find (null-terminated 
           string of hex characters)
 \return key identifier or NULL if not found (or invalid input)
 */
-hsm_key_t *
+libhsm_key_t *
 hsm_find_key_by_id(hsm_ctx_t *context,
                    const char *id);
 
@@ -299,14 +329,14 @@ Keys generated by libhsm will have a 16-byte identifier set as CKA_ID
 and the hexadecimal representation of it set as CKA_LABEL.
 Other stuff, like exponent, may be needed here as well.
 
-The returned key structure can be freed with hsm_key_free()
+The returned key structure can be freed with free()
 
 \param context HSM context
 \param repository repository in where to create the key
 \param keysize Size of RSA key
 \return return key identifier or NULL if key generation failed
 */
-hsm_key_t *
+libhsm_key_t *
 hsm_generate_rsa_key(hsm_ctx_t *context,
                      const char *repository,
                      unsigned long keysize);
@@ -316,14 +346,14 @@ hsm_generate_rsa_key(hsm_ctx_t *context,
 Keys generated by libhsm will have a 16-byte identifier set as CKA_ID
 and the hexadecimal representation of it set as CKA_LABEL.
 
-The returned key structure can be freed with hsm_key_free()
+The returned key structure can be freed with free()
 
 \param context HSM context
 \param repository repository in where to create the key
 \param keysize Size of DSA key
 \return return key identifier or NULL if key generation failed
 */
-hsm_key_t *
+libhsm_key_t *
 hsm_generate_dsa_key(hsm_ctx_t *context,
                      const char *repository,
                      unsigned long keysize);
@@ -333,15 +363,32 @@ hsm_generate_dsa_key(hsm_ctx_t *context,
 Keys generated by libhsm will have a 16-byte identifier set as CKA_ID
 and the hexadecimal representation of it set as CKA_LABEL.
 
-The returned key structure can be freed with hsm_key_free()
+The returned key structure can be freed with free()
 
 \param context HSM context
 \param repository repository in where to create the key
 \return return key identifier or NULL if key generation failed
 */
-hsm_key_t *
+libhsm_key_t *
 hsm_generate_gost_key(hsm_ctx_t *context,
                      const char *repository);
+
+/*! Generate new key pair in HSM
+
+Keys generated by libhsm will have a 16-byte identifier set as CKA_ID
+and the hexadecimal representation of it set as CKA_LABEL.
+
+The returned key structure can be freed with free()
+
+\param context HSM context
+\param repository repository in where to create the key
+\param curve which curve to use
+\return return key identifier or NULL if key generation failed
+*/
+libhsm_key_t *
+hsm_generate_ecdsa_key(hsm_ctx_t *context,
+                       const char *repository,
+                       const char *curve);
 
 /*! Remove a key pair from HSM
 
@@ -354,15 +401,7 @@ needs to be freed.
 \return 0 if successful, !0 if failed
 */
 int
-hsm_remove_key(hsm_ctx_t *context, hsm_key_t *key);
-
-
-/*! Free the memory for a key structure.
-
-\param key The key structure to free
-*/
-void
-hsm_key_free(hsm_key_t *key);
+hsm_remove_key(hsm_ctx_t *context, libhsm_key_t *key);
 
 
 /*! Free the memory of an array of key structures, as returned by
@@ -372,7 +411,7 @@ hsm_list_keys()
 \param count The number of keys in the array
 */
 void
-hsm_key_list_free(hsm_key_t **key_list, size_t count);
+libhsm_key_list_free(libhsm_key_t **key_list, size_t count);
 
 
 /*! Get id as null-terminated hex string using key identifier
@@ -385,29 +424,29 @@ The returned id is allocated data, and must be free()d by the caller
 */
 char *
 hsm_get_key_id(hsm_ctx_t *context,
-               const hsm_key_t *key);
+               const libhsm_key_t *key);
 
 
 /*! Get extended key information
 
 The returned id is allocated data, and must be freed by the caller
-With hsm_key_info_free()
+With libhsm_key_info_free()
 
 \param context HSM context
 \param key Key pair to get information about
 \return key information
 */
-hsm_key_info_t *
+libhsm_key_info_t *
 hsm_get_key_info(hsm_ctx_t *context,
-                 const hsm_key_t *key);
+                 const libhsm_key_t *key);
 
 
-/*! Frees the hsm_key_info_t structure
+/*! Frees the libhsm_key_info_t structure
 
 \param key_info The structure to free
 */
 void
-hsm_key_info_free(hsm_key_info_t *key_info);
+libhsm_key_info_free(libhsm_key_info_t *key_info);
 
 /*! Fill a buffer with random data from any attached HSM
 
@@ -464,14 +503,6 @@ hsm_attach(const char *repository,
            const char *pin,
            const hsm_config_t *config);
 
-/*! Detach a named HSM
-   This function changes the global state, and is not threadsafe
-\param token_name the token to detach
-\return 0 on success, -1 on error
-*/
-int
-hsm_detach(const char *repository);
-
 /*! Check whether a named token has been initialized in this context
 \param ctx HSM context
 \param token_name The name of the token
@@ -495,7 +526,7 @@ hsm_get_error(hsm_ctx_t *gctx);
 /* a few debug functions for applications */
 void hsm_print_session(hsm_session_t *session);
 void hsm_print_ctx(hsm_ctx_t *ctx);
-void hsm_print_key(hsm_ctx_t *ctx, hsm_key_t *key);
+void hsm_print_key(hsm_ctx_t *ctx, libhsm_key_t *key);
 void hsm_print_error(hsm_ctx_t *ctx);
 void hsm_print_tokeninfo(hsm_ctx_t *ctx);
 
@@ -504,6 +535,6 @@ void hsm_print_tokeninfo(hsm_ctx_t *ctx);
  */
 extern void keycache_create(hsm_ctx_t* ctx);
 extern void keycache_destroy(hsm_ctx_t* ctx);
-extern const hsm_key_t* keycache_lookup(hsm_ctx_t* ctx, const char* locator);
+extern const libhsm_key_t* keycache_lookup(hsm_ctx_t* ctx, const char* locator);
 
 #endif /* HSM_H */
