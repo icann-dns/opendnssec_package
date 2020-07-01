@@ -1,0 +1,9 @@
+  * Imported Upstream version 1.4.0
+  * debian/rules, debian/control:
+   + Use dh-autoreconf instead of manual autoreconf invocation
+  * debian/patches/:
+   + Refresh patches for 1.4.0 release
+  * Fix couple of lintian warnings
+  * Imported Upstream version 1.3.13
+  * Remove upstream patches which were fixed in more recent upstream versions
+  * Fix type 's/signed/signer/ stop' (Closes: #681677)
