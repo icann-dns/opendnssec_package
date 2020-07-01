@@ -86,6 +86,7 @@ module KASPAuditor
         set_config(config)
         @keys = []
         @keys_original = []
+
         @soa = nil
         @enforcer_interval=enforcer_interval
         @keys_used = []
@@ -235,13 +236,13 @@ module KASPAuditor
 
       # First, sort the @nsec_temp_file
       
-      system("sort #{@nsec_temp_file} > #{@nsec_temp_file}.tmp")
+      system("#{Commands.sort} #{@nsec_temp_file} > #{@nsec_temp_file}.tmp")
       system("mv #{@nsec_temp_file}.tmp #{@nsec_temp_file}")
       # Then simply follow it line by line.
       next_name = nil
       last_name = nil
       last_line = nil
-      zone_name = @soa.name.to_s
+      zone_name = @soa.name.to_s.downcase
       first_name = nil
       IO.foreach(@nsec_temp_file) {|line|
         # @TODO@ Do we need to parse the record to get the next owner name?
@@ -358,7 +359,7 @@ module KASPAuditor
       def initialize(parent, config)
         @parent = parent
         @config = config
-        @origin = config.name.to_s + "."
+        @origin = config.name.to_s.downcase + "."
       end
 
       def scan_unsigned_file(file, temp_file)
@@ -386,7 +387,11 @@ module KASPAuditor
           if (need_to_parse || continued_line || ret_line.index("soa") || ret_line.index("SOA") ||
                 (line.index("$TTL") == 0) || (line.index("$ORIGIN") == 0))
             # Build up the RR from the input lines until we have the whole thing
-            ret_line = zone_reader.process_line(line)
+            begin
+              ret_line = zone_reader.process_line(line)
+            rescue Exception => e
+              KASPAuditor.exit("ERROR - Can't process zone file : #{file.inspect} : #{e}", 1)
+            end
             if (!ret_line)
               continued_line = true
               next
@@ -426,7 +431,7 @@ module KASPAuditor
           # Handle out-of-zone data. 
           # We're interested in non-absolute names which are not in zone.
           rr_name = ret_line.split()[0]
-          if (rr_name[rr_name.length-1, 1] != ".") || (rr_name.downcase=~/#{@config.name}\.$/)
+          if (rr_name[rr_name.length-1, 1] != ".") || (rr_name.downcase=~/#{@config.name.downcase}\.$/)
             rr_counter += 1
           end
         }
@@ -464,39 +469,27 @@ module KASPAuditor
           grep_for_domains_of_interest(file, domain_filename)
         }
         first = true
-        if (!File.exists?(domain_filename))
-          File.new(domain_filename, "w")
-        end
-        File.open(domain_filename, "w") {|domain_file|
-          IO.foreach((file.to_s+"").untaint) {|line|
-            next if (line[0,1] == ";")
-            next if (line.strip.length == 0)
-            if (first)
-              first = false
-              # Check that SOA record is first record in output zone
-              rr = RR.create(line)
-              if (rr.type != Types::SOA)
-                @parent.log(LOG_ERR, "Expected SOA RR as first record in #{file}, but got RR : #{rr}")
-              end
+        IO.foreach((file.to_s+"").untaint) {|line|
+          next if (line[0,1] == ";")
+          next if (line.strip.length == 0)
+          if (first)
+            first = false
+            # Check that SOA record is first record in output zone
+            rr = RR.create(line)
+            if (rr.type != Types::SOA)
+              @parent.log(LOG_ERR, "Expected SOA RR as first record in #{file}, but got RR : #{rr}")
             end
-            # Read the line in and split it
-            # We know that signed line will always be in canonical form. So, type will always be at line.split()[3]
+          end
+          # Read the line in and split it
+          # We know that signed line will always be in canonical form. So, type will always be at line.split()[3]
 
-            # See if it contains an RR type of interest - if so, then process the standard checks that apply for that type
-            test_rr_type(line)
-            #            # See if it contains a domain name of interest - only if we are looking for any!
-            #            if (@parent.scan_options.num_domains)
-            #              if (@parent.name_in_list(line.split()[0]))
-            #                # if so, then save it to the temp file for that domain name
-            #                domain_file.write(line)
-            #              end
-            #            end
-          }
+          # See if it contains an RR type of interest - if so, then process the standard checks that apply for that type
+          test_rr_type(line)
         }
 
         ret_id, ret_status = Process.wait2(pid)
         if (ret_status != 0)
-          @parent.log(LOG_WARNING, "Egrep failed on #{file} - #{ret_status}")
+          @parent.log(LOG_WARNING, "Grep failed on #{file} - #{ret_status}")
         else
           scan_temp_domain_files(domain_filename)
         end
@@ -506,7 +499,7 @@ module KASPAuditor
       def grep_for_domains_of_interest(file, domain_filename)
         # Use the parent.domain_list to grep for all the instances of the domains we're after.
         list = @parent.domain_list + @parent.hashed_domain_list
-        grep_command = "grep -G '"
+        grep_command = "#{Commands.grep} '"
         first = true
         list.each {|domain|
           if first
@@ -728,6 +721,8 @@ module KASPAuditor
       end
     end
 
+    attr_accessor :ret_val
+
     def update_key_stores
       # Use the key_tracker to update and check key stores using
       # the key information in the SOA file.
@@ -806,7 +801,7 @@ module KASPAuditor
         log(LOG_ERR, "NSEC3PARAM flags should be 0, but were #{rr.flags} for #{rr.name}")
       end
       # Check that we are at the apex of the zone here
-      if (rr.name.to_s != @config.name.to_s)
+      if (rr.name.to_s.downcase != @config.name.to_s.downcase)
         log(LOG_ERR, "NSEC3PARAM seen at #{rr.name} : should be at zone apex (#{@config.name}")
       end
       # Check that we have not seen an NSEC3PARAM before
@@ -830,12 +825,56 @@ module KASPAuditor
       end
     end
 
+    def check_policy_changes
+      if (!@checked_policy)
+        # Since the auditor just runs once per zone, there is no point in refreshing this information for every signature!
+        # Just read it once...
+        @policy_has_changed = false
+        @inception_offset_has_changed = false
+        @policy_change_timestamp = 0
+        @checked_policy = true
+        # Now load the new policy configuration - has anything changed?
+        if (@config.changed_config.signature_config_changed?)
+          @policy_has_changed = true
+          @policy_change_timestamp = @config.changed_config.get_signature_timestamp
+        end
+        if (@config.changed_config.rrsig_inception_offset.timestamp != 0)
+          @inception_offset_has_changed = true
+        end
+      end
+    end
+
     def do_basic_rrsig_checks(line)
       # @TODO@  Can we check the length of the RRSIG signature here?
+
       time_now = Time.now.to_i
       split = line.split
+      key_tag = split[10]
+      @keys_used.push(key_tag) if !@keys_used.include?key_tag
       sig_inception = RR::RRSIG.get_time(split[9])
-      if (sig_inception >= (time_now + @config.signatures.inception_offset))
+
+      check_policy_changes
+
+      # See if any of the configuration has changed for signature lifetimes
+      if (@policy_has_changed)
+        if (!@inception_offset_has_changed)
+          #  If not inception_offset which changed, then simply ignore RRSIGs which were
+          #   created earlier than the policy change timestamp (including inception_offset here!)
+          if (sig_inception < (@policy_change_timestamp - @config.signatures.inception_offset))
+            log(LOG_WARNING, "Skipping signature lifetime check for  #{split[0].chop}, #{split[4]} : policy has changed since #{sig_inception} (at #{@policy_change_timestamp})\n")
+            return
+          end
+        else
+          #   If InceptionOffset has changed, then all bets are probably off. In this case,
+          #      ignore all signature which were created less than a day before the policy changed.
+          if (sig_inception < (@policy_change_timestamp - (3600 * 24)))
+            log(LOG_WARNING, "Skipping signature lifetime check for  #{split[0].chop}, #{split[4]} : policy has changed since #{sig_inception} (at #{@policy_change_timestamp})\n")
+            return
+          end
+        end
+      end
+
+      if (sig_inception > (time_now + @config.signatures.inception_offset))
         log(LOG_ERR, "Inception error for #{split[0].chop}, #{split[4]} : Signature inception is #{sig_inception}, time now is #{time_now}, inception offset is #{@config.signatures.inception_offset}, difference = #{time_now - sig_inception}")
       else
         #                      print "OK : Signature inception is #{sig.inception}, time now is #{time_now}, inception offset is #{@config.signatures.inception_offset}, difference = #{time_now - sig.inception}\n"
@@ -871,9 +910,6 @@ module KASPAuditor
         log(LOG_ERR, "Signature lifetime too long - should be at most #{max_lifetime} but was #{actual_lifetime}")
       end
 
-      key_tag = split[10]
-      @keys_used.push(key_tag) if !@keys_used.include?key_tag
-
     end
 
     def do_basic_dnskey_checks(line)
@@ -884,7 +920,7 @@ module KASPAuditor
         return
       end
       @keys.push(key_rr)
-      @keys_original.push(key_rr)
+      @keys_original.push(key_rr.clone)
 
       #      Auditor.check_key_config(@keys, @unsigned_keys, @key_cache, @config, self)
     end
@@ -947,7 +983,7 @@ module KASPAuditor
     def get_hashed_owner_name(name)
       hash = RR::NSEC3.calculate_hash(name, @config.denial.nsec3.hash.iterations,
         RR::NSEC3.decode_salt(@config.denial.nsec3.hash.salt),
-        Nsec3HashAlgorithms.new(@config.denial.nsec3.hash.algorithm)) + ".#{@config.name}."
+        Nsec3HashAlgorithms.new(@config.denial.nsec3.hash.algorithm)) + ".#{@config.name.to_s.downcase}."
       return hash
     end
 

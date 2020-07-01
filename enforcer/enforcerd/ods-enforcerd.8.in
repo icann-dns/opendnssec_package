@@ -1,5 +1,5 @@
 .TH "ods-enforcerd" "8" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-enforcerd"
-.\" $Id: ods-enforcerd.8.in 3150 2010-04-08 11:36:13Z jakob $
+.\" $Id: ods-enforcerd.8.in 2888 2010-02-24 22:55:16Z jakob $
 .SH "NAME"
 .LP
 .B ods\-enforcerd

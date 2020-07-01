@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: kasp.rnc 3150 2010-04-08 11:36:13Z jakob $
+  $Id: kasp.rnc 4027 2010-09-29 10:17:08Z sion $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -30,7 +30,7 @@
 <grammar xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
   <start>
     <element name="KASP">
-      <oneOrMore>
+      <zeroOrMore>
         <element name="Policy">
           <!-- (short) symbolic name for Policy -->
           <attribute name="name">
@@ -170,7 +170,7 @@
             </element>
           </zeroOrMore>
         </element>
-      </oneOrMore>
+      </zeroOrMore>
     </element>
   </start>
   <define name="serial">
@@ -261,14 +261,16 @@
     <element name="Repository">
       <data type="string"/>
     </element>
-    <!--
-      Number of Standby keys
-      Makes the rollover faster, since the key is
-      already pre-published and ready.
-    -->
-    <element name="Standby">
-      <data type="nonNegativeInteger"/>
-    </element>
+    <optional>
+      <!--
+        Number of Standby keys
+        Makes the rollover faster, since the key is
+        already pre-published and ready.
+      -->
+      <element name="Standby">
+        <data type="nonNegativeInteger"/>
+      </element>
+    </optional>
     <optional>
       <!-- Use manual key rollover? -->
       <element name="ManualRollover">

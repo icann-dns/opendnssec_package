@@ -1,4 +1,4 @@
-# $Id: am_prog_ruby.m4 3150 2010-04-08 11:36:13Z jakob $
+# $Id: am_prog_ruby.m4 2723 2010-01-26 18:41:03Z jakob $
 
 AC_DEFUN([AM_PROG_RUBY],[
 	RUBY_PROGS="ruby ruby1.8 ruby1.7 ruby1.6"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  $Id: conf.rnc 3150 2010-04-08 11:36:13Z jakob $
+  $Id: conf.rnc 3768 2010-08-23 11:23:58Z jakob $
   
   Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
   All rights reserved.
@@ -62,6 +62,12 @@
             <optional>
               <!-- Require backup of keys before use (optional) -->
               <element name="RequireBackup">
+                <empty/>
+              </element>
+            </optional>
+            <optional>
+              <!-- Do not maintain public keys in the repository (optional) -->
+              <element name="SkipPublicKey">
                 <empty/>
               </element>
             </optional>
@@ -174,7 +180,7 @@
               System command to call after a zone has been (re)signed
               
               '%zone' in the string will be replaced by the zone name
-              '%znefile' in the string will be replaced by the zone file		
+              '%znefile' in the string will be replaced by the zone file
             -->
             <element name="NotifyCommand">
               <data type="string"/>

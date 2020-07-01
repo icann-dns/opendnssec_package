@@ -1,5 +1,5 @@
 #
-# $Id: auditor.rb 3572 2010-07-15 13:17:32Z alex $
+# $Id: auditor.rb 4184 2010-11-11 16:01:15Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -36,7 +36,7 @@ module KASPAuditor
 
   # @TODO@ SOA Checks - format, etc.
   
-  class Auditor # :nodoc: all
+  class Auditor 
     class FatalError < Exception
     end
     EMPTY_NAME = Name.create(".")
@@ -75,6 +75,7 @@ module KASPAuditor
       @key_tracker = nil
       @key_cache = nil
       @unknown_nsecs = {}
+      @empty_nonterminals = []
     end
     attr_reader :config
     def set_config(c) # :nodoc: all
@@ -108,7 +109,7 @@ module KASPAuditor
       begin
         # Load SOA record from top of original signed and unsigned files!
         load_soas(original_unsigned_file, original_signed_file)
-        if ((@config.name != @soa.name.to_s) && (@config.name != @soa.name.to_s.chop))
+        if ((@config.name.downcase != @soa.name.to_s) && (@config.name.downcase != @soa.name.to_s.chop))
           log(LOG_ERR, "SOA name (#{@soa.name}) is different to the configured zone name (#{@config.name}) - aborting")
           return 1
         end
@@ -171,8 +172,6 @@ module KASPAuditor
             end
           }
         }
-        # Now take a look at how the keys are changing over time...
-        @key_tracker.process_key_data(@keys, @keys_used, @soa.serial, @config.soa.ttl)
 
         # Check the last nsec(3) record in the chain points back to the start
         do_final_nsec_check()
@@ -184,6 +183,9 @@ module KASPAuditor
         if (@config.denial.nsec3)
           nsec3auditor.check_nsec3_types_and_opt_out(@unknown_nsecs)
         end
+
+        # Now take a look at how the keys are changing over time...
+        @key_tracker.process_key_data(@keys, @keys_used, @soa.serial, @config.soa.ttl)
       rescue FatalError => e
         return 3
       end
@@ -315,11 +317,28 @@ module KASPAuditor
     # Check the RRSIG for this RRSet
     def check_signature(rrset, is_glue, delegation)
       return if is_glue
-      if (delegation && ([Types::AAAA, Types::A].include?rrset.type))
+      if (delegation && ([Types::AAAA, Types::A].include?rrset.type) && (rrset.name != @soa.name))
         # glue - don't verify
+        # Make sure that rrset is NOT signed
+        if rrset.sigs.length > 0
+          log(LOG_ERR, "Glue should not be signed : #{rrset.name}, #{rrset.type}")
+        end
         return
       end
-      return if (out_of_zone(rrset.name))
+      if (out_of_zone(rrset.name))
+        # Check that RRSet is NOT signed
+        if rrset.sigs.length > 0
+          log(LOG_ERR, "Out of zone data should not be signed : #{rrset.name}, #{rrset.type}")
+        end
+        return
+      end
+      if ((rrset.type == Types::NS) && (rrset.name != @soa.name))
+        # Make sure delegation is NOT signed
+        if rrset.sigs.length > 0
+          log(LOG_ERR, "Delegation should not be signed : #{rrset.name}, #{rrset.type}")
+        end
+        return
+      end
       rrset_sig_types = []
       rrset.sigs.each {|sig| rrset_sig_types.push(sig.algorithm)}
       @algs.each {|alg|
@@ -357,10 +376,31 @@ module KASPAuditor
           end
         }
       end
+
+      check_policy_changes
+
       #  c) inception date in past by at least interval specified by config
       rrset.sigs.each {|sig|
+        # See if any of the configuration has changed for signature lifetimes
+        if (@policy_has_changed)
+          if (!@inception_offset_has_changed)
+            #  If not inception_offset which changed, then simply ignore RRSIGs which were
+            #   created earlier than the policy change timestamp (including inception_offset here!)
+            if (sig.inception < (@policy_change_timestamp - @config.signatures.inception_offset))
+              log(LOG_WARNING, "Skipping signature lifetime check for #{sig.name}, #{sig.type_covered} : policy has changed since #{sig.inception} (at #{@policy_change_timestamp})\n")
+              next
+            end
+          else
+            #   If InceptionOffset has changed, then all bets are probably off. In this case,
+            #      ignore all signature which were created less than a day before the policy changed.
+            if (sig.inception < (@policy_change_timestamp - (3600 * 24)))
+              log(LOG_WARNING, "Skipping signature lifetime check for #{sig.name}, #{sig.type_covered} : policy has changed since #{sig.inception} (at #{@policy_change_timestamp})\n")
+              next
+            end
+          end
+        end
         time_now = Time.now.to_i
-        if (sig.inception >= (time_now + @config.signatures.inception_offset))
+        if (sig.inception > (time_now + @config.signatures.inception_offset))
           log(LOG_ERR, "Inception error for #{sig.name}, #{sig.type_covered} : Signature inception is #{sig.inception}, time now is #{time_now}, inception offset is #{@config.signatures.inception_offset}, difference = #{time_now - sig.inception}")
         else
           #                      print "OK : Signature inception is #{sig.inception}, time now is #{time_now}, inception offset is #{@config.signatures.inception_offset}, difference = #{time_now - sig.inception}\n"
@@ -391,15 +431,34 @@ module KASPAuditor
         max_lifetime = @config.signatures.inception_offset + validity + @config.signatures.jitter
         actual_lifetime = sig.expiration - sig.inception
         if (min_lifetime > actual_lifetime)
-          log(LOG_ERR, "Signature lifetime too short - should be at least #{min_lifetime} but was #{actual_lifetime}")
+          log(LOG_ERR, "Signature lifetime for #{sig.name}, #{sig.type_covered} too short - should be at least #{min_lifetime} but was #{actual_lifetime}")
         end
         if (max_lifetime < actual_lifetime)
-          log(LOG_ERR, "Signature lifetime too long - should be at most #{max_lifetime} but was #{actual_lifetime}")
+          log(LOG_ERR, "Signature lifetime for #{sig.name}, #{sig.type_covered} too long - should be at most #{max_lifetime} but was #{actual_lifetime}")
         end
 
       }
 
 
+    end
+
+    def check_policy_changes
+      if (!@checked_policy)
+        # Since the auditor just runs once per zone, there is no point in refreshing this information for every signature!
+        # Just read it once...
+        @policy_has_changed = false
+        @inception_offset_has_changed = false
+        @policy_change_timestamp = 0
+        @checked_policy = true
+        # Now load the new policy configuration - has anything changed?
+        if (@config.changed_config.signature_config_changed?)
+          @policy_has_changed = true
+          @policy_change_timestamp = @config.changed_config.get_signature_timestamp
+        end
+        if (@config.changed_config.rrsig_inception_offset.timestamp != 0)
+          @inception_offset_has_changed = true
+        end
+      end
     end
 
     # Get the string for the type of denial this zone is using : either "NSEC" or "NSEC3"
@@ -607,8 +666,12 @@ module KASPAuditor
       # This method should be called at the end of the run, when all the DNSKEY records
       # in both the signed and unsigned zones have been collated.
       # We don't bother checking keys which were defined in the unsigned zone
-      keys.each {|l_rr|\
-          found_unsigned = false
+
+      # NEED TO CHECK POLICY CHANGES!!
+      # No we don't only new keys are checked here! :-)
+
+      keys.each {|l_rr|
+        found_unsigned = false
         unsigned_keys.each {|uk|
           if ((uk.key_tag == l_rr.key_tag) && (uk.key == l_rr.key) && (uk.name == l_rr.name)) # Ignore the TTL
             found_unsigned = true
@@ -675,15 +738,20 @@ module KASPAuditor
             # iff we're using NSEC3
             write_types_to_file(current_domain, types_covered, last_rr.name, is_glue)
           end
-          if !(l_rr.name.subdomain_of?current_domain)
+          if !(test_subdomain(current_domain, subdomain))
             delegation = false
+            is_glue = false
+          else
+            is_glue = true
           end
-          is_glue = true
           seen_nsec_for_domain = false
           types_covered = []
           types_covered.push(l_rr.type)
           current_domain = l_rr.name
           last_rr = old_rr
+        end
+        if !([Types::A, Types::AAAA, Types::RRSIG].include?l_rr.type)
+          is_glue = false
         end
         if l_rr.type == Types::NS
           delegation = true
@@ -739,7 +807,7 @@ module KASPAuditor
 
         end
         # Check if the record exists in both zones - if not, print an error
-        if (unsigned_domain_rrs  &&  !delete_rr(unsigned_domain_rrs, l_rr)) # delete the record from the unsigned
+        if (unsigned_domain_rrs  &&  !(unsigned_domain_rrs.delete(l_rr))) # delete the record from the unsigned
           # ADDITIONAL SIGNED RECORD!! Check if we should error on it
           process_additional_signed_rr(l_rr)
           if (l_rr.type == Types::SOA)
@@ -788,31 +856,6 @@ module KASPAuditor
       return l_rr
     end
 
-    # Delete a processed RR from the unsigned domain cache
-    def delete_rr(unsigned_domain_rrs, l_rr)
-      if (l_rr.type == Types::AAAA)
-        # We need to inspect the data here - old versions of Dnsruby::RR#==
-        # compare the rdata as well as the instance variables.
-        unsigned_domain_rrs.each {|u_rr|
-          if ((u_rr.name == l_rr.name) && (u_rr.type == l_rr.type) &&
-                (u_rr.address == l_rr.address))
-            return unsigned_domain_rrs.delete(u_rr)
-          end
-        }
-      elsif (l_rr.type == Types::DS)
-        # Dnsruby 1.39 fails to compare DS RRs correctly - this is fixed for future versions
-        unsigned_domain_rrs.each {|u_rr|
-          if ((u_rr.name == l_rr.name) && (u_rr.type == l_rr.type) &&
-                (u_rr.key_tag == l_rr.key_tag) && (u_rr.digestbin == l_rr.digestbin) &&
-                (u_rr.algorithm == l_rr.algorithm) && (u_rr.digest_type == l_rr.digest_type))
-            return unsigned_domain_rrs.delete(u_rr)
-          end
-        }
-      else
-        return unsigned_domain_rrs.delete(l_rr)
-      end
-    end
-
     # This method is called if an NSEC3-sgned zone is being audited.
     # It records the types actually seen at the owner name, and the hashed
     # owner name. At the end of the auditing run, this is checked against
@@ -825,6 +868,7 @@ module KASPAuditor
     # It is passed the domain, and the types seen at the domain
     def write_types_to_file(domain, types_covered, last_name, is_glue)
       return if (is_glue && ( types_covered.clone.delete_if{|t| t == Types::A || t == Types::AAAA}.empty? ))
+      #      return if (is_glue && ( types_covered.clone.delete_if{|t| t == Types::A || t == Types::AAAA || t == Types::NS}.empty? ))
       return if (types_covered.include?Types::NSEC3) # Only interested in real domains
       #      return if (out_of_zone(domain)) # Only interested in domains which should be here!
       types_string = get_types_string(types_covered)
@@ -856,7 +900,11 @@ module KASPAuditor
       while (last.labels.length > name_to_check_against.labels.length + 1)
         # Add the empty nonterminal to the list
         last.labels = last.labels[1,last.labels.length]
-        empty_nonterminals.push(last.clone)
+        if (!@empty_nonterminals.include?last)
+          empty_nonterminals.push(last.clone)
+          @empty_nonterminals.push(last.clone)
+        end
+
       end
 
       # If so, should it be covered by an NSEC3 record?
@@ -930,7 +978,10 @@ module KASPAuditor
     # but false for ("z.a.b.c", "a.b.c", "c")
     def test_subdomain(rr, subdomain)
       ret = false
-      rr_name = rr.name
+      rr_name = rr
+      if (rr.class != Dnsruby::Name)
+        rr_name = rr.name
+      end
       rr_name = lose_n_labels(rr_name, @soa.name.labels.length)
 
       if (subdomain && rr_name)
@@ -978,7 +1029,7 @@ module KASPAuditor
       # Load the SOA record from both zones, and check they are the same.
       signed_soa = get_soa_from_file(output_file)
       unsigned_soa = get_soa_from_file(input_file)
-      @zone_name = unsigned_soa.name.to_s
+      @zone_name = unsigned_soa.name.to_s.downcase
 
       # Then return the SOA record (of the signed zone)
       if (signed_soa.name != unsigned_soa.name)
@@ -1042,6 +1093,8 @@ module KASPAuditor
       raise FatalError.new("Can't load SOA from #{file}")
     end
 
+    attr_accessor :ret_val
+
     # Log the message, and set the return value to the most serious code so far
     def log(pri, msg)
       if (pri.to_i < @ret_val)
@@ -1064,6 +1117,7 @@ module KASPAuditor
 
     # Check if the name is out of the zone
     def out_of_zone(name)
+      return true if !name
       return !((name.subdomain_of?@soa.name) || (name == @soa.name))
     end
 
@@ -1085,7 +1139,7 @@ module KASPAuditor
       end
       def check_nsec3_types_and_opt_out(unknown_nsecs)
         # First of all we will have to sort the types file.
-        system("sort -t' ' #{@working}#{File::SEPARATOR}audit.types.#{Process.pid} > #{@working}#{File::SEPARATOR}audit.types.sorted.#{Process.pid}")
+        system("#{Commands.sort} -t' ' #{@working}#{File::SEPARATOR}audit.types.#{Process.pid} > #{@working}#{File::SEPARATOR}audit.types.sorted.#{Process.pid}")
 
         # Go through each name in the files and check them
         # We want to check two things :
@@ -1109,14 +1163,21 @@ module KASPAuditor
               "#{File::SEPARATOR}audit.nsec3.#{Process.pid}") {|fnsec3|
             File.open(@working + 
                 "#{File::SEPARATOR}audit.optout.#{Process.pid}") {|foptout|
+              dont_load_next_types = false
               while (!ftypes.eof? && !fnsec3.eof? && !foptout.eof?)
-                types_name, types_name_unhashed, types_types = get_name_and_types(ftypes, true)
+                if (!dont_load_next_types)
+                  types_name, types_name_unhashed, types_types = get_name_and_types(ftypes, true)
+                else
+                  dont_load_next_types = false
+                end
                 nsec3_name, nsec3_types = get_name_and_types(fnsec3)
                 owner, next_hashed = get_next_non_optout(foptout)
                 owner, next_hashed = check_optout(types_name_unhashed, owner, next_hashed, types_name, foptout)
                 
                 while ((nsec3_name < types_name) && (!fnsec3.eof?))
-                  log(LOG_WARNING, "Found NSEC3 record for hashed domain which couldn't be found in the zone (#{nsec3_name})")
+                  if (types_name < owner) # Don't forget about the optout list! If optout on empty nonterminal, then types_name == owner
+                    log(LOG_ERROR, "Found NSEC3 record for hashed domain which couldn't be found in the zone (#{nsec3_name})")
+                  end
                   nsec3_name, nsec3_types = get_name_and_types(fnsec3)
                 end
                 while ((types_name < nsec3_name) && (!ftypes.eof?))
@@ -1138,9 +1199,26 @@ module KASPAuditor
                 end
                 # Now check the NSEC3 types_covered against the types ACTUALLY at the name
                 if (types_types != nsec3_types)
-                  log(LOG_ERR, "ERROR : expected #{@parent.get_types_string(nsec3_types)}" +
-                      " at #{types_name_unhashed} (#{nsec3_name}) but found " +
-                      "#{@parent.get_types_string(types_types)}")
+                  # Let's just check that we haven't misidentified an empty nonterminal...
+                  old_types_name = types_name
+                  old_types_name_unhashed = types_name_unhashed
+                  old_types_types = types_types
+                  while (old_types_name == types_name)
+                    types_name, types_name_unhashed, types_types = get_name_and_types(ftypes, true)
+                    if (types_name == old_types_name)
+                      dont_load_next_types = false
+                      old_types_name = types_name
+                      old_types_name_unhashed = types_name_unhashed
+                      old_types_types = types_types
+                    else
+                      dont_load_next_types = true
+                    end
+                  end
+                  if (old_types_types != nsec3_types)
+                    log(LOG_ERR, "ERROR : expected #{@parent.get_types_string(nsec3_types)}" +
+                        " at #{old_types_name_unhashed} (#{nsec3_name}) but found " +
+                        "#{@parent.get_types_string(old_types_types)}")
+                  end
                 end
               end
             }

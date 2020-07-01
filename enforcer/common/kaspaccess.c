@@ -1,5 +1,5 @@
 /*
- * $Id: kaspaccess.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: kaspaccess.c 4141 2010-10-25 15:26:40Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -53,10 +53,7 @@ kaspSetPolicyDefaults(KSM_POLICY *policy, char *name)
     }
 
 	if (name) {
-        if (policy->name) {
-            StrFree(policy->name);
-        }
-        StrAppend(&policy->name, name);
+        snprintf(policy->name, KSM_NAME_LENGTH, "%s", name);
     }
 
 	policy->signer->refresh = 0;
@@ -132,7 +129,8 @@ void
 kaspConnect(DAEMONCONFIG* config, DB_HANDLE	*handle)
 {
     /* Note that all these XML derived strings are unsigned chars */
-	if (DbConnect(handle, (char *)config->schema, (char *)config->host, (char *)config->password, (char *)config->user) != 0) {
+	if (DbConnect(handle, (char *)config->schema, (char *)config->host, (char *)config->password, (char *)config->user, (char *)config->port) != 0) {
+        unlink(config->pidfile);
         exit(-1);
     }
 

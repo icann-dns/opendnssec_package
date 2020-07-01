@@ -1,5 +1,5 @@
 /*
- * $Id: database_connection_lite.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: database_connection_lite.c 1942 2009-09-30 11:21:48Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *

@@ -1,19 +1,20 @@
-# $Id: Makefile.am 3150 2010-04-08 11:36:13Z jakob $
+# $Id: Makefile.am 3734 2010-08-11 11:18:06Z jakob $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 CLEANFILES = token.db othertoken.db
 
-AM_CPPFLAGS = 	-I$(srcdir) \
-		-I$(srcdir)/.. \
+AM_CPPFLAGS = \
+		-I$(top_builddir)/common \
 		-I$(srcdir)/../src \
 		@LDNS_INCLUDES@
+
 AM_CFLAGS =	-std=c99
 
 EXTRA_DIST =	*.xml $(srcdir)/softhsm.conf
 
 noinst_PROGRAMS = hsmcheck
  
-hsmcheck_LDADD = ../src/libhsm.la @LDNS_LIBS@ @XML2_LIBS@
+hsmcheck_LDADD = ../src/libhsm.a @LDNS_LIBS@ @XML2_LIBS@
 hsmcheck_LDFLAGS = -no-install
 
 SOFTHSM_ENV = SOFTHSM_CONF=$(srcdir)/softhsm.conf
@@ -27,29 +28,31 @@ token.db othertoken.db:
 	softhsm --slot 1 --init-token --label xyzzy \
 		--so-pin 12345678 --pin 123456
 
+check: regress-softhsm
+
 regress:
 	@echo use target 'regress-{aepkeyper,sca6000,softhsm,etoken,opensc,ncipher,multi}'
 
 regress-aepkeyper: hsmcheck
-	./hsmcheck -f conf-aepkeyper.xml -gsdr
+	./hsmcheck -c conf-aepkeyper.xml -gsdr
 
 regress-sca6000: hsmcheck
-	./hsmcheck -f conf-sca6000.xml -gsdr
+	./hsmcheck -c conf-sca6000.xml -gsdr
 
 regress-softhsm: hsmcheck token.db
 	env $(SOFTHSM_ENV) \
-	./hsmcheck -f conf-softhsm.xml -gsdr
+	./hsmcheck -c conf-softhsm.xml -gsdr
 
 regress-etoken: hsmcheck
-	./hsmcheck -f conf-etoken.xml -gsdr
+	./hsmcheck -c conf-etoken.xml -gsdr
 
 regress-opensc: hsmcheck
-	./hsmcheck -f conf-opensc.xml -gsdr
+	./hsmcheck -c conf-opensc.xml -gsdr
 
 regress-ncipher: hsmcheck
-	./hsmcheck -f conf-ncipher.xml -gsdr
+	./hsmcheck -c conf-ncipher.xml -gsdr
 
 regress-multi: hsmcheck token.db othertoken.db
 	env $(SOFTHSM_ENV) \
-	./hsmcheck -f conf-multi.xml -gsdr
+	./hsmcheck -c conf-multi.xml -gsdr
 

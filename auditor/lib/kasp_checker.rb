@@ -1,5 +1,5 @@
 #
-# $Id: kasp_checker.rb 3582 2010-07-15 15:25:19Z alex $
+# $Id: kasp_checker.rb 3892 2010-09-03 13:22:09Z alex $
 #
 # Copyright (c) 2009 Nominet UK. All rights reserved.
 #
@@ -36,6 +36,9 @@ require 'etc'
 
 
 module KASPChecker
+  # This class checks the conf.xml and kasp.xml files to make sure that they
+  # syntactically valid, and also semantically valid. Any oddities in the
+  # configuration are reported to the user.
   class Checker
     $SAFE = 1
     KASP_FILE = "kasp"
@@ -96,32 +99,30 @@ module KASPChecker
         rng_location = (rng_location.to_s + "").untaint
         file = (file.to_s + "").untaint
 
-        stderr = IO::pipe
+        r, w = IO.pipe
         pid = fork {
-          stderr[0].close
-          STDERR.reopen(stderr[1])
-          stderr[1].close
+          r.close
+          $stdout.reopen w
 
-          options = Syslog::LOG_PERROR | Syslog::LOG_NDELAY
-
-          Syslog.open("kasp_check_internal", options) {|syslog|
-            ret = system("#{(@xmllint.to_s + "").untaint} --noout --relaxng #{rng_location} #{file}")
-            exit!(ret)
-          }
+          ret = system("#{(@xmllint.to_s + "").untaint} --noout --relaxng #{rng_location} #{file}")
+          w.close
+          exit!(ret)
         }
-        stderr[1].close
+        w.close
+        ret_strings = []
+        r.each {|l| ret_strings.push(l)}
         Process.waitpid(pid)
         ret_val = $?.exitstatus
 
         # Now rewrite captured output from xmllint to log method
-        while (line = stderr[0].gets)
+        ret_strings.each {|line|
           line.chomp!
           if line.index(" validates")
             #            log(LOG_INFO, line + " OK")
           else
             log(LOG_ERR, line)
           end
-        end
+        }
 
         if (!ret_val)
           log(LOG_ERR, "Errors found validating " +
@@ -370,7 +371,7 @@ module KASPChecker
                   "(#{refresh_secs} seconds)")
             end
 
-            #   4. Warn if "Jitter" is greater than 50% of the maximum of the "default" and "Denial" period. (This is a bit arbitrary. The point is to get the user to realise that there will be a large spread in the signature lifetimes.)
+            #   5. Warn if "Jitter" is greater than 50% of the maximum of the "default" and "Denial" period. (This is a bit arbitrary. The point is to get the user to realise that there will be a large spread in the signature lifetimes.)
             jitter_secs = get_duration(policy, 'Signatures/Jitter', kasp_file)
             max_default_denial=[default_secs, denial_secs].max
             max_default_denial_type = max_default_denial == default_secs ? "Default" : "Denial"
@@ -380,7 +381,7 @@ module KASPChecker
                   "(#{max_default_denial} seconds) for #{name} policy in #{kasp_file}")
             end
 
-            # Error if jitter is greater than either Defaulyt or Denial Validity
+            # 14. Error if jitter is greater than either Default or Denial Validity
             if (jitter_secs > default_secs)
               log(LOG_ERR, "Jitter time (#{jitter_secs}) is greater than the Default Validity (#{default_secs}) for #{name} policy in #{kasp_file}")
             end
@@ -388,14 +389,14 @@ module KASPChecker
               log(LOG_ERR, "Jitter time (#{jitter_secs}) is greater than the Denial Validity (#{denial_secs}) for #{name} policy in #{kasp_file}")
             end
 
-            #   5. Warn if the InceptionOffset is greater than ten minutes. (Again arbitrary - but do we really expect the times on two systems to differ by more than this?)
+            #   6. Warn if the InceptionOffset is greater than one hour. (Again arbitrary - but do we really expect the times on two systems to differ by more than this?)
             inception_offset_secs = get_duration(policy, 'Signatures/InceptionOffset', kasp_file)
-            if (inception_offset_secs > (10 * 60))
+            if (inception_offset_secs > (60 * 60))
               log(LOG_WARNING, "InceptionOffset is higher than expected " +
                   "(#{inception_offset_secs} seconds) for #{name} policy in #{kasp_file}")
             end
 
-            #   6. Warn if the "PublishSafety" and "RetireSafety" margins are less than 0.1 * TTL or more than 5 * TTL.
+            #   7. Warn if the "PublishSafety" and "RetireSafety" margins are less than 0.1 * TTL or more than 5 * TTL.
             publish_safety_secs = get_duration(policy, 'Keys/PublishSafety', kasp_file)
             retire_safety_secs = get_duration(policy, 'Keys/RetireSafety', kasp_file)
             ttl_secs = get_duration(policy, 'Keys/TTL', kasp_file)
@@ -411,7 +412,6 @@ module KASPChecker
                 end
               }
             }
-
 
             # Get the denial type (NSEC or NSEC3)
             denial_type = nil
@@ -436,14 +436,14 @@ module KASPChecker
               ksk_lifetime = [ksk_lifetime, kskl].min
             }
 
-            #  11. Warn if for any zone, the KSK lifetime is less than the ZSK lifetime.
+            #  12. Warn if for any zone, the KSK lifetime is less than the ZSK lifetime.
             if ((ksk_lifetime != max) && (zsk_lifetime != max) && (ksk_lifetime < zsk_lifetime))
               log(LOG_WARNING, "KSK minimum lifetime (#{ksk_lifetime} seconds)" +
                   " is less than ZSK minimum lifetime (#{zsk_lifetime} seconds)"+
                   " for #{name} Policy in #{kasp_file}")
             end
 
-            #   8. If datecounter is used for serial, then no more than 99 signings should be done per day (there are only two digits to play with in the version number).
+            #   9. If datecounter is used for serial, then no more than 99 signings should be done per day (there are only two digits to play with in the version number).
             resigns_per_day = (60 * 60 * 24) / resign_secs
             if (resigns_per_day > 99)
               # Check if the datecounter is used - if so, warn
@@ -453,7 +453,7 @@ module KASPChecker
                       " but #{resigns_per_day} re-signs requested."+
                       " No more than 99 re-signs per day should be used with datecounter"+
                       " as only 2 digits are allocated for the version number")
-                  #  12. Check that the value of the "Serial" tag is valid.
+                  #  13. Check that the value of the "Serial" tag is valid.
                 elsif !(["unixtime", "datecounter", "keep", "counter"].include?serial.text.downcase)
                   log(LOG_ERR, "In #{kasp_file}, policy #{name}, unknown Serial type encountered ('#{serial.text}')." +
                       " Should be either 'unixtime', 'counter', 'datecounter' or 'keep'")

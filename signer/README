@@ -1,4 +1,4 @@
-$Id: README 3150 2010-04-08 11:36:13Z jakob $
+$Id: README 4244 2010-12-03 09:11:05Z matthijs $
 
 The signer engine and its tools are part of the OpenDNSSEC project.
 For more information, visit http://www.opendnssec.org
@@ -92,14 +92,18 @@ $ ods-signer
 cmd> help
  Commands:
 zones           show the currently known zones
-sign <zone>     schedule zone for immediate signing
+sign <zone>     read zone and schedule zone for immediate signing
+sign --all      read zone and schedule zone for immediate signing
+clear <zone>    delete the internal storage of this zone
 queue           show the current task queue
 flush           execute all scheduled tasks immediately
 update          re-read the zonelist xml file
-                and check for changed zoneconf.xml files
+                and check for changed signer configuration xml files
+update <zone>   check for changed signer configuration xml file for zone
 stop            stop the engine
+reload          reload the engine
 start           start the engine (only when signer is not running)
-verbosity <nr>  set verbosity (notimpl)
+verbosity <nr>  set verbosity
 
 cmd> quit
 
@@ -213,3 +217,45 @@ $
 The engine has daemonized itself and should be running. You can
 check that it does by using ods-signer as specified in the
 section INTERACTION FROM THE COMMAND LINE.
+
+
+Diagnostics
+-----------
+
+The signer prints statistics about the signed zones into the logs.
+
+[STATS] opendnssec.org RR[count=32 time=1(sec)]
+                       NSEC[count=32 time=1(sec)]
+                       RRSIG[new=1 reused=31 time=1(sec) avg=1(sig/sec)]
+                       AUDIT[time=2(sec)]
+                       TOTAL[time=5(sec)]
+
+RR[count] is the number of records read in the unsigned zone. It is zero if
+the zone was not re-read. This happens for example when only re-signing.
+RR[time] is the time it took to read the unsigned zone.
+
+NSEC[count] is the number of NSEC or NSEC3 records added to the zone. This
+can be zero too, when only re-signing.
+NSEC[time] is the time it took to create all the Denial of Existence records.
+
+RRSIG[new] is the number of signatures newly created.
+RRSIG[reused] is the number of signatures that were created on a previous run,
+but are fresh enough that they may be remained in the zone.
+RRSIG[time] is the time it took to gather all the new and reused signatures.
+RRSIG[avg] is the average number of created signatures per second.
+
+AUDIT[time] is the time it took for the ods-auditor to run.
+
+TOTAL[time] is the total time it took for the signer engine to sign the 
+latest version of the zone.
+
+
+Debugging
+---------
+Warning: DO NOT TRY THIS EXCEPT FOR DEBUGGING PURPOSES
+
+If the signer is build with the '--enable-timeshift' option, one can
+override the system clock using the ENFORCER_TIMESHIFT environment variable.
+ENFORCER_TIMESHIFT should be set to the timestamp (in YYYYMMDDHHMMSS format).
+When running with timeshift, the program will run once only and exit.
+

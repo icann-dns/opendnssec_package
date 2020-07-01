@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_request.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: ksm_request.c 4284 2011-01-05 08:03:32Z rb $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -219,8 +219,6 @@ int KsmRequestKeysByType(int keytype, int rollover, const char* datetime,
     int     first_pass = 0; /* Indicates if this zone has been published before */
     int     status;         /* Status return */
     char*   zone_name = NULL;  /* For rollover message, if needed */
-    DB_RESULT	result;        /* Result of parameter query */
-    KSM_PARAMETER shared;      /* Parameter information */
     int     manual_rollover = 0;    /* Flag specific to keytype */
 
 	/* Check that we have a valid key type */
@@ -263,8 +261,16 @@ int KsmRequestKeysByType(int keytype, int rollover, const char* datetime,
         if (status != 0) {
             return status;
         }
+    } else {
+        /* Check for the compromised flag on the currently active key;
+           if set then force rollover to 1 (could set manual_rollover to 0)
+           NOTE: because of where this is called from we can not overwrite 
+           the incoming rollover flag if set */
+        status = KsmRequestCheckCompromisedFlag(keytype, zone_id, &rollover);
+        if (status != 0) {
+            return status;
+        }
     }
-
     /*
      * Step 0a: Complete Key rollover of standbykeys in KEYPUBLISH state
      * if we are after their active time, move them into the active state
@@ -325,18 +331,8 @@ int KsmRequestKeysByType(int keytype, int rollover, const char* datetime,
     }
 
     /*
-     * Step 3.  We are within the appropriate interval of the retirement
-     * of the active key, move keys from the generate state into the
-     * publish state.
-     */
-
-    status = KsmRequestChangeStateGeneratePublishConditional(keytype, datetime, &collection, zone_id, run_interval);
-    if (status != 0) {
-        return status;
-    }
-
-    /*
      * Step 3a.  make sure that we have enough standby KSKs
+     * Doing this before 3.
      */
 
     if (keytype == KSM_TYPE_KSK) {
@@ -349,6 +345,17 @@ int KsmRequestKeysByType(int keytype, int rollover, const char* datetime,
         if (status != 0) {
             return status;
         }
+    }
+
+    /*
+     * Step 3.  We are within the appropriate interval of the retirement
+     * of the active key, move keys from the generate state into the
+     * publish state.
+     */
+
+    status = KsmRequestChangeStateGeneratePublishConditional(keytype, datetime, &collection, zone_id, run_interval);
+    if (status != 0) {
+        return status;
     }
 
     /*
@@ -381,20 +388,6 @@ int KsmRequestKeysByType(int keytype, int rollover, const char* datetime,
             }
             return(status);
         }
-        /* Get the shared_keys parameter */
-        status = KsmParameterInit(&result, "zones_share_keys", "keys", policy_id);
-        if (status != 0) {
-            status = MsgLog(KME_SQLFAIL, DbErrmsg(DbHandle()));
-            StrFree(zone_name);
-            return(status);
-        }
-        status = KsmParameter(result, &shared);
-        if (status != 0) {
-            status = MsgLog(KME_SQLFAIL, DbErrmsg(DbHandle()));
-            StrFree(zone_name);
-            return(status);
-        }
-        KsmParameterEnd(result);
 
         /*
          * Step 6. If there are keys to be made active, count the number of keys
@@ -485,12 +478,7 @@ int KsmRequestKeysByType(int keytype, int rollover, const char* datetime,
                 }
 
                 /* Log that a rollover has happened */
-                if (shared.value == 0) {
-                    (void) MsgLog(KME_ROLL_ZONE, (keytype == KSM_TYPE_KSK ? "KSK" : "ZSK"), zone_name);
-                }
-                else {
-                    (void) MsgLog(KME_ROLL_POLICY, (keytype == KSM_TYPE_KSK ? "KSK" : "ZSK"), zone_name, zone_name);
-                }
+                (void) MsgLog(KME_ROLL_ZONE, (keytype == KSM_TYPE_KSK ? "KSK" : "ZSK"), zone_name);
             }
         }
         StrFree(zone_name);
@@ -634,11 +622,25 @@ int KsmRequestSetActiveExpectedRetire(int keytype, const char* datetime, int zon
      */
 
     sql = DusInit("keypairs");
-    DusSetString(&sql, "RETIRE", datetime, 0);
-    DusSetInt(&sql, "fixedDate", 1, 1);
-    DusSetInt(&sql, "compromisedflag", 1, 2);
+    DusSetInt(&sql, "fixedDate", 1, 0);
+    DusSetInt(&sql, "compromisedflag", 1, 1);
 
     DusConditionKeyword(&sql, "ID", DQS_COMPARE_IN, insql, 0);
+    DusEnd(&sql);
+
+    status = DbExecuteSqlNoResult(DbHandle(), sql);
+    DusFree(sql);
+
+    /* Report any errors */
+    if (status != 0) {
+        status = MsgLog(KME_SQLFAIL, DbErrmsg(DbHandle()));
+    }
+
+    sql = DusInit("dnsseckeys");
+    DusSetString(&sql, "RETIRE", datetime, 0);
+
+    DusConditionKeyword(&sql, "KEYPAIR_ID", DQS_COMPARE_IN, insql, 0);
+    /* NO ZONE_ID !!! We want to retire ALL instances of this key */
     StrFree(insql);
     DusEnd(&sql);
 
@@ -779,9 +781,9 @@ int KsmRequestChangeState(int keytype, const char* datetime,
     KSM_KEYDATA  data;      /* Data for this key */
     char    buffer[32];     /* For integer conversion */
     char*   zone_name = NULL;  /* For DS removal message, if needed */
-    
-    DB_RESULT	result2;        /* Result of parameter query */
-    KSM_PARAMETER data2;        /* Parameter information */
+
+    /* Unused parameter */
+    (void)policy_id;
 
     /* Create the destination column name */
     if (dst_state == KSM_STATE_DSREADY) {
@@ -895,11 +897,12 @@ int KsmRequestChangeState(int keytype, const char* datetime,
      * code is not executed.)
      */
 
-    sql = DusInit("keypairs");
+    sql = DusInit("dnsseckeys");
     DusSetInt(&sql, "STATE", dst_state, set++);
     DusSetString(&sql, dst_col, datetime, set++);
 
-    DusConditionKeyword(&sql, "ID", DQS_COMPARE_IN, insql, 0);
+    DusConditionKeyword(&sql, "KEYPAIR_ID", DQS_COMPARE_IN, insql, 0);
+    DusConditionInt(&sql, "ZONE_ID", DQS_COMPARE_EQ, zone_id, 1);
     DusEnd(&sql);
     StrFree(dst_col);
 
@@ -927,31 +930,10 @@ int KsmRequestChangeState(int keytype, const char* datetime,
             }
             return(status);
         }
-        /* Get the shared_keys parameter */
-        status = KsmParameterInit(&result2, "zones_share_keys", "keys", policy_id);
-        if (status != 0) {
-            status = MsgLog(KME_SQLFAIL, DbErrmsg(DbHandle()));
-            StrFree(insql);
-            StrFree(zone_name);
-            return(status);
-        }
-        status = KsmParameter(result2, &data2);
-        if (status != 0) {
-            status = MsgLog(KME_SQLFAIL, DbErrmsg(DbHandle()));
-            StrFree(insql);
-            StrFree(zone_name);
-            return(status);
-        }
-        KsmParameterEnd(result2);
 
         /* If we moved a KSK from retire to dead then the DS can be removed */
         if (dst_state == KSM_STATE_DEAD && rollover_scheme == KSM_ROLL_DS) {
-            if (data2.value == 0) {
-                (void) MsgLog(KME_DS_REM_ZONE, zone_name);
-            }
-            else {
-                (void) MsgLog(KME_DS_REM_POLICY, zone_name);
-            }
+            (void) MsgLog(KME_DS_REM_ZONE, zone_name);
         }
         else if (dst_state == KSM_STATE_READY) {
             (void) MsgLog(KME_NEW_DS, zone_name);
@@ -1219,12 +1201,13 @@ int KsmRequestChangeStateN(int keytype, const char* datetime, int count,
          * that state.
          */
 
-        sql3 = DusInit("keypairs");
+        sql3 = DusInit("dnsseckeys");
         DusSetInt(&sql3, "STATE", dst_state, setclause++);
         DusSetString(&sql3, dst_name, datetime, setclause++);
         StrFree(dst_name);
 
-        DusConditionKeyword(&sql3, "ID", DQS_COMPARE_IN, insql, whereclause++);
+        DusConditionKeyword(&sql3, "KEYPAIR_ID", DQS_COMPARE_IN, insql, whereclause++);
+        DusConditionInt(&sql3, "ZONE_ID", DQS_COMPARE_EQ, zone_id, whereclause++);
         StrFree(insql);
         DusEnd(&sql3);
 
@@ -1950,7 +1933,7 @@ int KsmRequestCheckFirstPass(int keytype, int* first_pass_flag, int zone_id)
 
     sql = DqsCountInit("KEYDATA_VIEW");
     DqsConditionInt(&sql, "KEYTYPE", DQS_COMPARE_EQ, keytype, clause++);
-    DqsConditionInt(&sql, "STATE", DQS_COMPARE_GT, KSM_STATE_PUBLISH, clause++);
+    DqsConditionInt(&sql, "STATE", DQS_COMPARE_GE, KSM_STATE_PUBLISH, clause++);
     if (zone_id != -1) {
         DqsConditionInt(&sql, "ZONE_ID", DQS_COMPARE_EQ, zone_id, clause++);
     }
@@ -1969,6 +1952,64 @@ int KsmRequestCheckFirstPass(int keytype, int* first_pass_flag, int zone_id)
     }
     else {
         *first_pass_flag = 0;
+    }
+
+    return status;
+}
+
+/*
+ * KsmRequestCheckCompromisedFlag - Work out if this zone is rolling
+ *
+ * Description:
+ *      Counts the number of "compromised" active keys, if > 0 then force
+ *      the zone to roll if we can.
+ *
+ * Arguments:
+ *      int keytype
+ *          Either KSK or ZSK, depending on the key type
+ *
+ *      int zone_id
+ *          ID of zone that we are looking at (-1 == all zones)
+ *
+ *      int* comp_flag
+ *          Force rollover behaviour if the active key is marked as compromised
+ *
+ * Returns:
+ *      int
+ *          Status return. 0 => success, Other => error, in which case a message
+ *          will have been output.
+-*/
+
+int KsmRequestCheckCompromisedFlag(int keytype, int zone_id, int* comp_flag)
+{
+    int     clause = 0;     /* Clause counter */
+    char*   sql = NULL;     /* SQL command */
+    int     status;         /* Status return */
+    int     count = 0;      /* Number of matching keys */
+
+    sql = DqsCountInit("KEYDATA_VIEW");
+    DqsConditionInt(&sql, "KEYTYPE", DQS_COMPARE_EQ, keytype, clause++);
+    DqsConditionInt(&sql, "STATE", DQS_COMPARE_EQ, KSM_STATE_ACTIVE, clause++);
+    if (zone_id != -1) {
+        DqsConditionInt(&sql, "ZONE_ID", DQS_COMPARE_EQ, zone_id, clause++);
+    }
+    DqsConditionInt(&sql, "compromisedflag", DQS_COMPARE_EQ, 1, clause++);
+    DqsEnd(&sql);
+
+    status = DbIntQuery(DbHandle(), &count, sql);
+    DqsFree(sql);
+
+    if (status != 0) {
+        status = MsgLog(KME_SQLFAIL, DbErrmsg(DbHandle()));
+    }
+
+    if (count == 0) {
+        /* No "compromised" keys; i.e. keys waiting to roll */
+        /* We actually don't need to do this as it can only be 0 already */
+        *comp_flag = 0;
+    }
+    else {
+        *comp_flag = 1;
     }
 
     return status;

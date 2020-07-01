@@ -1,4 +1,4 @@
-# $Id: configure.ac 3773 2010-08-24 13:19:46Z alex $
+# $Id: configure.ac 4187 2010-11-12 10:14:19Z alex $
 
 m4_sinclude([version.m4])
 
@@ -14,13 +14,44 @@ OPENDNSSEC_COMMON
 
 AM_PROG_RUBY
 ACX_RUBY_LIBRARY([syslog openssl xsd/datatypes rexml/document])
-ACX_DNSRUBY(1.49)
+ACX_DNSRUBY(1.51)
 
 # check for xmllint
 AC_PATH_PROG(XMLLINT, xmllint)
 if test "x$XMLLINT" = "x"; then
     AC_MSG_ERROR([xmllint required, but not found.])
 fi
+
+# check for a decent grep
+AC_PATH_PROGS(GREP, ggrep grep,[
+    AC_MSG_ERROR([grep required, but not found.])
+])
+AC_SUBST([GREP])
+#
+AC_MSG_CHECKING([for grep compability])
+if (echo "alpha\naardvark\n" | ${GREP} '^a\|^b' >/dev/null); then
+    AC_MSG_RESULT([ok])
+else
+    AC_MSG_RESULT([failed])
+    AC_MSG_ERROR([grep does not work as expected])
+fi
+
+# check for a decent sort
+AC_PATH_PROGS(SORT, gsort sort,[
+    AC_MSG_ERROR([sort required, but not found.])
+])
+AC_SUBST([SORT])
+#
+AC_MSG_CHECKING([for sort compability])
+if ${SORT} -c $srcdir/sorttest.txt >/dev/null 2>&1; then
+    AC_MSG_RESULT([ok])
+else
+    AC_MSG_RESULT([failed])
+    AC_MSG_ERROR([sort does not work as expected])
+fi
+
+# check for a green cucumber
+AC_PATH_PROG(CUCUMBER, cucumber)
 
 full_libdir=`eval eval eval eval eval echo "${libdir}" | sed "s#NONE#${prefix}#" | sed "s#NONE#${ac_default_prefix}#"`
 full_datadir=`eval eval eval eval eval echo "${datadir}" | sed "s#NONE#${prefix}#" | sed "s#NONE#${ac_default_prefix}#"`
@@ -44,6 +75,7 @@ AC_CONFIG_FILES([
 	ods-auditor.1
 	ods-kaspcheck
 	ods-kaspcheck.1
+        lib/kasp_auditor/commands.rb
 ])
 
 AC_OUTPUT

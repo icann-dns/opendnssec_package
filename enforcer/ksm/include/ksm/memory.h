@@ -1,5 +1,5 @@
 /*
- * $Id: memory.h 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: memory.h 4211 2010-11-23 11:27:45Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -47,7 +47,7 @@ extern "C" {
 void* MemMalloc(size_t size);
 void* MemCalloc(size_t nmemb, size_t size);
 void* MemRealloc(void* ptr, size_t size);
-#define MemFree(ptr) {free(ptr); (ptr) = NULL;}
+#define MemFree(ptr) {if(ptr != NULL) {free(ptr); (ptr) = NULL;}}
 
 #ifdef __cplusplus
 }

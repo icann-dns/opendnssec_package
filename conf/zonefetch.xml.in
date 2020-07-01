@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Id: zonefetch.xml.in 3150 2010-04-08 11:36:13Z jakob $ -->
+<!-- $Id: zonefetch.xml.in 2735 2010-01-28 14:11:27Z matthijs $ -->
 
 <ZoneFetch>
 	<!-- where to listen for notifies -->

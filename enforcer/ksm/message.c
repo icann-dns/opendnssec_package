@@ -1,5 +1,5 @@
 /*
- * $Id: message.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: message.c 4169 2010-11-04 14:24:23Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -34,7 +34,7 @@
  *
  *      Modules register their message text and message code ranges with this
  *      module.  When invoked, this module searches all the registered code
- *      ranges for one containing the statius code in question, and takes the
+ *      ranges for one containing the status code in question, and takes the
  *      appropriate action.
 -*/
 
@@ -387,7 +387,7 @@ int MsgLogAp(int status, va_list ap)
         output = MsgGetOutput(status);
     }
     else {
-        sprintf(buffer, "?????: unknown message number %d", status);
+        snprintf(buffer, sizeof(buffer), "?????: unknown message number %d", status);
         output = MsgDefaultOutput;
     }
 

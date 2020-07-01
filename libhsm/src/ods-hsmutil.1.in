@@ -1,5 +1,5 @@
 .TH "ods-hsmutil" "1" "February 2010" "OpenDNSSEC" "OpenDNSSEC ods-hsmutil"
-.\" $Id: ods-hsmutil.1.in 3150 2010-04-08 11:36:13Z jakob $
+.\" $Id: ods-hsmutil.1.in 3510 2010-06-22 15:19:57Z jakob $
 .SH "NAME"
 .LP
 .B ods\-hsmutil
@@ -43,6 +43,9 @@ Create a DNSKEY RR for the given owner \fIname\fR based on the key with this \fI
 .TP
 \fBtest\fR \fIrepository\fR
 Perform a number of tests on a \fIrepository\fR
+.TP
+\fBinfo\fR
+Show detailed information about all repositories
 .SH "OPTIONS"
 .LP
 .TP

@@ -1,5 +1,5 @@
 /*
- * $Id: string_util.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: string_util.c 3718 2010-08-10 21:17:18Z jakob $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -33,13 +33,15 @@
  *      String utility functions used by the whois programs.
 -*/
 
+#include "config.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
+#include "compat.h"
 
 #include "ksm/string_util.h"
 #include "ksm/message.h"

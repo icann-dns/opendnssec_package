@@ -1,5 +1,5 @@
 /*
- * $Id: hsmtest.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: hsmtest.c 3619 2010-07-27 07:26:35Z rb $
  *
  * Copyright (c) 2009 Nominet UK.
  * All rights reserved.
@@ -119,6 +119,7 @@ hsm_test (const char *repository)
     hsm_key_t *key = NULL;
     char *id;
     int errors = 0;
+    unsigned int i = 0;
 
     /* Check for repository before starting any tests */
     if (hsm_token_attached(ctx, repository) == 0) {
@@ -129,7 +130,7 @@ hsm_test (const char *repository)
     /*
      * Test key generation, signing and deletion for a number of key size
      */
-    for (unsigned int i=0; i<(sizeof(keysizes)/sizeof(unsigned int)); i++) {
+    for (i=0; i<(sizeof(keysizes)/sizeof(unsigned int)); i++) {
         keysize = keysizes[i];
 
         printf("Generating %d-bit RSA key... ", keysize);

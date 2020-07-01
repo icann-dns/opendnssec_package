@@ -1,5 +1,5 @@
 /*
- * $Id: string_util2.h 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: string_util2.h 4141 2010-10-25 15:26:40Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -60,6 +60,7 @@ int StrKeywordSearch(const char* search, STR_KEYWORD_ELEMENT* keywords, int* val
 int StrStrtol(const char* string, long* value);
 int StrStrtoul(const char* string, unsigned long* value);
 int StrStrtoi(const char* string, int* value);
+int StrStrtoui(const char* string, unsigned int* value);
 int StrIsDigits(const char* string);
 
 #ifdef __cplusplus

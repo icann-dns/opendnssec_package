@@ -1,4 +1,4 @@
-# $Id: acx_cunit.m4 3150 2010-04-08 11:36:13Z jakob $
+# $Id: acx_cunit.m4 3790 2010-08-26 08:45:52Z jakob $
 
 AC_DEFUN([ACX_CUNIT],[
 	AC_ARG_WITH(cunit,
@@ -8,6 +8,8 @@ AC_DEFUN([ACX_CUNIT],[
 		],[
 			CUNIT_PATH="/usr/local"
 		])
+
+	AS_IF([test "x$with_cunit" != xno],[
 
 	AC_MSG_CHECKING(what are the cunit includes)
 	CUNIT_INCLUDES="-I$CUNIT_PATH/include"
@@ -31,6 +33,12 @@ AC_DEFUN([ACX_CUNIT],[
 
 	CPPFLAGS=$tmp_INCLUDES
 	LIBS=$tmp_LIBS
+
+	],[
+		AC_MSG_NOTICE([cunit disabled])
+		CUNIT_INCLUDES=
+		CUNIT_LIBS=
+	])
 
 	AC_SUBST(CUNIT_INCLUDES)
 	AC_SUBST(CUNIT_LIBS)

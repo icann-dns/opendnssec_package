@@ -1,5 +1,5 @@
 /*
- * $Id: ksm_import.c 3150 2010-04-08 11:36:13Z jakob $
+ * $Id: ksm_import.c 3823 2010-08-27 14:10:01Z sion $
  *
  * Copyright (c) 2008-2009 Nominet UK. All rights reserved.
  *
@@ -186,6 +186,15 @@ int KsmImportPolicy(const char* policy_name, const char* policy_description)
  *      int *new_zone
  *          (returned) indicate if the zone was new to the database
  *
+ *      const char* signconf
+ *          Where is the signconf saved
+ *
+ *      const char* input
+ *          Where is the input file
+ *
+ *      const char* output
+ *          Where is the output file
+ *
  * Returns:
  *      int
  *          Status return.  0 on success.
@@ -193,7 +202,7 @@ int KsmImportPolicy(const char* policy_name, const char* policy_description)
  *                         -2 if the zone exists and fail_if_exists == 1
 -*/
 
-int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int *new_zone)
+int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int *new_zone, const char* signconf, const char* input, const char* output)
 {
     char*       sql = NULL;     /* SQL query */
     int         status = 0;     /* Status return */
@@ -224,9 +233,12 @@ int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int 
     /* If the count was 0 then we do an insert, otherwise we do an update */
     if (count == 0)
     {
-        sql = DisSpecifyInit(DB_ZONE_TABLE, "name, policy_id");
+        sql = DisSpecifyInit(DB_ZONE_TABLE, "name, policy_id, signconf, input, output");
         DisAppendString(&sql, zone_name);
         DisAppendInt(&sql, policy_id);
+        DisAppendString(&sql, signconf);
+        DisAppendString(&sql, input);
+        DisAppendString(&sql, output);
         DisEnd(&sql);
 
         status = DbExecuteSqlNoResult(DbHandle(), sql);
@@ -241,6 +253,9 @@ int KsmImportZone(const char* zone_name, int policy_id, int fail_if_exists, int 
         }
         sql = DusInit(DB_ZONE_TABLE);
         DusSetInt(&sql, "policy_id", policy_id, 0);
+        DusSetString(&sql, "signconf", signconf, 1);
+        DusSetString(&sql, "input", input, 2);
+        DusSetString(&sql, "output", output, 3);
         DusConditionString(&sql, "name", DQS_COMPARE_EQ, zone_name, 0);
         DusEnd(&sql);
 
@@ -314,8 +329,6 @@ int KsmImportAudit(int policy_id, const char* audit_contents)
  *          state to set key to
  *      time
  *          timestamp of entry into state given
- *      opt_time
- *          timestamp for key to retire (if active)
  *
  *      DB_ID* id (returned)
  *          ID of the created entry.  This will be undefined on error.
@@ -324,7 +337,7 @@ int KsmImportAudit(int policy_id, const char* audit_contents)
  *      int
  *          Status return.  0=> Success, non-zero => error.
 -*/
-int KsmImportKeyPair(int policy_id, const char* HSMKeyID, int smID, int size, int alg, int state, const char* time, const char* opt_time, DB_ID* id)
+int KsmImportKeyPair(int policy_id, const char* HSMKeyID, int smID, int size, int alg, int state, const char* time, DB_ID* id)
 {
     unsigned long rowid;			/* ID of last inserted row */
     int         status = 0;         /* Status return */
@@ -336,10 +349,10 @@ int KsmImportKeyPair(int policy_id, const char* HSMKeyID, int smID, int size, in
         return MsgLog(KSM_INVARG, "NULL id");
     }
 
-    StrAppend(&columns, "policy_id, HSMkey_id, securitymodule_id, size, algorithm, state, ");
-    StrAppend(&columns, KsmKeywordStateValueToName(state));
-    if (opt_time[0] != '\0') {
-        StrAppend(&columns, ", retire, fixedDate");
+    StrAppend(&columns, "policy_id, HSMkey_id, securitymodule_id, size, algorithm");
+    if (state == KSM_STATE_GENERATE) {
+        StrAppend(&columns, ", ");
+        StrAppend(&columns, KsmKeywordStateValueToName(state));
     }
 
     sql = DisSpecifyInit("keypairs", columns);
@@ -348,11 +361,8 @@ int KsmImportKeyPair(int policy_id, const char* HSMKeyID, int smID, int size, in
     DisAppendInt(&sql, smID);
     DisAppendInt(&sql, size);
     DisAppendInt(&sql, alg);
-    DisAppendInt(&sql, state);
-    DisAppendString(&sql, time);
-    if (opt_time[0] != '\0') {
-        DisAppendString(&sql, opt_time);
-        DisAppendInt(&sql, 1);
+    if (state == KSM_STATE_GENERATE) {
+        DisAppendString(&sql, time);
     }
     DisEnd(&sql);
 
@@ -478,6 +488,139 @@ int KsmPolicyIdFromName(const char* name, int *id)
 }
 
 /*+
+ * KsmMarkPreBackup - Mark a backup as having been prepared
+ *
+ *
+ * Arguments:
+ *
+ *      int repo_id
+ *          ID of the repository (-1 for all)
+ *
+ *      const char* datetime
+ *          When the pre backup was done
+ *
+ * Returns:
+ *      int
+ *          Status return.  0 on success.
+ *                          other on fail
+ */
+
+int KsmMarkPreBackup(int repo_id, const char* datetime)
+{
+    char*       sql = NULL;     /* SQL query */
+    int         status = 0;     /* Status return */
+    int         count = -1;     /* How many keys get marked */
+
+    /* Count how many we will mark */
+    sql = DqsCountInit("keypairs");
+    if (repo_id != -1) {
+        DqsConditionInt(&sql, "securitymodule_id", DQS_COMPARE_EQ, repo_id, 0);
+        StrAppend(&sql, " and pre_backup is null");
+    } else {
+        StrAppend(&sql, " where pre_backup is null");
+    }
+    DqsEnd(&sql);
+
+    /* Execute query and free up the query string */
+    status = DbIntQuery(DbHandle(), &count, sql);
+    DqsFree(sql);
+    
+    if (status != 0)
+    {
+        status = MsgLog(KSM_SQLFAIL, DbErrmsg(DbHandle()));
+        return status;
+	}
+
+    if (count == 0) {
+        /* No work to do */
+        return -1;
+    }
+
+    /* Update rows */
+    sql = DusInit("keypairs");
+    DusSetString(&sql, "PRE_BACKUP", datetime, 0);
+    if (repo_id != -1) {
+        DusConditionInt(&sql, "securitymodule_id", DQS_COMPARE_EQ, repo_id, 0);
+        StrAppend(&sql, " and pre_backup is null");
+    } else {
+        StrAppend(&sql, " where pre_backup is null");
+    }
+    DusEnd(&sql);
+
+    status = DbExecuteSqlNoResult(DbHandle(), sql);
+    DusFree(sql);
+
+    return status;
+}
+
+/*+
+ * KsmRollbackPreBackup - Rollback a backup prepare step
+ *
+ *
+ * Arguments:
+ *
+ *      int repo_id
+ *          ID of the repository (-1 for all)
+ *
+ * Returns:
+ *      int
+ *          Status return.  0 on success.
+ *                          other on fail
+ */
+
+int KsmRollbackMarkPreBackup(int repo_id)
+{
+    char*       sql = NULL;     /* SQL query */
+    int         status = 0;     /* Status return */
+    int         count = -1;     /* How many keys get marked */
+
+    /* Count how many we will mark */
+    sql = DqsCountInit("keypairs");
+    if (repo_id != -1) {
+        DqsConditionInt(&sql, "securitymodule_id", DQS_COMPARE_EQ, repo_id, 0);
+        StrAppend(&sql, " and pre_backup is not null");
+        StrAppend(&sql, " and backup is null");
+    } else {
+        StrAppend(&sql, " where pre_backup is not null");
+        StrAppend(&sql, " and backup is null");
+    }
+    DqsEnd(&sql);
+
+    /* Execute query and free up the query string */
+    status = DbIntQuery(DbHandle(), &count, sql);
+    DqsFree(sql);
+    
+    if (status != 0)
+    {
+        status = MsgLog(KSM_SQLFAIL, DbErrmsg(DbHandle()));
+        return status;
+	}
+
+    if (count == 0) {
+        /* No work to do */
+        return -1;
+    }
+
+    /* Update rows */
+    sql = DusInit("keypairs");
+    DusSetString(&sql, "PRE_BACKUP", NULL, 0);
+    if (repo_id != -1) {
+        DusConditionInt(&sql, "securitymodule_id", DQS_COMPARE_EQ, repo_id, 0);
+        StrAppend(&sql, " and pre_backup is not null");
+        StrAppend(&sql, " and backup is null");
+    } else {
+        StrAppend(&sql, " where pre_backup is null");
+        StrAppend(&sql, " and backup is null");
+    }
+    DusEnd(&sql);
+
+    status = DbExecuteSqlNoResult(DbHandle(), sql);
+    DusFree(sql);
+
+    return status;
+}
+
+/*+
  * KsmMarkBackup - Mark a backup as having been done
  *
  *
@@ -499,6 +642,34 @@ int KsmMarkBackup(int repo_id, const char* datetime)
 {
     char*       sql = NULL;     /* SQL query */
     int         status = 0;     /* Status return */
+    int         count = -1;     /* How many keys get marked */
+
+    /* Count how many we will mark */
+    sql = DqsCountInit("keypairs");
+    if (repo_id != -1) {
+        DqsConditionInt(&sql, "securitymodule_id", DQS_COMPARE_EQ, repo_id, 0);
+        StrAppend(&sql, " and pre_backup is not null");
+        StrAppend(&sql, " and backup is null");
+    } else {
+        StrAppend(&sql, " where pre_backup is not null");
+        StrAppend(&sql, " and backup is null");
+    }
+    DqsEnd(&sql);
+
+    /* Execute query and free up the query string */
+    status = DbIntQuery(DbHandle(), &count, sql);
+    DqsFree(sql);
+    
+    if (status != 0)
+    {
+        status = MsgLog(KSM_SQLFAIL, DbErrmsg(DbHandle()));
+        return status;
+	}
+
+    if (count == 0) {
+        /* No work to do */
+        return -1;
+    }
 
     /* Update rows */
     sql = DusInit("keypairs");
@@ -506,8 +677,10 @@ int KsmMarkBackup(int repo_id, const char* datetime)
     if (repo_id != -1) {
         DusConditionInt(&sql, "securitymodule_id", DQS_COMPARE_EQ, repo_id, 0);
         StrAppend(&sql, " and backup is null");
+        StrAppend(&sql, " and pre_backup is not null");
     } else {
         StrAppend(&sql, " where backup is null");
+        StrAppend(&sql, " and pre_backup is not null");
     }
     DusEnd(&sql);
 
