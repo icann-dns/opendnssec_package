@@ -1,5 +1,5 @@
 /*
- * $Id: zone.h 7293 2013-09-10 14:34:07Z matthijs $
+ * $Id: zone.h 7223 2013-08-20 10:31:08Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -36,18 +36,29 @@
 
 #include "config.h"
 #include "adapter/adapter.h"
-#include "scheduler/task.h"
+#include "scheduler/schedule.h"
 #include "shared/allocator.h"
 #include "shared/locks.h"
 #include "shared/status.h"
-#include "signer/nsec3params.h"
+#include "signer/ixfr.h"
+#include "signer/namedb.h"
 #include "signer/signconf.h"
 #include "signer/stats.h"
-#include "signer/zonedata.h"
+#include "wire/buffer.h"
+#include "wire/notify.h"
+#include "wire/xfrd.h"
 
 #include <ldns/ldns.h>
 
 struct schedule_struct;
+
+enum zone_zl_status_enum {
+    ZONE_ZL_OK = 0,
+    ZONE_ZL_ADDED,
+    ZONE_ZL_UPDATED,
+    ZONE_ZL_REMOVED
+};
+typedef enum zone_zl_status_enum zone_zl_status;
 
 /**
  * Zone.
@@ -56,42 +67,35 @@ struct schedule_struct;
 typedef struct zone_struct zone_type;
 struct zone_struct {
     allocator_type* allocator; /* memory allocator */
-    ldns_rdf* dname; /* wire format zone name */
+    ldns_rdf* apex; /* wire format zone name */
     ldns_rr_class klass; /* class */
-
+    uint32_t default_ttl; /* ttl */
     /* from conf.xml */
+    char *notify_command; /* placeholder for the whole notify command */
     const char* notify_ns; /* master name server reload command */
-    int fetch; /* zone fetcher enabled */
-
+    char** notify_args; /* reload command arguments */
     /* from zonelist.xml */
     const char* name; /* string format zone name */
     const char* policy_name; /* policy identifier */
     const char* signconf_filename; /* signconf filename */
-    int just_added;
-    int just_updated;
-    int tobe_removed;
-    int processed;
-    int prepared;
-
+    zone_zl_status zl_status; /* zonelist status */
     /* adapters */
     adapter_type* adinbound; /* inbound adapter */
     adapter_type* adoutbound; /* outbound adapter */
-
     /* from signconf.xml */
     signconf_type* signconf; /* signer configuration values */
-    nsec3params_type* nsec3params; /* NSEC3 parameters */
-
     /* zone data */
-    zonedata_type* zonedata;
-
+    namedb_type* db;
+    ixfr_type* ixfr;
+    /* zone transfers */
+    xfrd_type* xfrd;
+    notify_type* notify;
     /* worker variables */
     void* task; /* next assigned task */
-
     /* statistics */
     stats_type* stats;
-
     lock_basic_type zone_lock;
-    int zone_locked;
+    lock_basic_type xfr_lock;
 };
 
 /**
@@ -104,11 +108,91 @@ struct zone_struct {
 zone_type* zone_create(char* name, ldns_rr_class klass);
 
 /**
+ * Load signer configuration for zone.
+ * \param[in] zone zone
+ * \param[out] new_signconf new signer configuration
+ * \return ods_status status
+ *         ODS_STATUS_OK: new signer configuration loaded
+ *         ODS_STATUS_UNCHANGED: signer configuration has not changed
+ *         other: signer configuration not loaded, error occurred
+ *
+ */
+ods_status zone_load_signconf(zone_type* zone, signconf_type** new_signconf);
+
+/**
+ * Reschedule task for zone.
+ * \param[in] zone zone
+ * \param[in] taskq task queue
+ * \param[in] what new task identifier
+ * \return ods_status status
+ *
+ */
+ods_status zone_reschedule_task(zone_type* zone, schedule_type* taskq,
+    task_id what);
+
+/**
+ * Publish the keys as indicated by the signer configuration.
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status zone_publish_dnskeys(zone_type* zone);
+
+/**
+ * Unlink DNSKEY RRs.
+ * \param[in] zone zone
+ *
+ */
+void zone_rollback_dnskeys(zone_type* zone);
+
+/**
+ * Publish the NSEC3 parameters as indicated by the signer configuration.
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status zone_publish_nsec3param(zone_type* zone);
+
+/**
+ * Unlink NSEC3PARAM RR.
+ * \param[in] zone zone
+ *
+ */
+void zone_rollback_nsec3param(zone_type* zone);
+
+/**
+ * Prepare keys for signing.
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status zone_prepare_keys(zone_type* zone);
+
+/**
+ * Update serial.
+ * \param[in] zone zone
+ * \return ods_status status
+ *
+ */
+ods_status zone_update_serial(zone_type* zone);
+
+/**
+ * Lookup RRset.
+ * \param[in] zone zone
+ * \param[in] owner RRset owner
+ * \param[in] type RRtype
+ * \return rrset_type* RRset, if found
+ *
+ */
+rrset_type* zone_lookup_rrset(zone_type* zone, ldns_rdf* owner,
+    ldns_rr_type type);
+
+/**
  * Add RR.
  * \param[in] zone zone
  * \param[in] rr rr
  * \param[in] do_stats true if we need to maintain statistics
- * \return ods_status status:
+ * \return ods_status status
  *         ODS_STATUS_OK: rr to be added to zone
  *         ODS_STATUS_UNCHANGED: rr not added to zone, rr already exists
  *         other: rr not added to zone, error occurred
@@ -130,55 +214,10 @@ ods_status zone_add_rr(zone_type* zone, ldns_rr* rr, int do_stats);
 ods_status zone_del_rr(zone_type* zone, ldns_rr* rr, int do_stats);
 
 /**
- * Load signer configuration for zone.
- * \param[in] zone zone
- * \param[out] tbs task to be scheduled
- * \return ods_status status
- *         ODS_STATUS_OK: new signer configuration loaded
- *         ODS_STATUS_UNCHANGED: signer configuration has not changed
- *         other: signer configuration not loaded, error occurred
- *
- */
-ods_status zone_load_signconf(zone_type* zone, task_id* tbs);
-
-/**
- * Publish DNSKEYs.
- * \param[in] zone zone
- * \param[in] recover true if in recovery mode
- * \return ods_status status
- *
- */
-ods_status zone_publish_dnskeys(zone_type* zone, int recover);
-
-/**
- * Prepare for NSEC3.
- * \param[in] zone zone
- * \param[in] recover true if in recovery mode
- * \return ods_status status
- *
- */
-ods_status zone_prepare_nsec3(zone_type* zone, int recover);
-
-/**
- * Backup zone.
- * \param[in] zone corresponding zone
- * \return ods_status status
- *
- */
-ods_status zone_backup(zone_type* zone);
-
-/**
- * Recover zone from backup.
- * \param[in] zone corresponding zone
- *
- */
-ods_status zone_recover(zone_type* zone);
-
-/**
  * Merge zones. Values that are merged:
  * - policy name
  * - signconf filename
- * - input and output adater
+ * - input and output adapter
  *
  * \param[in] z1 zone
  * \param[in] z2 zone with new values
@@ -187,42 +226,25 @@ ods_status zone_recover(zone_type* zone);
 void zone_merge(zone_type* z1, zone_type* z2);
 
 /**
- * Prepare keys for signing.
- * \param[in] zone zone
- * \return ods_status status
- *
- */
-ods_status zone_prepare_keys(zone_type* zone);
-
-/**
- * Update serial.
- * \param[in] zone zone
- * \return ods_status status
- *
- */
-ods_status zone_update_serial(zone_type* zone);
-
-/**
- * Print zone.
- * \param[in] zone zone
- * \return ods_status status
- *
- */
-ods_status zone_print(FILE* fd, zone_type* zone);
-
-/**
- * Examine zone.
- * \param[in] zone zone
- * \return ods_status status
- *
- */
-ods_status zone_examine(zone_type* zone);
-
-/**
  * Clean up zone.
  * \param[in] zone zone
  *
  */
 void zone_cleanup(zone_type* zone);
+
+/**
+ * Backup zone.
+ * \param[in] zone corresponding zone
+ * \return ods_status status
+ *
+ */
+ods_status zone_backup2(zone_type* zone);
+
+/**
+ * Recover zone from backup.
+ * \param[in] zone corresponding zone
+ *
+ */
+ods_status zone_recover2(zone_type* zone);
 
 #endif /* SIGNER_ZONE_H */

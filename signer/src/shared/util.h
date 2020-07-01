@@ -1,5 +1,5 @@
 /*
- * $Id: util.h 6504 2012-08-08 09:12:54Z matthijs $
+ * $Id: util.h 6638 2012-09-06 14:31:36Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -35,6 +35,7 @@
 #define UTIL_UTIL_H
 
 #include "config.h"
+#include "shared/status.h"
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
@@ -46,6 +47,7 @@
 #include <ldns/ldns.h>
 
 #define SE_SOA_RDATA_SERIAL  2
+#define SE_SOA_RDATA_EXPIRE 5
 #define SE_SOA_RDATA_MINIMUM 6
 
 /* copycode: This define is taken from BIND9 */
@@ -58,6 +60,15 @@
  *
  */
 int util_is_dnssec_rr(ldns_rr* rr);
+
+/**
+ * Compare SERIALs.
+ * \param serial_new new SERIAL value
+ * \param serial_old old SERIAL value
+ * \return int 0 if the new SERIAL <= old SERIAL, non-zero otherwise
+ *
+ */
+int util_serial_gt(uint32_t serial_new, uint32_t serial_old);
 
 /**
  * Compare RRs, ignore SOA SERIAL.
@@ -103,5 +114,22 @@ int util_check_pidfile(const char* pidfile);
  *
  */
 int util_write_pidfile(const char* pidfile, pid_t pid);
+
+/**
+ * Print an LDNS RR, check status.
+ * \param[in] fd file descriptor
+ * \param[in] rr RR
+ * \return ods_status status
+ *
+ */
+ods_status util_rr_print(FILE* fd, const ldns_rr* rr);
+
+/**
+ * Calculates the size needed to store the result of b64_pton.
+ * \param[in] len strlen
+ * \return size of b64_pton
+ *
+ */
+size_t util_b64_pton_calculate_size(size_t srcsize);
 
 #endif /* UTIL_UTIL_H */

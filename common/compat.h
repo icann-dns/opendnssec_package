@@ -1,4 +1,4 @@
-/* $Id: compat.h 3713 2010-08-10 20:23:49Z jakob $ */
+/* $Id: compat.h 5936 2011-11-30 08:52:51Z matthijs $ */
 
 /*
  * Copyright (c) 2010 .SE (The Internet Infrastructure Foundation).
@@ -25,11 +25,15 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #include "config.h"
 
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
+#endif
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
 #endif
 
 #ifndef HAVE_STRLCAT
@@ -39,3 +43,13 @@ size_t strlcat(char *dst, const char *src, size_t siz);
 #ifndef HAVE_STRLCPY
 size_t strlcpy(char *dst, const char *src, size_t siz);
 #endif
+
+#ifndef B64_PTON
+int b64_ntop(uint8_t const *src, size_t srclength, char *target,
+    size_t targsize);
+#endif
+
+#ifndef B64_NTOP
+int b64_pton(char const *src, uint8_t *target, size_t targsize);
+#endif
+

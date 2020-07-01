@@ -1,5 +1,5 @@
 /*
- * $Id: privdrop.c 4340 2011-01-31 15:15:15Z matthijs $
+ * $Id: privdrop.c 7039 2013-02-15 08:10:15Z matthijs $
  *
  * Copyright (c) 2009 Nominet UK. All rights reserved.
  *
@@ -74,10 +74,10 @@ privuid(const char* username)
     struct passwd* result;
     long bufsize;
     char* buf;
-    uid_t uid, olduid;
+    uid_t uid;
     int s;
 
-    uid = olduid = geteuid();
+    uid = geteuid();
 
     if (username) {
         bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
@@ -91,6 +91,10 @@ privuid(const char* username)
         }
         /* Lookup the user id in /etc/passwd */
         s = getpwnam_r(username, &pwd, buf, bufsize, &result); /* LEAK */
+        if (s) {
+            ods_log_error("[%s] unable to get user id for %s: %s",
+                privdrop_str, username, strerror(s));
+        }
         if (result != NULL) {
             uid = pwd.pw_uid;
         }
@@ -113,10 +117,10 @@ privgid(const char *groupname)
     struct group* result;
     long bufsize;
     char* buf;
-    gid_t gid, oldgid;
+    gid_t gid;
     int s;
 
-    gid = oldgid = getegid();
+    gid = getegid();
 
     if (groupname) {
         bufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
@@ -130,6 +134,10 @@ privgid(const char *groupname)
         }
         /* Lookup the group id in /etc/group */
         s = getgrnam_r(groupname, &grp, buf, bufsize, &result); /* LEAK */
+        if (s) {
+            ods_log_error("[%s] unable to get group id for %s: %s",
+                privdrop_str, groupname, strerror(s));
+        }
         if (result != NULL) {
             gid = grp.gr_gid;
         }
@@ -151,14 +159,14 @@ privdrop(const char *username, const char *groupname, const char *newroot,
 {
     int status;
     uid_t uid, olduid;
-    gid_t gid, oldgid;
+    gid_t gid;
     long ngroups_max;
     gid_t *final_groups;
     int final_group_len = -1;
 
     /* Save effective uid/gid */
     uid = olduid = geteuid();
-    gid = oldgid = getegid();
+    gid = getegid();
 
     /* Check if we're going to drop uid */
     if (username) {

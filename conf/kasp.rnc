@@ -1,4 +1,4 @@
-# $Id: kasp.rnc 7344 2013-10-09 09:03:39Z matthijs $
+# $Id: kasp.rnc 7358 2013-10-11 11:47:27Z matthijs $
 #
 # Copyright (c) 2009 .SE (The Internet Infrastructure Foundation).
 # All rights reserved.
@@ -123,12 +123,7 @@ start = element KASP {
 
 			# Expected parent SOA parameters
 			element SOA { anysoa }
-		},
-
-                element Audit {
-                       # Do a partial audit?
-                       partial?
-                }*
+		}
 	}*
 }
 

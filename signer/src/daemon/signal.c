@@ -1,5 +1,5 @@
 /*
- * $Id: signal.c 7124 2013-05-03 09:49:26Z matthijs $
+ * $Id: signal.c 5548 2011-09-05 14:29:25Z matthijs $
  *
  * Copyright (c) 2009 NLNet Labs. All rights reserved.
  *
@@ -50,9 +50,10 @@ static const char* signal_str = "signal";
  *
  */
 void
-signal_set_engine(struct engine_struct* engine)
+signal_set_engine(void* engine)
 {
     signal_engine = (engine_type*) engine;
+    return;
 }
 
 
@@ -69,10 +70,10 @@ signal_handler(sig_atomic_t sig)
             signal_hup_recvd++;
             if (signal_engine) {
                 lock_basic_lock(&signal_engine->signal_lock);
-                signal_engine->signal_locked = LOCKED_SIGNAL_SIGHUP;
+                /* [LOCK] signal */
                 lock_basic_alarm(&signal_engine->signal_cond);
+                /* [UNLOCK] signal */
                 lock_basic_unlock(&signal_engine->signal_lock);
-                signal_engine->signal_locked = 0;
             }
             break;
         case SIGTERM:
@@ -80,10 +81,10 @@ signal_handler(sig_atomic_t sig)
             signal_term_recvd++;
             if (signal_engine) {
                 lock_basic_lock(&signal_engine->signal_lock);
-                signal_engine->signal_locked = LOCKED_SIGNAL_SIGTERM;
+                /* [LOCK] signal */
                 lock_basic_alarm(&signal_engine->signal_cond);
+                /* [UNLOCK] signal */
                 lock_basic_unlock(&signal_engine->signal_lock);
-                signal_engine->signal_locked = 0;
             }
             break;
         default:

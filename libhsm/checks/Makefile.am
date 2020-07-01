@@ -1,13 +1,13 @@
-# $Id: Makefile.am 6839 2012-11-15 18:32:50Z sara $
-
-LIBCOMPAT = ${top_builddir}/common/libcompat.a
+# $Id: Makefile.am 6603 2012-09-04 10:16:09Z matthijs $
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 CLEANFILES = token.db othertoken.db
 
+LIBCOMPAT = ${top_builddir}/common/libcompat.a
+
 AM_CPPFLAGS = \
 		-I$(top_builddir)/common \
-		-I$(srcdir)/../src \
+		-I$(srcdir)/../src/lib \
 		@LDNS_INCLUDES@
 
 AM_CFLAGS =	-std=c99
@@ -16,7 +16,7 @@ EXTRA_DIST =	*.xml $(srcdir)/softhsm.conf
 
 noinst_PROGRAMS = hsmcheck
  
-hsmcheck_LDADD = ../src/libhsm.a @LDNS_LIBS@ @XML2_LIBS@ $(LIBCOMPAT)
+hsmcheck_LDADD = ../src/lib/libhsm.a @LDNS_LIBS@ @XML2_LIBS@ $(LIBCOMPAT)
 hsmcheck_LDFLAGS = -no-install
 
 SOFTHSM_ENV = SOFTHSM_CONF=$(srcdir)/softhsm.conf
