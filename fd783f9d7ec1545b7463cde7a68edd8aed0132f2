@@ -1,0 +1,4 @@
+  * Backport from Debian:
+    - Replace Unicode dashes with ASCII dashes in dpkg-maintscript-helper
+      invocations so that opendnssec-enforcer-mysql is installable
+      (LP: #884515).
