@@ -1,0 +1,1 @@
+  * Include all mysql and sqlite3 migration scripts (Closes: #675506)
