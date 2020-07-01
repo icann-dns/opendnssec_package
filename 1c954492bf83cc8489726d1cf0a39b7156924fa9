@@ -1,0 +1,3 @@
+  * Use dh-autoreconf
+  * Bump build time dependency on libldns to 1.6.14 where strlcpy has
+    disappeared to fix some strange linking problems
