@@ -1,0 +1,6 @@
+  * Imported Upstream version 1.3.3
+  * Fix copy&paste unicode dashes in dpkg-maintscript-helper invocations
+    (Closes: #643660)
+  * Disable PIE hardening to make debug symbols work
+  * Build -dbg packages with symbols for better debugging
+  * Update dnsruby depend to 1.53
