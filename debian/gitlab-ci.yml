@@ -181,13 +181,12 @@ dsc:
   variables:
     GIT_DEPTH: 0
   script:
-    - uscan --download --download-current-version
-    - mkdir -p ${WORKING_DIR}
-    - mv ../*.orig.* ${WORKING_DIR}
+    - mkdir -p "${WORKING_DIR}"
+    - uscan --download --download-current-version --destdir "${WORKING_DIR}"
     - gbp buildpackage
           --git-ignore-branch
           --git-overlay
-          --git-export-dir=${WORKING_DIR}
+          --git-export-dir="${WORKING_DIR}"
           --git-builder="dpkg-source -b ."
   artifacts:
     name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"

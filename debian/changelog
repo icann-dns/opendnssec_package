@@ -1,3 +1,10 @@
+opendnssec (1:2.1.6-2) unstable; urgency=medium
+
+  * patches: fix the code to build with GCC-10 (Closes: #957637)
+  * gitlab-ci.yml: fix the dsc job
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Mon, 27 Jul 2020 10:54:43 +0200
+
 opendnssec (1:2.1.6-1) unstable; urgency=medium
 
   * New upstream release
