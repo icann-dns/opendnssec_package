@@ -1,0 +1,2 @@
+  * patches: fix the code to build with GCC-10 (Closes: #957637)
+  * gitlab-ci.yml: fix the dsc job
