@@ -1,0 +1,491 @@
+From: Mathieu Mirmont <mat@parad0x.org>
+Date: Sat, 18 Apr 2020 23:47:22 +0200
+Subject: Mark symbols extern for gcc-10
+
+All symbols declared in a header file must be marked as 'extern',
+otherwise the declaration acts as a definition and you end up with
+multiple symbols when attempting to link.
+---
+ enforcer/src/daemon/ctrl_cmd.h                    | 2 +-
+ enforcer/src/daemon/enforcercommands.h            | 6 +++---
+ enforcer/src/daemon/help_cmd.h                    | 2 +-
+ enforcer/src/daemon/queue_cmd.h                   | 4 ++--
+ enforcer/src/daemon/time_leap_cmd.h               | 2 +-
+ enforcer/src/daemon/verbosity_cmd.h               | 2 +-
+ enforcer/src/enforcer/enforce_cmd.h               | 2 +-
+ enforcer/src/enforcer/repositorylist_cmd.h        | 2 +-
+ enforcer/src/enforcer/update_all_cmd.h            | 2 +-
+ enforcer/src/enforcer/update_conf_cmd.h           | 2 +-
+ enforcer/src/enforcer/update_repositorylist_cmd.h | 2 +-
+ enforcer/src/hsmkey/backup_hsmkeys_cmd.h          | 2 +-
+ enforcer/src/hsmkey/key_generate_cmd.h            | 2 +-
+ enforcer/src/keystate/key_purge_cmd.h             | 2 +-
+ enforcer/src/keystate/keystate_ds_gone_cmd.h      | 2 +-
+ enforcer/src/keystate/keystate_ds_retract_cmd.h   | 2 +-
+ enforcer/src/keystate/keystate_ds_seen_cmd.h      | 2 +-
+ enforcer/src/keystate/keystate_ds_submit_cmd.h    | 2 +-
+ enforcer/src/keystate/keystate_export_cmd.h       | 2 +-
+ enforcer/src/keystate/keystate_import_cmd.h       | 2 +-
+ enforcer/src/keystate/keystate_list_cmd.h         | 4 ++--
+ enforcer/src/keystate/keystate_rollover_cmd.h     | 2 +-
+ enforcer/src/keystate/rollover_list_cmd.h         | 2 +-
+ enforcer/src/keystate/zone_add_cmd.h              | 2 +-
+ enforcer/src/keystate/zone_del_cmd.h              | 2 +-
+ enforcer/src/keystate/zone_list_cmd.h             | 2 +-
+ enforcer/src/keystate/zone_set_policy_cmd.h       | 2 +-
+ enforcer/src/keystate/zonelist_export_cmd.h       | 2 +-
+ enforcer/src/keystate/zonelist_import_cmd.h       | 2 +-
+ enforcer/src/policy/policy_export_cmd.h           | 2 +-
+ enforcer/src/policy/policy_import_cmd.h           | 2 +-
+ enforcer/src/policy/policy_list_cmd.h             | 2 +-
+ enforcer/src/policy/policy_purge_cmd.h            | 2 +-
+ enforcer/src/policy/policy_resalt_cmd.h           | 2 +-
+ enforcer/src/signconf/signconf_cmd.h              | 2 +-
+ signer/src/daemon/signercommands.h                | 2 +-
+ 36 files changed, 40 insertions(+), 40 deletions(-)
+
+diff --git a/enforcer/src/daemon/ctrl_cmd.h b/enforcer/src/daemon/ctrl_cmd.h
+index 4056063..459926e 100644
+--- a/enforcer/src/daemon/ctrl_cmd.h
++++ b/enforcer/src/daemon/ctrl_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef _CTRL_CMD_H_
+ #define _CTRL_CMD_H_
+ 
+-struct cmd_func_block ctrl_funcblock;
++extern struct cmd_func_block ctrl_funcblock;
+ 
+ #endif /* _CTRL_CMD_H_ */
+diff --git a/enforcer/src/daemon/enforcercommands.h b/enforcer/src/daemon/enforcercommands.h
+index aaa4e64..def64e5 100644
+--- a/enforcer/src/daemon/enforcercommands.h
++++ b/enforcer/src/daemon/enforcercommands.h
+@@ -37,9 +37,9 @@
+ #include "engine.h"
+ #include "db/db_connection.h"
+ 
+-struct cmd_func_block** enforcercommands;
++extern struct cmd_func_block** enforcercommands;
+ 
+-engine_type* getglobalcontext(cmdhandler_ctx_type*);
+-db_connection_t* getconnectioncontext(cmdhandler_ctx_type*);
++extern engine_type* getglobalcontext(cmdhandler_ctx_type*);
++extern db_connection_t* getconnectioncontext(cmdhandler_ctx_type*);
+ 
+ #endif
+diff --git a/enforcer/src/daemon/help_cmd.h b/enforcer/src/daemon/help_cmd.h
+index 48a2319..6dd3fdb 100644
+--- a/enforcer/src/daemon/help_cmd.h
++++ b/enforcer/src/daemon/help_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef _HELP_CMD_H_
+ #define _HELP_CMD_H_
+ 
+-struct cmd_func_block help_funcblock;
++extern struct cmd_func_block help_funcblock;
+ 
+ #endif /* _HELP_CMD_H_ */
+diff --git a/enforcer/src/daemon/queue_cmd.h b/enforcer/src/daemon/queue_cmd.h
+index 3b78672..03284b1 100644
+--- a/enforcer/src/daemon/queue_cmd.h
++++ b/enforcer/src/daemon/queue_cmd.h
+@@ -29,7 +29,7 @@
+ #ifndef _QUEUE_CMD_H_
+ #define _QUEUE_CMD_H_
+ 
+-struct cmd_func_block queue_funcblock;
+-struct cmd_func_block flush_funcblock;
++extern struct cmd_func_block queue_funcblock;
++extern struct cmd_func_block flush_funcblock;
+ 
+ #endif /* _QUEUE_CMD_H_ */
+diff --git a/enforcer/src/daemon/time_leap_cmd.h b/enforcer/src/daemon/time_leap_cmd.h
+index 5c318c7..b43eb6e 100644
+--- a/enforcer/src/daemon/time_leap_cmd.h
++++ b/enforcer/src/daemon/time_leap_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef _TIME_LEAP_CMD_H_
+ #define _TIME_LEAP_CMD_H_
+ 
+-struct cmd_func_block time_leap_funcblock;
++extern struct cmd_func_block time_leap_funcblock;
+ 
+ #endif /* _TIME_LEAP_CMD_H_ */
+diff --git a/enforcer/src/daemon/verbosity_cmd.h b/enforcer/src/daemon/verbosity_cmd.h
+index 385dcd9..42908b7 100644
+--- a/enforcer/src/daemon/verbosity_cmd.h
++++ b/enforcer/src/daemon/verbosity_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef _VERBOSITY_CMD_H_
+ #define _VERBOSITY_CMD_H_
+ 
+-struct cmd_func_block verbosity_funcblock;
++extern struct cmd_func_block verbosity_funcblock;
+ 
+ #endif /* _VERBOSITY_CMD_H_ */
+diff --git a/enforcer/src/enforcer/enforce_cmd.h b/enforcer/src/enforcer/enforce_cmd.h
+index 99f388e..3f43086 100644
+--- a/enforcer/src/enforcer/enforce_cmd.h
++++ b/enforcer/src/enforcer/enforce_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _ENFORCER_ENFORCE_CMD_H_
+ #define _ENFORCER_ENFORCE_CMD_H_
+ 
+-struct cmd_func_block enforce_funcblock;
++extern struct cmd_func_block enforce_funcblock;
+ 
+ #endif /* _ENFORCER_ENFORCE_CMD_H_ */
+diff --git a/enforcer/src/enforcer/repositorylist_cmd.h b/enforcer/src/enforcer/repositorylist_cmd.h
+index 8953771..b08ff9b 100644
+--- a/enforcer/src/enforcer/repositorylist_cmd.h
++++ b/enforcer/src/enforcer/repositorylist_cmd.h
+@@ -28,6 +28,6 @@
+ #ifndef _ENFORCER_REPOSITORYLIST_CMD_H_
+ #define _ENFORCER_REPOSITORYLIST_CMD_H_
+ 
+-struct cmd_func_block repositorylist_funcblock;
++extern struct cmd_func_block repositorylist_funcblock;
+ 
+ #endif
+diff --git a/enforcer/src/enforcer/update_all_cmd.h b/enforcer/src/enforcer/update_all_cmd.h
+index 8d6809d..bb737c2 100644
+--- a/enforcer/src/enforcer/update_all_cmd.h
++++ b/enforcer/src/enforcer/update_all_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef UPDATE_ALL_CMD_H_
+ #define UPDATE_ALL_CMD_H_
+ 
+-struct cmd_func_block update_all_funcblock;
++extern struct cmd_func_block update_all_funcblock;
+ 
+ #endif /* UPDATE_ALL_CMD_H_ */
+diff --git a/enforcer/src/enforcer/update_conf_cmd.h b/enforcer/src/enforcer/update_conf_cmd.h
+index fccf8f8..1d3bdac 100644
+--- a/enforcer/src/enforcer/update_conf_cmd.h
++++ b/enforcer/src/enforcer/update_conf_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef UPDATE_CONF_CMD_H_
+ #define UPDATE_CONF_CMD_H_
+ 
+-struct cmd_func_block update_conf_funcblock;
++extern struct cmd_func_block update_conf_funcblock;
+ 
+ #endif /* UPDATE_CONF_CMD_H_ */
+diff --git a/enforcer/src/enforcer/update_repositorylist_cmd.h b/enforcer/src/enforcer/update_repositorylist_cmd.h
+index 8077c39..e78ae01 100644
+--- a/enforcer/src/enforcer/update_repositorylist_cmd.h
++++ b/enforcer/src/enforcer/update_repositorylist_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef UPDATE_REPOSITORYLIST_CMD_H_
+ #define UPDATE_REPOSITORYLIST_CMD_H_
+ 
+-struct cmd_func_block update_repositorylist_funcblock;
++extern struct cmd_func_block update_repositorylist_funcblock;
+ 
+ #endif /* UPDATE_REPOSITORYLIST_CMD_H_ */
+diff --git a/enforcer/src/hsmkey/backup_hsmkeys_cmd.h b/enforcer/src/hsmkey/backup_hsmkeys_cmd.h
+index d6868ac..3104b80 100644
+--- a/enforcer/src/hsmkey/backup_hsmkeys_cmd.h
++++ b/enforcer/src/hsmkey/backup_hsmkeys_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _HSMKEY_BACKUP_CMD_H_
+ #define _HSMKEY_BACKUP_CMD_H_
+ 
+-struct cmd_func_block backup_funcblock;
++extern struct cmd_func_block backup_funcblock;
+ 
+ #endif /* _HSMKEY_BACKUP_CMD_H_ */
+diff --git a/enforcer/src/hsmkey/key_generate_cmd.h b/enforcer/src/hsmkey/key_generate_cmd.h
+index d7bf6f6..08fac0c 100644
+--- a/enforcer/src/hsmkey/key_generate_cmd.h
++++ b/enforcer/src/hsmkey/key_generate_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef HSMKEY_KEY_GENERATE_CMD_H_
+ #define HSMKEY_KEY_GENERATE_CMD_H_
+ 
+-struct cmd_func_block key_generate_funcblock;
++extern struct cmd_func_block key_generate_funcblock;
+ 
+ #endif /* HSMKEY_KEY_GENERATE_CMD_H_ */
+diff --git a/enforcer/src/keystate/key_purge_cmd.h b/enforcer/src/keystate/key_purge_cmd.h
+index c744dcc..1f956d0 100644
+--- a/enforcer/src/keystate/key_purge_cmd.h
++++ b/enforcer/src/keystate/key_purge_cmd.h
+@@ -1,7 +1,7 @@
+ #ifndef _KEYSTATE_KEY_PURGE_CMD_H_
+ #define _KEYSTATE_KEY_PURGE_CMD_H_
+ 
+-struct cmd_func_block key_purge_funcblock;
++extern struct cmd_func_block key_purge_funcblock;
+ 
+ #endif /* _KEYSTATE_KEY_PURGE_CMD_H_ */
+ 
+diff --git a/enforcer/src/keystate/keystate_ds_gone_cmd.h b/enforcer/src/keystate/keystate_ds_gone_cmd.h
+index 29a1cce..da8a44c 100644
+--- a/enforcer/src/keystate/keystate_ds_gone_cmd.h
++++ b/enforcer/src/keystate/keystate_ds_gone_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_DS_GONE_CMD_H_
+ #define _KEYSTATE_DS_GONE_CMD_H_
+ 
+-struct cmd_func_block key_ds_gone_funcblock;
++extern struct cmd_func_block key_ds_gone_funcblock;
+ 
+ #endif /* _KEYSTATE_DS_GONE_CMD_H_ */
+diff --git a/enforcer/src/keystate/keystate_ds_retract_cmd.h b/enforcer/src/keystate/keystate_ds_retract_cmd.h
+index 0694790..b6a35da 100644
+--- a/enforcer/src/keystate/keystate_ds_retract_cmd.h
++++ b/enforcer/src/keystate/keystate_ds_retract_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_DS_RETRACT_CMD_H_
+ #define _KEYSTATE_DS_RETRACT_CMD_H_
+ 
+-struct cmd_func_block key_ds_retract_funcblock;
++extern struct cmd_func_block key_ds_retract_funcblock;
+ 
+ #endif /* _KEYSTATE_DS_RETRACT_CMD_H_ */
+diff --git a/enforcer/src/keystate/keystate_ds_seen_cmd.h b/enforcer/src/keystate/keystate_ds_seen_cmd.h
+index 078c528..fb10ea0 100644
+--- a/enforcer/src/keystate/keystate_ds_seen_cmd.h
++++ b/enforcer/src/keystate/keystate_ds_seen_cmd.h
+@@ -32,6 +32,6 @@
+ 
+ #include "daemon/engine.h"
+ 
+-struct cmd_func_block key_ds_seen_funcblock;
++extern struct cmd_func_block key_ds_seen_funcblock;
+ 
+ #endif /* _KEYSTATE_DS_SEEN_CMD_H_ */
+diff --git a/enforcer/src/keystate/keystate_ds_submit_cmd.h b/enforcer/src/keystate/keystate_ds_submit_cmd.h
+index 3c20e25..6fee55e 100644
+--- a/enforcer/src/keystate/keystate_ds_submit_cmd.h
++++ b/enforcer/src/keystate/keystate_ds_submit_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_DS_SUBMIT_CMD_H_
+ #define _KEYSTATE_DS_SUBMIT_CMD_H_
+ 
+-struct cmd_func_block key_ds_submit_funcblock;
++extern struct cmd_func_block key_ds_submit_funcblock;
+ 
+ #endif /* _KEYSTATE_DS_SUBMIT_CMD_H_ */
+diff --git a/enforcer/src/keystate/keystate_export_cmd.h b/enforcer/src/keystate/keystate_export_cmd.h
+index 217b585..cfb8e4e 100644
+--- a/enforcer/src/keystate/keystate_export_cmd.h
++++ b/enforcer/src/keystate/keystate_export_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_EXPORT_CMD_H_
+ #define _KEYSTATE_EXPORT_CMD_H_
+ 
+-struct cmd_func_block key_export_funcblock;
++extern struct cmd_func_block key_export_funcblock;
+ 
+ #endif /* _KEYSTATE_EXPORT_CMD_H_ */
+diff --git a/enforcer/src/keystate/keystate_import_cmd.h b/enforcer/src/keystate/keystate_import_cmd.h
+index a8c19c8..5e68801 100644
+--- a/enforcer/src/keystate/keystate_import_cmd.h
++++ b/enforcer/src/keystate/keystate_import_cmd.h
+@@ -28,7 +28,7 @@
+ #ifndef _KEYSTATE_IMPORT_CMD_H_
+ #define _KEYSTATE_IMPORT_CMD_H_
+ 
+-struct cmd_func_block key_import_funcblock;
++extern struct cmd_func_block key_import_funcblock;
+ 
+ #endif /* _KEYSTATE_IMPORT_CMD_H_ */
+ 
+diff --git a/enforcer/src/keystate/keystate_list_cmd.h b/enforcer/src/keystate/keystate_list_cmd.h
+index 17701d5..4ed0385 100644
+--- a/enforcer/src/keystate/keystate_list_cmd.h
++++ b/enforcer/src/keystate/keystate_list_cmd.h
+@@ -32,8 +32,8 @@
+ 
+ #include "db/key_data.h"
+ 
+-struct cmd_func_block key_list_funcblock;
++extern struct cmd_func_block key_list_funcblock;
+ 
+-const char* map_keystate(key_data_t *key);
++extern const char* map_keystate(key_data_t *key);
+ 
+ #endif /* _KEYSTATE_LIST_CMD_H_ */
+diff --git a/enforcer/src/keystate/keystate_rollover_cmd.h b/enforcer/src/keystate/keystate_rollover_cmd.h
+index 41dc9e9..0985c51 100644
+--- a/enforcer/src/keystate/keystate_rollover_cmd.h
++++ b/enforcer/src/keystate/keystate_rollover_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_ROLLOVER_CMD_H_
+ #define _KEYSTATE_ROLLOVER_CMD_H_
+ 
+-struct cmd_func_block key_rollover_funcblock;
++extern struct cmd_func_block key_rollover_funcblock;
+ 
+ #endif /* _KEYSTATE_ROLLOVER_CMD_H_ */
+diff --git a/enforcer/src/keystate/rollover_list_cmd.h b/enforcer/src/keystate/rollover_list_cmd.h
+index 6f2d36b..f77d9d3 100644
+--- a/enforcer/src/keystate/rollover_list_cmd.h
++++ b/enforcer/src/keystate/rollover_list_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _ROLLOVER_LIST_CMD_H_
+ #define _ROLLOVER_LIST_CMD_H_
+ 
+-struct cmd_func_block rollover_list_funcblock;
++extern struct cmd_func_block rollover_list_funcblock;
+ 
+ #endif /* _ROLLOVER_LIST_CMD_H_ */
+diff --git a/enforcer/src/keystate/zone_add_cmd.h b/enforcer/src/keystate/zone_add_cmd.h
+index c99549b..edd5e17 100644
+--- a/enforcer/src/keystate/zone_add_cmd.h
++++ b/enforcer/src/keystate/zone_add_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_ZONE_ADD_CMD_H_
+ #define _KEYSTATE_ZONE_ADD_CMD_H_
+ 
+-struct cmd_func_block zone_add_funcblock;
++extern struct cmd_func_block zone_add_funcblock;
+ 
+ #endif /* _KEYSTATE_ZONE_ADD_CMD_H_ */
+diff --git a/enforcer/src/keystate/zone_del_cmd.h b/enforcer/src/keystate/zone_del_cmd.h
+index 64d94c8..5d71057 100644
+--- a/enforcer/src/keystate/zone_del_cmd.h
++++ b/enforcer/src/keystate/zone_del_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_ZONE_DEL_CMD_H_
+ #define _KEYSTATE_ZONE_DEL_CMD_H_
+ 
+-struct cmd_func_block zone_del_funcblock;
++extern struct cmd_func_block zone_del_funcblock;
+ 
+ #endif /* _KEYSTATE_ZONE_DEL_CMD_H_ */
+diff --git a/enforcer/src/keystate/zone_list_cmd.h b/enforcer/src/keystate/zone_list_cmd.h
+index 04b04a5..3904da9 100644
+--- a/enforcer/src/keystate/zone_list_cmd.h
++++ b/enforcer/src/keystate/zone_list_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _KEYSTATE_ZONE_LIST_CMD_H_
+ #define _KEYSTATE_ZONE_LIST_CMD_H_
+ 
+-struct cmd_func_block zone_list_funcblock;
++extern struct cmd_func_block zone_list_funcblock;
+ 
+ #endif /* _KEYSTATE_ZONE_LIST_CMD_H_ */
+diff --git a/enforcer/src/keystate/zone_set_policy_cmd.h b/enforcer/src/keystate/zone_set_policy_cmd.h
+index eceb331..f9862a7 100644
+--- a/enforcer/src/keystate/zone_set_policy_cmd.h
++++ b/enforcer/src/keystate/zone_set_policy_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef _KEYSTATE_ZONE_SET_POLICY_CMD_H_
+ #define _KEYSTATE_ZONE_SET_POLICY_CMD_H_
+ 
+-struct cmd_func_block zone_set_policy_funcblock;
++extern struct cmd_func_block zone_set_policy_funcblock;
+ 
+ #endif /* _KEYSTATE_ZONE_SET_POLICY_CMD_H_ */
+diff --git a/enforcer/src/keystate/zonelist_export_cmd.h b/enforcer/src/keystate/zonelist_export_cmd.h
+index b4dbc9b..1872d3b 100644
+--- a/enforcer/src/keystate/zonelist_export_cmd.h
++++ b/enforcer/src/keystate/zonelist_export_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef _KEYSTATE_ZONELIST_EXPORT_CMD_H_
+ #define _KEYSTATE_ZONELIST_EXPORT_CMD_H_
+ 
+-struct cmd_func_block zonelist_export_funcblock;
++extern struct cmd_func_block zonelist_export_funcblock;
+ 
+ #endif /* _KEYSTATE_ZONELIST_EXPORT_CMD_H_ */
+diff --git a/enforcer/src/keystate/zonelist_import_cmd.h b/enforcer/src/keystate/zonelist_import_cmd.h
+index 5f9daa2..2ba2cf0 100644
+--- a/enforcer/src/keystate/zonelist_import_cmd.h
++++ b/enforcer/src/keystate/zonelist_import_cmd.h
+@@ -29,6 +29,6 @@
+ #ifndef _KEYSTATE_ZONELIST_IMPORT_CMD_H_
+ #define _KEYSTATE_ZONELIST_IMPORT_CMD_H_
+ 
+-struct cmd_func_block zonelist_import_funcblock;
++extern struct cmd_func_block zonelist_import_funcblock;
+ 
+ #endif /* _KEYSTATE_ZONELIST_IMPORT_CMD_H_ */
+diff --git a/enforcer/src/policy/policy_export_cmd.h b/enforcer/src/policy/policy_export_cmd.h
+index 3692cb2..4672cf0 100644
+--- a/enforcer/src/policy/policy_export_cmd.h
++++ b/enforcer/src/policy/policy_export_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _POLICY_POLICY_EXPORT_CMD_H_
+ #define _POLICY_POLICY_EXPORT_CMD_H_
+ 
+-struct cmd_func_block policy_export_funcblock;
++extern struct cmd_func_block policy_export_funcblock;
+ 
+ #endif /* _POLICY_POLICY_EXPORT_CMD_H_ */
+diff --git a/enforcer/src/policy/policy_import_cmd.h b/enforcer/src/policy/policy_import_cmd.h
+index 45debf6..b16eed4 100644
+--- a/enforcer/src/policy/policy_import_cmd.h
++++ b/enforcer/src/policy/policy_import_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _POLICY_POLICY_IMPORT_CMD_H_
+ #define _POLICY_POLICY_IMPORT_CMD_H_
+ 
+-struct cmd_func_block policy_import_funcblock;
++extern struct cmd_func_block policy_import_funcblock;
+ 
+ #endif /* _POLICY_POLICY_IMPORT_CMD_H_ */
+diff --git a/enforcer/src/policy/policy_list_cmd.h b/enforcer/src/policy/policy_list_cmd.h
+index 2d192bd..bc1fc22 100644
+--- a/enforcer/src/policy/policy_list_cmd.h
++++ b/enforcer/src/policy/policy_list_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _POLICY_POLICY_LIST_CMD_H_
+ #define _POLICY_POLICY_LIST_CMD_H_
+ 
+-struct cmd_func_block policy_list_funcblock;
++extern struct cmd_func_block policy_list_funcblock;
+ 
+ #endif /* _POLICY_POLICY_LIST_CMD_H_ */
+diff --git a/enforcer/src/policy/policy_purge_cmd.h b/enforcer/src/policy/policy_purge_cmd.h
+index 9574662..50d0ccf 100644
+--- a/enforcer/src/policy/policy_purge_cmd.h
++++ b/enforcer/src/policy/policy_purge_cmd.h
+@@ -1,6 +1,6 @@
+ #ifndef _POLICY_POLICY_PURGE_CMD_H_
+ #define _POLICY_POLICY_PURGE_CMD_H_
+ 
+-struct cmd_func_block policy_purge_funcblock;
++extern struct cmd_func_block policy_purge_funcblock;
+ 
+ #endif /* _POLICY_POLICY_PURGE_CMD_H_ */
+diff --git a/enforcer/src/policy/policy_resalt_cmd.h b/enforcer/src/policy/policy_resalt_cmd.h
+index 888d155..7ad4de8 100644
+--- a/enforcer/src/policy/policy_resalt_cmd.h
++++ b/enforcer/src/policy/policy_resalt_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _POLICY_POLICY_RESALT_CMD_H_
+ #define _POLICY_POLICY_RESALT_CMD_H_
+ 
+-struct cmd_func_block resalt_funcblock;
++extern struct cmd_func_block resalt_funcblock;
+ 
+ #endif /*_POLICY_POLICY_RESALT_CMD_H_*/
+diff --git a/enforcer/src/signconf/signconf_cmd.h b/enforcer/src/signconf/signconf_cmd.h
+index 15b76b7..9cde7b7 100644
+--- a/enforcer/src/signconf/signconf_cmd.h
++++ b/enforcer/src/signconf/signconf_cmd.h
+@@ -30,6 +30,6 @@
+ #ifndef _SIGNCONF_SIGNCONF_CMD_H_
+ #define _SIGNCONF_SIGNCONF_CMD_H_
+ 
+-struct cmd_func_block signconf_funcblock;
++extern struct cmd_func_block signconf_funcblock;
+ 
+ #endif /* _SIGNCONF_SIGNCONF_CMD_H_ */
+diff --git a/signer/src/daemon/signercommands.h b/signer/src/daemon/signercommands.h
+index 9abc0b8..7ab760d 100644
+--- a/signer/src/daemon/signercommands.h
++++ b/signer/src/daemon/signercommands.h
+@@ -35,7 +35,7 @@
+ #include "config.h"
+ #include "cmdhandler.h"
+ 
+-struct cmd_func_block** signercommands;
++extern struct cmd_func_block** signercommands;
+ 
+ extern engine_type* getglobalcontext(cmdhandler_ctx_type*);
+ 

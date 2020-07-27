@@ -7,3 +7,4 @@
 0013-Fix-build-warnings-and-possible-bugs.patch
 0015-remove-strptime-build-warning.patch
 0016-m4-acx_libxml2.m4-use-pkg-config-instead-of-xml2-con.patch
+0010-Mark-symbols-extern-for-gcc-10.patch
