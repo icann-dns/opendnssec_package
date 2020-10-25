@@ -74,11 +74,11 @@ help(int sockfd)
 	"\nOptions:\n"
         "zone		name of the zone\n"
         "policy		name of the policy, if not set the default policy is used\n"
-        "signerconf	specify a location for signer configuration file, default is /var/opendnssec/signconf/\n"
+        "signerconf	specify a location for signer configuration file, default is /var/lib/opendnssec/signconf/\n"
         "in-type		specify the type of input, should be DNS or File, default is File \n"
-        "input		specify a location for the unsigned zone, this location is set in conf.xml, default for File Adapter is /var/opendnssec/unsigned/ and for DNS Adapter is /etc/opendnssec/addns.xml \n"
+        "input		specify a location for the unsigned zone, this location is set in conf.xml, default for File Adapter is /var/lib/opendnssec/unsigned/ and for DNS Adapter is /etc/opendnssec/addns.xml \n"
         "out-type	specify the type of output, should be DNS or File, default is File\n"
-        "output		specify a location for the signed zone, this location is set in conf.xml, default path for File Adapter is /var/opendnssec/signed/ and for DNS Adapter is /etc/opendnssec/addns.xml \n"
+        "output		specify a location for the signed zone, this location is set in conf.xml, default path for File Adapter is /var/lib/opendnssec/signed/ and for DNS Adapter is /etc/opendnssec/addns.xml \n"
         "xml		update the zonelist.xml file\n\n"
     );
 }
