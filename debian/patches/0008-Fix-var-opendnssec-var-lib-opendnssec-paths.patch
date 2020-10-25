@@ -86,10 +86,10 @@ index d661ced..0660f85 100644
  location.  Also replicate the ZSK PKCS#11 key repository from the bunker
  environment to the operational environment.  It suffices to only replicate
 diff --git a/enforcer/man/ods-enforcer.8.in b/enforcer/man/ods-enforcer.8.in
-index 2efe167..1c6f1c5 100644
+index 655ee5b..181a1f8 100644
 --- a/enforcer/man/ods-enforcer.8.in
 +++ b/enforcer/man/ods-enforcer.8.in
-@@ -203,10 +203,10 @@ The list of zones as defined in conf.xml. This list is used during 'zonelist imp
+@@ -206,10 +206,10 @@ The list of zones as defined in conf.xml. This list is used during 'zonelist imp
  .B /etc/opendnssec/kasp.xml
  The configuration of policies that define timing and security, as defined in conf.xml.
  .TP

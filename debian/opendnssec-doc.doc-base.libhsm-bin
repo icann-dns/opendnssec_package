@@ -1,0 +1,8 @@
+Document: libhsm-bin
+Title: OpenDNSSEC libhsm
+Author: various
+Section: Programming
+
+Format: HTML
+Index: /usr/share/doc/opendnssec-doc/libhsm-bin/index.html
+Files: /usr/share/doc/opendnssec-doc/libhsm-bin/*

@@ -1,6 +1,6 @@
 From: Mathieu Mirmont <mat@parad0x.org>
 Date: Tue, 21 May 2019 23:57:55 +0200
-Subject: [PATCH] remove strptime build warning
+Subject: remove strptime build warning
 
 ---
  enforcer/src/daemon/time_leap_cmd.c | 2 +-

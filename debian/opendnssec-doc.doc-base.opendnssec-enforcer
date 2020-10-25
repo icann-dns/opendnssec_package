@@ -1,0 +1,8 @@
+Document: opendnssec-enforcer
+Title: OpenDNSSEC enforcer
+Author: various
+Section: Programming
+
+Format: HTML
+Index: /usr/share/doc/opendnssec-doc/opendnssec-enforcer/index.html
+Files: /usr/share/doc/opendnssec-doc/opendnssec-enforcer/*

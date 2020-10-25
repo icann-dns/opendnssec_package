@@ -1,1 +1,2 @@
 opendnssec-common: package-contains-documentation-outside-usr-share-doc usr/share/opendnssec/1.4-2.0_db_convert/README.md
+opendnssec-common: debian-news-entry-uses-asterisk

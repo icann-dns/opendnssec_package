@@ -5,120 +5,9 @@ include:
   - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
   - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
 
-##
-## Disable the puiparts test: we roll our own since we have two
-## installation variants (sqlite3 vs mysql).
-##
 variables:
-  SALSA_CI_DISABLE_PIUPARTS: 1
   SALSA_CI_DISABLE_BUILD_PACKAGE_ANY: 1
   SALSA_CI_DISABLE_BUILD_PACKAGE_ALL: 1
-
-##
-## Overload the build script to download and build from the upstream
-## tarball. Otherwise the build script tries to use "gbp export-orig"
-## which fails.
-##
-build:
-  script:
-    # Bits taken from .build-before-script
-    - rm -rf '$CI_PROJECT_DIR'
-    - rm -rf ${CI_PROJECT_DIR}/debian/output/.ccache
-    - mkdir -p ${WORKING_DIR} ${CCACHE_WORK_DIR}
-    - mv ${CCACHE_WORK_DIR} ${CCACHE_TMP_DIR}
-
-    # Bits taken from .build-script
-    - docker-origtargz.sh "${SALSA_CI_IMAGES_DOCKERBUILDER}"
-    - gbp buildpackage
-        --git-ignore-branch
-        --git-ignore-new
-        --git-no-create-orig
-        --git-overlay
-        --git-export-dir=${WORKING_DIR}
-        --git-builder="docker-build.sh ${SALSA_CI_IMAGES_DOCKERBUILDER} ${DB_BUILD_PARAM}"
-        |& filter-output
-
-    # Bits taken from .build-definition
-    - mv ${CCACHE_TMP_DIR} ${CCACHE_WORK_DIR}
-
-##
-## Run piuparts.
-##
-.piuparts-common: &piuparts-common
-  stage: test
-  image: registry.salsa.debian.org/salsa-ci-team/images/piuparts
-  services:
-    - docker:dind
-  except:
-    - tags
-
-  script:
-    # Derive the base distribution name
-    - if [ "${PIUPARTS_MODE}" = "upgrade" ]; then DISTRIB="stable"; else DISTRIB="unstable"; fi
-
-    # Build the chroot
-    - CHROOT_PATH=/tmp/debian-chroot
-    - CONTAINER_ID=$(docker run --rm -d debian:${DISTRIB} sleep infinity)
-    - docker exec ${CONTAINER_ID} bash -c "apt-get update && apt-get install eatmydata lsof -y"
-    - mkdir -p ${CHROOT_PATH}
-    - docker export ${CONTAINER_ID} | tar -C ${CHROOT_PATH} -xf -
-    - rm -rf ${CHROOT_PATH}/.zfs
-
-    # Figure out the piuparts command line arguments
-    - PIUPARTS_ARGS="--scriptsdir /etc/piuparts/scripts
-                     --warn-on-leftovers-after-purge
-                     --existing-chroot ${CHROOT_PATH}"
-    - VERSION=$(awk -F '(\(([0-9]*:)?)|\)' '{print $2; exit}' < debian/changelog)
-    - ARCH=$(dpkg --print-architecture)
-    - PACKAGES="${WORKING_DIR}/libhsm-bin_${VERSION}_${ARCH}.deb
-                ${WORKING_DIR}/opendnssec-common_${VERSION}_all.deb
-                ${WORKING_DIR}/opendnssec-doc_${VERSION}_all.deb
-                ${WORKING_DIR}/opendnssec-enforcer-${BACKEND}_${VERSION}_${ARCH}.deb
-                ${WORKING_DIR}/opendnssec-enforcer_${VERSION}_all.deb
-                ${WORKING_DIR}/opendnssec-signer_${VERSION}_${ARCH}.deb
-                ${WORKING_DIR}/opendnssec_${VERSION}_all.deb"
-
-    # Call piuparts, either in install or in upgrade mode
-    - if [ "${PIUPARTS_MODE}" = "upgrade" ]; then
-          piuparts ${PIUPARTS_ARGS}
-                   --distribution stable
-                   --extra-repo "deb http://security.debian.org/debian-security stable/updates main"
-                   --extra-repo "deb http://deb.debian.org/debian stable-updates main"
-                   --distribution unstable
-                   ${PACKAGES};
-      else
-          piuparts ${PIUPARTS_ARGS}
-                   --distribution unstable
-                   ${PACKAGES};
-      fi
-
-# piupart install test using the sqlite3 backend
-piuparts-install-sqlite3:
-  <<: *piuparts-common
-  variables:
-    PIUPARTS_MODE: install
-    BACKEND: sqlite3
-
-# piupart install test using the mysql backend
-piuparts-install-mysql:
-  <<: *piuparts-common
-  variables:
-    PIUPARTS_MODE: install
-    BACKEND: mysql
-
-# piupart upgrade test using the sqlite3 backend
-piuparts-upgrade-sqlite3:
-  <<: *piuparts-common
-  variables:
-    PIUPARTS_MODE: upgrade
-    BACKEND: sqlite3
-
-# piupart upgrade test using the mysql backend
-piuparts-upgrade-mysql:
-  <<: *piuparts-common
-  variables:
-    PIUPARTS_MODE: upgrade
-    BACKEND: mysql
 
 ##
 ## Check for forgotten debconf-updatepo.
@@ -128,7 +17,6 @@ updatepo:
   image: ${SALSA_CI_IMAGES_BASE}
   except:
     - tags
-
   script:
     - apt-get update
     - apt-get install -y po-debconf git
@@ -144,7 +32,6 @@ xmllint:
   image: ${SALSA_CI_IMAGES_BASE}
   except:
     - tags
-
   script:
     - apt-get update
     - apt-get install -y libxml2-utils
@@ -159,36 +46,10 @@ shellcheck:
   image: ${SALSA_CI_IMAGES_BASE}
   except:
     - tags
-
   script:
     - apt-get update
-    - apt-get install -y file shellcheck
-    - find debian -type f
+    - apt-get install -y git file shellcheck
+    - git ls-files debian
           | xargs file
           | awk '-F:' '/shell script/ {print $1}'
-          | xargs shellcheck --exclude SC1091,SC2230,SC2034,SC2039
-
-##
-## Build a source package when pushing tags, to facilitate uploads.
-##
-dsc:
-  stage: build
-  image: ${SALSA_CI_IMAGES_GBP}
-  only:
-    - /^debian\/.*/
-  except:
-    - branches
-  variables:
-    GIT_DEPTH: 0
-  script:
-    - mkdir -p "${WORKING_DIR}"
-    - uscan --download --download-current-version --destdir "${WORKING_DIR}"
-    - gbp buildpackage
-          --git-ignore-branch
-          --git-overlay
-          --git-export-dir="${WORKING_DIR}"
-          --git-builder="dpkg-source -b ."
-  artifacts:
-    name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
-    paths:
-      - ${WORKING_DIR}/
+          | xargs shellcheck --exclude SC1091,SC2034,SC2039

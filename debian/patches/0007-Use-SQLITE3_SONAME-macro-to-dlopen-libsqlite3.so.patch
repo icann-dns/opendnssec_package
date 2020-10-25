@@ -1,21 +1,29 @@
-From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
-Date: Mon, 2 Jan 2017 15:00:13 +0100
+From: Mathieu Mirmont <mat@parad0x.org>
+Date: Thu, 8 Oct 2020 00:19:01 +0200
 Subject: Use SQLITE3_SONAME macro to dlopen libsqlite3.so.*
 
 ---
- enforcer/src/ods-migrate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ enforcer/src/ods-migrate.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/enforcer/src/ods-migrate.c b/enforcer/src/ods-migrate.c
-index aece505..5d6cc1c 100644
+index 49ce2a4..1ec2417 100644
 --- a/enforcer/src/ods-migrate.c
 +++ b/enforcer/src/ods-migrate.c
-@@ -97,7 +97,7 @@ dblayer_sqlite3_initialize(void)
+@@ -98,13 +98,10 @@ dblayer_sqlite3_initialize(void)
      char const *error;
  
      dlerror();
--    handle = dlopen("libsqlite3.so", RTLD_NOW);
+-    handle = dlopen("libsqlite3.so.0", RTLD_NOW);
 +    handle = dlopen(SQLITE3_SONAME, RTLD_NOW);
      if ((error = dlerror()) != NULL) {
- 	    printf("Failed to load sqlite3 library. dlerror(): %s\n", error);
- 	    exit(1);
+-          handle = dlopen("libsqlite3.so", RTLD_NOW); /* unversioned is a -devel package file on some distros */
+-          if ((error = dlerror()) != NULL) {
+-             printf("Failed to load sqlite3 library. dlerror(): %s\n", error);
+-             exit(1);
+-          }
++	    printf("Failed to load sqlite3 library. dlerror(): %s\n", error);
++	    exit(1);
+     }
+ 
+     dblayer_sqlite3.sqlite3_prepare_v2 = (int(*)(sqlite3*, const char*, int, sqlite3_stmt**, const char **))functioncast(dlsym(handle, "sqlite3_prepare_v2"));

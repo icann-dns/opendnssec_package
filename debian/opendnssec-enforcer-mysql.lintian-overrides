@@ -1,2 +1,1 @@
-opendnssec-enforcer-mysql: binary-without-manpage usr/sbin/ods-migrate
-opendnssec-enforcer-mysql: manpage-has-errors-from-man usr/share/man/man5/ods-kasp.5.gz 72: warning [p 2, 2.5i]: can't break line
+opendnssec-enforcer-mysql: no-manual-page usr/sbin/ods-migrate
