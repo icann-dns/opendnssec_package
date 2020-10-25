@@ -1,3 +1,20 @@
+opendnssec (1:2.1.7-1) unstable; urgency=medium
+
+  * New upstream version 2.1.7
+  * patches: refresh, drop those merged upstream
+  * gitlab-ci.yml: cleanup the file (closes: #972743)
+  * Add/fix the usr/share/doc symlinks
+  * lintian-overrides: refresh
+  * tmpfile: rename as tmpfiles
+  * upstream/metadata: add file
+  * Register Doxygen manuals with doc-base
+  * control: use secure URI in Homepage field
+  * control: drop ancient Breaks/Replaces/Conflicts
+  * control: bump debhelper compat to 13
+  * Track upstream tarballs instead of their git repository
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Sun, 25 Oct 2020 03:13:25 +0100
+
 opendnssec (1:2.1.6-2) unstable; urgency=medium
 
   * patches: fix the code to build with GCC-10 (Closes: #957637)

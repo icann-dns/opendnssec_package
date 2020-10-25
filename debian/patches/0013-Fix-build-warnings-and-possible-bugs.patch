@@ -1,13 +1,13 @@
 From: Mathieu Mirmont <mat@parad0x.org>
-Date: Sat, 9 Mar 2019 22:21:00 +0100
-Subject: [PATCH] Fix build warnings and possible bugs
+Date: Thu, 8 Oct 2020 00:44:16 +0200
+Subject: Fix minor build warnings
 
 ---
  common/scheduler/task.c      | 1 +
  enforcer/src/daemon/engine.c | 5 ++---
- libhsm/src/lib/libhsm.c      | 7 ++++++-
+ libhsm/src/lib/libhsm.c      | 5 +++++
  signer/src/daemon/engine.c   | 3 +--
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/common/scheduler/task.c b/common/scheduler/task.c
 index cfdbd2d..9c09dc1 100644
@@ -52,19 +52,10 @@ index 538aa74..259bc13 100644
          ods_log_error("[%s] create command handler to %s failed",
              engine_str, engine->config->clisock_filename);
 diff --git a/libhsm/src/lib/libhsm.c b/libhsm/src/lib/libhsm.c
-index 5041c27..6674ddd 100644
+index 1da0865..e6d3533 100644
 --- a/libhsm/src/lib/libhsm.c
 +++ b/libhsm/src/lib/libhsm.c
-@@ -680,7 +680,7 @@ hsm_ctx_new()
-     hsm_ctx_t *ctx;
-     ctx = malloc(sizeof(hsm_ctx_t));
-     if (ctx) {
--        memset(ctx->session, 0, HSM_MAX_SESSIONS);
-+        memset(ctx->session, 0, HSM_MAX_SESSIONS * sizeof(hsm_ctx_t*));
-         ctx->session_count = 0;
-         ctx->error = 0;
-     }
-@@ -3238,6 +3238,11 @@ hsm_get_error(hsm_ctx_t *gctx)
+@@ -3523,6 +3523,11 @@ hsm_get_error(hsm_ctx_t *gctx)
              "%s: %s",
              ctx->error_action ? ctx->error_action : "unknown()",
              ctx->error_message[0] ? ctx->error_message : "unknown error");

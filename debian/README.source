@@ -6,33 +6,10 @@ repository includes upstream sources as well as the debian/ directory,
 with patches unapplied.
 
 There exists a delta between the upstream git repository and their
-official tarballs. This package builds against the upstream tarballs
-and not against their git tree. The upstream tree in the packaging git
-repository is only there for documentation purposes and the package
-will not build against it.
+official tarballs. In the past the package used to track the upstream
+git repostitory in the upstream branch, but it would build using the
+upstream tarballs only. This method was quite inconvenient and since
+version 2.1.7-1 the package tracks the upstream tarballs in the
+upstream branch, and it uses pristine-tar.
 
-Building from source
---------------------
-
-The recommended way to build this package is the following, from an
-empty directory:
-
-  git clone git@salsa.debian.org:debian/opendnssec.git
-  cd opendnssec
-  uscan --download --download-current-version
-  gbp buildpackage --git-export-dir=.. --git-overlay
-
-It is advised to build in a clean environment, using pbuilder, docker,
-or something similar.
-
-Building a source package
--------------------------
-
-The recommended way to build a source package from the repository is
-the following, assuming a build from the master branch of a clean
-repository:
-
-  uscan --download --download-current-version
-  gbp buildpackage --git-export-dir=.. --git-overlay -S
-
- -- Mathieu Mirmont <mat@parad0x.org>, Tue, 19 Nov 2019 10:18:51 +0100
+ -- Mathieu Mirmont <mat@parad0x.org>, Sun, 25 Oct 2020 02:50:44 +0100

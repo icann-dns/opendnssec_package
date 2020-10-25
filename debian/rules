@@ -76,14 +76,11 @@ override_dh_auto_install:
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/man/man1/ods-hsm* \
 	       $(CURDIR)/debian/opendnssec-enforcer-mysql/usr/share/opendnssec/database_create*
 
-override_dh_installdocs-arch:
-	dh_installdocs -popendnssec-common -popendnssec-common\
-		-popendnssec-enforcer -popendnssec-enforcer-sqlite3 \
-		-popendnssec-enforcer-mysql -plibhsm-bin \
-		-popendnssec-signer -popendnssec-doc
+override_dh_installdocs:
+	dh_installdocs -p opendnssec-common -p opendnssec-doc
 
 override_dh_installchangelogs:
-	dh_installchangelogs NEWS
+	dh_installchangelogs -p opendnssec-common -p opendnssec-doc NEWS
 
 override_dh_install:
 	dh_install -popendnssec-enforcer-mysql --sourcedir=debian/tmp-mysql
