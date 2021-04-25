@@ -1,3 +1,10 @@
+opendnssec (1:2.1.7-2) unstable; urgency=medium
+
+  * po/pt_BR.po: Add Brazilian translation (Closes: #986890)
+  * po/es.po: Add Spanish translation (Closes: #987518)
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Sun, 25 Apr 2021 12:54:19 +0200
+
 opendnssec (1:2.1.7-1) unstable; urgency=medium
 
   * New upstream version 2.1.7
