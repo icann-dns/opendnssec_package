@@ -16,7 +16,7 @@ General preparation
 -------------------
 
  * First stop OpenDNSSEC entirely.
- * You are strongly advised to backup /etc/opendnssec and /var/opendnssec before
+ * You are strongly advised to backup /etc/opendnssec and /var/lib/opendnssec before
    continuing.
  * Also prevent any nameserver from receiving updates from OpenDNSSEC until
    you are sure the migration was successful.
@@ -35,7 +35,7 @@ There are 2 relevant files for the conversion:
  * sqlite_convert.sql - Contains SQL statements, called by convert_sqlite
 
 call the script like so: `./convert_sqlite -i INPUT -o OUTPUT`. Where INPUT is
-the kasp.db file commonly found in _/var/opendnssec/kasp.db_. And OUTPUT is a
+the kasp.db file commonly found in _/var/lib/opendnssec/kasp.db_. And OUTPUT is a
 non-existing file where the new database should go. On success, replace old
 database file with the new database file or adjust _conf.xml_ accordingly.
 
@@ -62,7 +62,7 @@ stores them in the database. Make sure that at this point _conf.xml_ points to
 the new database. Then run `ods-migrate`.
 
 Now your new database is ready for use. At this point the signer will refuse to
-run because the file `/var/opendnssec/enforcer/zones.xml` does not exist
+run because the file `/var/lib/opendnssec/enforcer/zones.xml` does not exist
 yet.  In ODS 1.4 `/etc/opendnssec/zonelist.xml` is always on par with the
 database contents (this is no longer true for 2.0) so it is safe to copy this
 file over to the missing file.
