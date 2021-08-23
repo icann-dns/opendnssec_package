@@ -1,5 +1,7 @@
 [Unit]
 Description=OpenDNSSEC signer daemon
+Documentation=https://www.opendnssec.org/about/
+Documentation=https://wiki.opendnssec.org/display/DOCS20
 After=network.target ods-enforcerd.service
 ConditionPathExists=!/etc/opendnssec/prevent-startup
 

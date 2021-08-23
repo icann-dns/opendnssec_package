@@ -1,6 +1,7 @@
 From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Mon, 2 Jan 2017 16:05:12 +0100
 Subject: Fix schema.sqlite and schema.mysql paths to /usr/share/opendnssec
+Forwarded: not-needed
 
 ---
  enforcer/utils/1.4-2.0_db_convert/convert_mysql  | 4 ++--

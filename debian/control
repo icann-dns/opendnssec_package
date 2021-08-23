@@ -23,7 +23,7 @@ Build-Depends:
                procps,
                sqlite3,
                xsltproc
-Standards-Version: 4.5.0
+Standards-Version: 4.5.1
 Homepage: https://www.opendnssec.org/
 Vcs-Browser: https://salsa.debian.org/debian/opendnssec
 Vcs-Git: https://salsa.debian.org/debian/opendnssec.git
@@ -35,7 +35,7 @@ Architecture: all
 Depends: adduser,
          ucf,
          ${misc:Depends}
-Recommends: opendnssec,
+Recommends: opendnssec(>= ${source:Version}),
             softhsm2
 Description: common configuration files for OpenDNSSEC suite
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
@@ -50,13 +50,13 @@ Package: opendnssec
 Section: misc
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
-Depends: libhsm-bin,
-         opendnssec-common,
-         opendnssec-enforcer,
-         opendnssec-signer,
+Depends: libhsm-bin (>= ${source:Version}),
+         opendnssec-common (>= ${source:Version}),
+         opendnssec-enforcer (>= ${source:Version}),
+         opendnssec-signer (>= ${source:Version}),
          ${misc:Depends}
 Recommends: softhsm2
-Suggests: opendnssec-doc
+Suggests: opendnssec-doc (>= ${source:Version})
 Description: dependency package to install full OpenDNSSEC suite
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -70,7 +70,7 @@ Section: doc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}
-Suggests: opendnssec
+Suggests: opendnssec (>= ${source:Version})
 Description: documentation for OpenDNSSEC suite
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -82,15 +82,15 @@ Description: documentation for OpenDNSSEC suite
 Package: opendnssec-enforcer
 Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
-Depends: opendnssec-enforcer-sqlite3 | opendnssec-enforcer-backend,
-         opendnssec-common,
+Depends: opendnssec-enforcer-sqlite3 (>= ${source:Version}) |
+         opendnssec-enforcer-backend,
+         opendnssec-common (>= ${source:Version}),
          procps,
          ${misc:Depends}
-Recommends: opendnssec,
-            opendnssec-signer,
+Recommends: opendnssec (>= ${source:Version}),
+            opendnssec-signer (>= ${source:Version}),
             softhsm2
 Breaks: ${runit:Breaks}
-Conflicts: ${runit:Conflicts}
 Description: tool to prepare DNSSEC keys (common package)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -116,7 +116,7 @@ Depends: default-mysql-client,
 Provides: opendnssec-enforcer-backend
 Conflicts: opendnssec-enforcer-backend
 Replaces: opendnssec-enforcer-backend
-Recommends: opendnssec,
+Recommends: opendnssec (= ${source:Version}),
             softhsm2
 Description: tool to prepare DNSSEC keys (MySQL backend)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
@@ -142,7 +142,7 @@ Depends: libdbd-sqlite3-perl,
 Provides: opendnssec-enforcer-backend
 Conflicts: opendnssec-enforcer-backend
 Replaces: opendnssec-enforcer-backend
-Recommends: opendnssec,
+Recommends: opendnssec (= ${source:Version}),
             softhsm2
 Description: tool to prepare DNSSEC keys (sqlite3 backend)
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
@@ -163,11 +163,10 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: opendnssec-common (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: opendnssec,
-            opendnssec-enforcer,
+Recommends: opendnssec (= ${source:Version}),
+            opendnssec-enforcer (= ${source:Version}),
             softhsm2
 Breaks: ${runit:Breaks}
-Conflicts: ${runit:Conflicts}
 Description: daemon to sign DNS zone files periodically
  OpenDNSSEC is a complete DNSSEC zone signing system which is very
  easy to use with stability and security in mind.  There are a lot of
@@ -186,9 +185,7 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: opendnssec-common (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Conflicts: libhsm-dev,
-           libhsm0
-Recommends: opendnssec,
+Recommends: opendnssec (= ${source:Version}),
             softhsm2
 Description: library for interfacing PKCS#11 Hardware Security Modules
  OpenDNSSEC is a complete DNSSEC zone signing system which is very

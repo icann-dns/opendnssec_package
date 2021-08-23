@@ -1,0 +1,67 @@
+From: Mathieu Mirmont <mat@parad0x.org>
+Date: Wed, 18 Aug 2021 23:48:00 +0200
+Subject: Fix minor typos
+
+---
+ enforcer/src/enforcer/update_repositorylist_cmd.c | 4 ++--
+ enforcer/src/keystate/keystate_ds_seen_cmd.c      | 2 +-
+ tools/ods-kasp.5.in                               | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/enforcer/src/enforcer/update_repositorylist_cmd.c b/enforcer/src/enforcer/update_repositorylist_cmd.c
+index 9ad891e..add64d5 100644
+--- a/enforcer/src/enforcer/update_repositorylist_cmd.c
++++ b/enforcer/src/enforcer/update_repositorylist_cmd.c
+@@ -100,7 +100,7 @@ perform_update_repositorylist(int sockfd, engine_type* engine)
+ 			engine->config->repositories = new_reps;
+ 			engine->need_to_reload = 1;
+ 			client_printf(sockfd, "new repositories parsed successful.\n");
+-			client_printf(sockfd, "Notifying enforcer of new respositories.\n");
++			client_printf(sockfd, "Notifying enforcer of new repositories.\n");
+ 			/* kick daemon thread so it will reload the hsms */
+ 			pthread_cond_signal(&engine->signal_cond);
+ 		}
+@@ -120,7 +120,7 @@ static void
+ help(int sockfd)
+ {
+ 	client_printf(sockfd,
+-		"Import respositories from conf.xml into the enforcer.\n\n");
++		"Import repositories from conf.xml into the enforcer.\n\n");
+ }
+ 
+ static int
+diff --git a/enforcer/src/keystate/keystate_ds_seen_cmd.c b/enforcer/src/keystate/keystate_ds_seen_cmd.c
+index 5caea3f..f1cb5fd 100644
+--- a/enforcer/src/keystate/keystate_ds_seen_cmd.c
++++ b/enforcer/src/keystate/keystate_ds_seen_cmd.c
+@@ -58,7 +58,7 @@ static void
+ help(int sockfd)
+ {
+ 	client_printf(sockfd,
+-		"Issue a ds-seen to the enforcer for a KSK/ or all 'ready for ds-seen' KSKs. This command indicates to OpenDNSSEC taht a submitted DS record has appreared in the parent zone, and thereby trigger the completion of KSK rollover.\n"
++		"Issue a ds-seen to the enforcer for a KSK/ or all 'ready for ds-seen' KSKs. This command indicates to OpenDNSSEC that a submitted DS record has appreared in the parent zone, and thereby trigger the completion of KSK rollover.\n"
+ 		"(This command with no parameters lists eligible keys.)\n"
+ 		"\nOptions:\n"
+ 		"zone		name of the zone\n"
+diff --git a/tools/ods-kasp.5.in b/tools/ods-kasp.5.in
+index f397733..f37ac52 100644
+--- a/tools/ods-kasp.5.in
++++ b/tools/ods-kasp.5.in
+@@ -204,7 +204,7 @@ These values will override values set for the SOA record in the input zone.
+ .B SOA TTL
+ This is the time-to-live of the SOA record.
+ .TP
+-.B SOA MINIUM
++.B SOA MINIMUM
+ This is value for the MINIMUM RDATA element in the SOA record.
+ .TP
+ .B SOA Serial
+@@ -245,7 +245,7 @@ These are necessary to calculate the timings in particular rollover scenarios.
+ .B SOA TTL
+ This should be set to the time-to-live of the parent zone SOA record.
+ .TP
+-.B SOA MINIUM
++.B SOA MINIMUM
+ This should be set to the value of the MINIMUM RDATA element in the parent zone SOA record.
+ 
+ .SH "SEE ALSO"

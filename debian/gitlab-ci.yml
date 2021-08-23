@@ -52,4 +52,4 @@ shellcheck:
     - git ls-files debian
           | xargs file
           | awk '-F:' '/shell script/ {print $1}'
-          | xargs shellcheck --exclude SC1091,SC2034,SC2039
+          | xargs shellcheck --exclude SC1091,SC2034,SC2039,SC3043

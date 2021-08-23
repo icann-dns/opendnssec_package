@@ -1,6 +1,7 @@
 From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@debian.org>
 Date: Wed, 21 Oct 2015 10:46:05 +0200
 Subject: fix localstate dir
+Forwarded: not-needed
 
 ---
  m4/opendnssec_common.m4 | 4 ++--

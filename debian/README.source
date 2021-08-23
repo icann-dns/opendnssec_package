@@ -10,6 +10,6 @@ official tarballs. In the past the package used to track the upstream
 git repostitory in the upstream branch, but it would build using the
 upstream tarballs only. This method was quite inconvenient and since
 version 2.1.7-1 the package tracks the upstream tarballs in the
-upstream branch, and it uses pristine-tar.
+upstream/latest branch, and it uses pristine-tar.
 
- -- Mathieu Mirmont <mat@parad0x.org>, Sun, 25 Oct 2020 02:50:44 +0100
+ -- Mathieu Mirmont <mat@parad0x.org>, Mon, 16 Aug 2021 02:06:43 +0200

@@ -1,6 +1,7 @@
 From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Mon, 2 Jan 2017 15:59:27 +0100
 Subject: Fix /var/opendnssec -> /var/lib/opendnssec paths
+Forwarded: not-needed
 
 ---
  contrib/ods-sequencer/ods-sequencer           |  2 +-
@@ -86,10 +87,10 @@ index d661ced..0660f85 100644
  location.  Also replicate the ZSK PKCS#11 key repository from the bunker
  environment to the operational environment.  It suffices to only replicate
 diff --git a/enforcer/man/ods-enforcer.8.in b/enforcer/man/ods-enforcer.8.in
-index 655ee5b..181a1f8 100644
+index be0618a..ec0d14f 100644
 --- a/enforcer/man/ods-enforcer.8.in
 +++ b/enforcer/man/ods-enforcer.8.in
-@@ -206,10 +206,10 @@ The list of zones as defined in conf.xml. This list is used during 'zonelist imp
+@@ -208,10 +208,10 @@ The list of zones as defined in conf.xml. This list is used during 'zonelist imp
  .B /etc/opendnssec/kasp.xml
  The configuration of policies that define timing and security, as defined in conf.xml.
  .TP
