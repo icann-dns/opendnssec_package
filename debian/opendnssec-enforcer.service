@@ -1,5 +1,7 @@
 [Unit]
 Description=OpenDNSSEC Enforcer daemon
+Documentation=https://www.opendnssec.org/about/
+Documentation=https://wiki.opendnssec.org/display/DOCS20
 After=network.target
 ConditionPathExists=!/etc/opendnssec/prevent-startup
 

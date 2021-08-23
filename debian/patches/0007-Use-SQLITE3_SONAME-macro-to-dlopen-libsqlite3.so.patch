@@ -1,6 +1,7 @@
 From: Mathieu Mirmont <mat@parad0x.org>
 Date: Thu, 8 Oct 2020 00:19:01 +0200
 Subject: Use SQLITE3_SONAME macro to dlopen libsqlite3.so.*
+Forwarded: not-needed
 
 ---
  enforcer/src/ods-migrate.c | 9 +++------

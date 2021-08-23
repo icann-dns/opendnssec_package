@@ -14,8 +14,6 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 # see ENVIRONMENT in dpkg-buildflags(1)
 # package maintainers to append CFLAGS
 export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic -DSQLITE3_SONAME=\\\"$(SQLITE3_SONAME)\\\"
-# package maintainers to append LDFLAGS
-export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
 SQLITE3_SONAME = $(shell objdump -p $$(pkg-config --variable=libdir sqlite3)/libsqlite3.so | sed -ne 's/^[[:space:]]*SONAME[[:space:]]*\(libsqlite3\.so.*\)/\1/p')
 

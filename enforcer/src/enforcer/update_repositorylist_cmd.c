@@ -100,7 +100,7 @@ perform_update_repositorylist(int sockfd, engine_type* engine)
 			engine->config->repositories = new_reps;
 			engine->need_to_reload = 1;
 			client_printf(sockfd, "new repositories parsed successful.\n");
-			client_printf(sockfd, "Notifying enforcer of new respositories.\n");
+			client_printf(sockfd, "Notifying enforcer of new repositories.\n");
 			/* kick daemon thread so it will reload the hsms */
 			pthread_cond_signal(&engine->signal_cond);
 		}
@@ -120,7 +120,7 @@ static void
 help(int sockfd)
 {
 	client_printf(sockfd,
-		"Import respositories from conf.xml into the enforcer.\n\n");
+		"Import repositories from conf.xml into the enforcer.\n\n");
 }
 
 static int

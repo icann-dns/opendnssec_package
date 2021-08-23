@@ -52,10 +52,10 @@ index 538aa74..259bc13 100644
          ods_log_error("[%s] create command handler to %s failed",
              engine_str, engine->config->clisock_filename);
 diff --git a/libhsm/src/lib/libhsm.c b/libhsm/src/lib/libhsm.c
-index 1da0865..e6d3533 100644
+index 88dc79e..95ca0b2 100644
 --- a/libhsm/src/lib/libhsm.c
 +++ b/libhsm/src/lib/libhsm.c
-@@ -3523,6 +3523,11 @@ hsm_get_error(hsm_ctx_t *gctx)
+@@ -3533,6 +3533,11 @@ hsm_get_error(hsm_ctx_t *gctx)
              "%s: %s",
              ctx->error_action ? ctx->error_action : "unknown()",
              ctx->error_message[0] ? ctx->error_message : "unknown error");
