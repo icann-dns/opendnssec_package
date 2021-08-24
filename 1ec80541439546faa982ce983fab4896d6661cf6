@@ -1,0 +1,14 @@
+  * New upstream version 2.1.9
+  * Rename the git branches to follow DEP-14
+  * patches: refresh, fix build with MySQL 8 (Closes: #987832)
+  * patches: fix minor typos
+  * control: bump policy to 4.5.1, no code change
+  * control: add versioned dependencies
+  * control: remove obsolete Conflicts
+  * opendnssec-*.service: add documentation links
+  * clean: delete temporary build directories
+  * .gitignore: update the file
+  * watch: bump to version 4
+  * gitlab-ci.yml: shellcheck: dash supports local
+  * lintian-overrides: allow shipping systemd files to /usr
+  * rules: remove unnecessary -Wl,--as-needed
