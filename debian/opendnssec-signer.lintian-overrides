@@ -1,2 +1,0 @@
-# Assuming that this is a bug in lintian.
-opendnssec-signer: systemd-service-file-outside-lib usr/lib/systemd/system/opendnssec-signer.service
