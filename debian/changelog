@@ -1,3 +1,11 @@
+opendnssec (1:2.1.10-1) unstable; urgency=medium
+
+  * New upstream version 2.1.10
+  * control: bump policy to 4.6.0, no code change
+  * lintian-overrides: remove obsolete overrides
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Sun, 12 Sep 2021 00:22:01 +0200
+
 opendnssec (1:2.1.9-1) unstable; urgency=medium
 
   * New upstream version 2.1.9

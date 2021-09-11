@@ -23,7 +23,7 @@ Build-Depends:
                procps,
                sqlite3,
                xsltproc
-Standards-Version: 4.5.1
+Standards-Version: 4.6.0
 Homepage: https://www.opendnssec.org/
 Vcs-Browser: https://salsa.debian.org/debian/opendnssec
 Vcs-Git: https://salsa.debian.org/debian/opendnssec.git
