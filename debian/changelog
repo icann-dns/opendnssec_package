@@ -1,3 +1,9 @@
+opendnssec (1:2.1.10-1build1) jammy; urgency=medium
+
+  * No-change rebuild against openssl3
+
+ -- Simon Chopin <simon.chopin@canonical.com>  Wed, 08 Dec 2021 12:50:18 +0100
+
 opendnssec (1:2.1.10-1) unstable; urgency=medium
 
   * New upstream version 2.1.10
