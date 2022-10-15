@@ -1,3 +1,10 @@
+opendnssec (1:2.1.10-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * No source change upload to rebuild with debhelper 13.10.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 15 Oct 2022 12:32:45 +0200
+
 opendnssec (1:2.1.10-1) unstable; urgency=medium
 
   * New upstream version 2.1.10
