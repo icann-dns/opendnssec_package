@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opendnssec\n"
 "Report-Msgid-Bugs-To: opendnssec@packages.debian.org\n"
-"POT-Creation-Date: 2019-02-18 21:17+0100\n"
+"POT-Creation-Date: 2022-11-01 10:21+0100\n"
 "PO-Revision-Date: 2021-04-14 16:49+0200\n"
 "Last-Translator: Camaleón <noelamac@gmail.com>\n"
 "Language-Team: Debian Spanish <debian-l10n-spanish@lists.debian.org>\n"
@@ -19,62 +19,12 @@ msgstr ""
 #. Type: note
 #. Description
 #: ../opendnssec-common.templates:1001
-msgid "OpenDNSSEC 2.0.0 database and tools migration"
-msgstr "Migración de base de datos y herramientas de OpenDNSSEC 2.0.0"
-
-#. Type: note
-#. Description
-#: ../opendnssec-common.templates:1001
-msgid ""
-"There are two steps in the database migration.  If you are running "
-"OpenDNSSEC 1.4.6 from Debian stable, you need to apply the SQL statements "
-"from /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3} against your "
-"existing database."
-msgstr ""
-"La migración de la base de datos comprende dos fases. Si está ejecutando "
-"OpenDNSSEC 1.4.6 en la versión estable de Debian, tendrá que aplicar las "
-"sentencias SQL que se encuentran en «/usr/share/opendnssec/migrate_1_4_8."
-"{mysql,sqlite3}» contra la base de datos existente."
-
-#. Type: note
-#. Description
-#: ../opendnssec-common.templates:1001
-msgid ""
-"The enforcer does require a full migration, as the internal database has "
-"been completely revised.  See the upstream documentation in the /usr/share/"
-"opendnssec/1.4-2.0_db_convert/README.md for a description."
-msgstr ""
-"El ejecutor («enforcer») necesita una migración completa, ya que la base "
-"de datos interna ha sido completamente revisada. Consulte la documentación "
-"previa disponible en «/usr/share/opendnssec/1.4-2.0_db_convert/README.md» "
-"para una descripción detallada."
-
-#. Type: note
-#. Description
-#: ../opendnssec-common.templates:1001
-msgid ""
-"You should also review the documentation on the OpenDNSSEC site.  This can "
-"be updated in between releases to provide more help.  Especially if you have "
-"tooling around OpenDNSSEC you should be aware that some command line "
-"utilities have changed.  A fair amount of backward compatibility has been "
-"respected, but changes are present."
-msgstr ""
-"También debería consultar la documentación de la página de OpenDNSSEC ya que "
-"ha podido ser actualizada entre las versiones para ofrecer un mejor soporte. "
-"En particular, si ha desarrollado herramientas en torno a OpenDNSSEC, tenga "
-"en cuenta que han cambiado algunas utilidades en línea de órdenes. Se ha "
-"respetado una cantidad considerable de compatibilidad con versiones anteriores, "
-"pero hay modificaciones."
-
-#. Type: note
-#. Description
-#: ../opendnssec-common.templates:2001
 msgid "Manual OpenDNSSEC configuration required"
 msgstr "Se requiere una configuración manual de OpenDNSSEC"
 
 #. Type: note
 #. Description
-#: ../opendnssec-common.templates:2001
+#: ../opendnssec-common.templates:1001
 msgid ""
 "OpenDNSSEC requires manual configuration before the signer and enforcer "
 "daemons can be started."
@@ -84,22 +34,22 @@ msgstr ""
 
 #. Type: note
 #. Description
-#: ../opendnssec-common.templates:2001
+#: ../opendnssec-common.templates:1001
 msgid ""
 "One of these configuration steps consists of installing and configuring a "
 "Hardware Security Module (HSM) that will handle the cryptographic key "
 "operations. Most people will want to use the software HSM implementation "
 "provided by the recommended softhsm2 package, but other options are possible."
 msgstr ""
-"Una de las fases de configuración consiste en instalar y configurar el módulo "
-"de seguridad de hardware («Hardware Security Module - HSM») que gestionará "
-"las operaciones de clave criptográfica. La mayoría de los usuarios querrán "
-"utilizar la implementación del programa HSM que proporciona el paquete "
-"recomendado softhsm2, pero existen otras alternativas." 
+"Una de las fases de configuración consiste en instalar y configurar el "
+"módulo de seguridad de hardware («Hardware Security Module - HSM») que "
+"gestionará las operaciones de clave criptográfica. La mayoría de los "
+"usuarios querrán utilizar la implementación del programa HSM que proporciona "
+"el paquete recomendado softhsm2, pero existen otras alternativas."
 
 #. Type: note
 #. Description
-#: ../opendnssec-common.templates:2001
+#: ../opendnssec-common.templates:1001
 msgid ""
 "The file /etc/opendnssec/prevent-startup is created during fresh "
 "installations and prevents the daemons from being automatically started. You "
@@ -110,3 +60,41 @@ msgstr ""
 "instalaciones y evita que los demonios se inicien automáticamente. Debería "
 "eliminar este archivo e iniciar los demonios una vez que haya configurado "
 "OpenDNSSEC."
+
+#~ msgid "OpenDNSSEC 2.0.0 database and tools migration"
+#~ msgstr "Migración de base de datos y herramientas de OpenDNSSEC 2.0.0"
+
+#~ msgid ""
+#~ "There are two steps in the database migration.  If you are running "
+#~ "OpenDNSSEC 1.4.6 from Debian stable, you need to apply the SQL statements "
+#~ "from /usr/share/opendnssec/migrate_1_4_8.{mysql,sqlite3} against your "
+#~ "existing database."
+#~ msgstr ""
+#~ "La migración de la base de datos comprende dos fases. Si está ejecutando "
+#~ "OpenDNSSEC 1.4.6 en la versión estable de Debian, tendrá que aplicar las "
+#~ "sentencias SQL que se encuentran en «/usr/share/opendnssec/migrate_1_4_8."
+#~ "{mysql,sqlite3}» contra la base de datos existente."
+
+#~ msgid ""
+#~ "The enforcer does require a full migration, as the internal database has "
+#~ "been completely revised.  See the upstream documentation in the /usr/"
+#~ "share/opendnssec/1.4-2.0_db_convert/README.md for a description."
+#~ msgstr ""
+#~ "El ejecutor («enforcer») necesita una migración completa, ya que la base "
+#~ "de datos interna ha sido completamente revisada. Consulte la "
+#~ "documentación previa disponible en «/usr/share/"
+#~ "opendnssec/1.4-2.0_db_convert/README.md» para una descripción detallada."
+
+#~ msgid ""
+#~ "You should also review the documentation on the OpenDNSSEC site.  This "
+#~ "can be updated in between releases to provide more help.  Especially if "
+#~ "you have tooling around OpenDNSSEC you should be aware that some command "
+#~ "line utilities have changed.  A fair amount of backward compatibility has "
+#~ "been respected, but changes are present."
+#~ msgstr ""
+#~ "También debería consultar la documentación de la página de OpenDNSSEC ya "
+#~ "que ha podido ser actualizada entre las versiones para ofrecer un mejor "
+#~ "soporte. En particular, si ha desarrollado herramientas en torno a "
+#~ "OpenDNSSEC, tenga en cuenta que han cambiado algunas utilidades en línea "
+#~ "de órdenes. Se ha respetado una cantidad considerable de compatibilidad "
+#~ "con versiones anteriores, pero hay modificaciones."
