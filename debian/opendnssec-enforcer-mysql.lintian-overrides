@@ -1,1 +1,1 @@
-opendnssec-enforcer-mysql: no-manual-page usr/sbin/ods-migrate
+opendnssec-enforcer-mysql: no-manual-page [usr/sbin/ods-migrate]

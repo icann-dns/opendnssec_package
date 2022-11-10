@@ -1,1 +1,1 @@
-opendnssec-enforcer-sqlite3: no-manual-page usr/sbin/ods-migrate
+opendnssec-enforcer-sqlite3: no-manual-page [usr/sbin/ods-migrate]

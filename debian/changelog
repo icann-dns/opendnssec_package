@@ -1,3 +1,16 @@
+opendnssec (1:2.1.12-1) unstable; urgency=medium
+
+  * New upstream version 2.1.12
+  * patches: refresh, no material change
+  * control: bump policy to 4.6.1, no code change
+  * upstream/metadata: update the bug reporting URLs
+  * Remove antique (pre-2.0) migration scripts
+  * po/*: refresh via debconf-updatepo
+  * *.lintian-overrides: refresh
+  * upstream/signing-key.asc: update the expired key
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Thu, 10 Nov 2022 10:06:20 +0100
+
 opendnssec (1:2.1.10-1) unstable; urgency=medium
 
   * New upstream version 2.1.10
