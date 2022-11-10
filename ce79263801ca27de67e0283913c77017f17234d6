@@ -1,0 +1,8 @@
+  * New upstream version 2.1.12
+  * patches: refresh, no material change
+  * control: bump policy to 4.6.1, no code change
+  * upstream/metadata: update the bug reporting URLs
+  * Remove antique (pre-2.0) migration scripts
+  * po/*: refresh via debconf-updatepo
+  * *.lintian-overrides: refresh
+  * upstream/signing-key.asc: update the expired key
