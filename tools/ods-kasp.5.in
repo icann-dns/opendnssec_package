@@ -204,7 +204,7 @@ These values will override values set for the SOA record in the input zone.
 .B SOA TTL
 This is the time-to-live of the SOA record.
 .TP
-.B SOA MINIUM
+.B SOA MINIMUM
 This is value for the MINIMUM RDATA element in the SOA record.
 .TP
 .B SOA Serial
@@ -245,7 +245,7 @@ These are necessary to calculate the timings in particular rollover scenarios.
 .B SOA TTL
 This should be set to the time-to-live of the parent zone SOA record.
 .TP
-.B SOA MINIUM
+.B SOA MINIMUM
 This should be set to the value of the MINIMUM RDATA element in the parent zone SOA record.
 
 .SH "SEE ALSO"
