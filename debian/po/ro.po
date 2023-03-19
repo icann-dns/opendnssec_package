@@ -1,0 +1,70 @@
+# Mesajele în limba română pentru pachetul opendnssec.
+# Romanian translation of opendnssec.
+# Copyright © 2023 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the opendnssec package.
+#
+# Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 2023.
+#
+# Cronologia traducerii fișierului „opendnssec”:
+# Traducerea inițială, făcută de R-GC, pentru versiunea opendnssec 1 2.1.12-1(2022-11-01).
+# Actualizare a traducerii pentru versiunea Y, făcută de X, Y(anul).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: opendnssec 1 2.1.12-1\n"
+"Report-Msgid-Bugs-To: opendnssec@packages.debian.org\n"
+"POT-Creation-Date: 2022-11-01 10:21+0100\n"
+"PO-Revision-Date: 2023-03-11 23:16+0100\n"
+"Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
+"Language-Team: Romanian <debian-l10n-romanian@lists.debian.org>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n==0 || (n!=1 && n%100>=1 && "
+"n%100<=19) ? 1 : 2);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid "Manual OpenDNSSEC configuration required"
+msgstr "Este necesară configurarea manuală a OpenDNSSEC"
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"OpenDNSSEC requires manual configuration before the signer and enforcer daemons "
+"can be started."
+msgstr ""
+"OpenDNSSEC necesită să fie configurat manual înainte ca demonii de semnare "
+"«signer» și de executare «enforcer» să poată fi porniți."
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"One of these configuration steps consists of installing and configuring a "
+"Hardware Security Module (HSM) that will handle the cryptographic key "
+"operations. Most people will want to use the software HSM implementation "
+"provided by the recommended softhsm2 package, but other options are possible."
+msgstr ""
+"Unul dintre acești pași de configurare constă în instalarea și configurarea "
+"unui modul de securitate hardware („Hardware Security Module” - HSM) care va "
+"gestiona operațiile cheii criptografice. Majoritatea oamenilor vor dori să "
+"folosească implementarea software HSM furnizată de pachetul „softhsm2 "
+"recomandat”, dar sunt posibile și alte opțiuni."
+
+#. Type: note
+#. Description
+#: ../opendnssec-common.templates:1001
+msgid ""
+"The file /etc/opendnssec/prevent-startup is created during fresh installations "
+"and prevents the daemons from being automatically started. You should remove "
+"this file and start the daemons once you have configured OpenDNSSEC."
+msgstr ""
+"Fișierul „/etc/opendnssec/prevent-startup” este creat în timpul instalărilor "
+"noi și împiedică pornirea automată a demonilor. Ar trebui să eliminați acest "
+"fișier și să porniți demonii după ce ați configurat OpenDNSSEC."

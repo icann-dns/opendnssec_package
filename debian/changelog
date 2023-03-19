@@ -1,3 +1,11 @@
+opendnssec (1:2.1.12-2) unstable; urgency=medium
+
+  * control: bump policy to 4.6.2, no code change
+  * opendnssec-common.postinst: shellcheck compliance
+  * po/ro.po: Add Romanian translation (Closes: #1033174)
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Sun, 19 Mar 2023 09:33:29 +0100
+
 opendnssec (1:2.1.12-1) unstable; urgency=medium
 
   * New upstream version 2.1.12

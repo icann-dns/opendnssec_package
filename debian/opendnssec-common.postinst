@@ -11,10 +11,6 @@ set_perms() {
     fi
 }
 
-unset_perms() {
-    dpkg-statoverride --quiet --remove "$1" || true
-}
-
 disable_autostart() {
     cat <<-EOF > /etc/opendnssec/prevent-startup
 	OpenDNSSEC requires manual configuration before the signer and enforcer
@@ -48,10 +44,10 @@ case "$1" in
 	done
 
 	for conf in addns.xml conf.xml kasp.xml zonelist.xml; do
-	    ucf --debconf-ok /usr/share/opendnssec/$conf /etc/opendnssec/$conf
-	    ucfr opendnssec /etc/opendnssec/$conf
+	    ucf --debconf-ok /usr/share/opendnssec/"$conf" /etc/opendnssec/"$conf"
+	    ucfr opendnssec /etc/opendnssec/"$conf"
 	    [ "$conf" = "zonelist.xml" ] && owner=opendnssec || owner=root
-	    set_perms $owner opendnssec 0640 /etc/opendnssec/$conf
+	    set_perms "$owner" opendnssec 0640 /etc/opendnssec/"$conf"
 	done
 
 	# Prevent the daemons from being started automatically, but only on
