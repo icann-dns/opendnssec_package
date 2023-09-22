@@ -33,6 +33,12 @@
 #include "log.h"
 
 #include <mysql/mysql.h>
+
+/* Support building against MySQL. */
+#ifndef LIBMARIADB
+typedef char my_bool;
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
