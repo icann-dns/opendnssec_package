@@ -145,7 +145,8 @@ am_libcompat_a_OBJECTS = b64_ntop.$(OBJEXT) b64_pton.$(OBJEXT) \
 	datastructure.$(OBJEXT) scheduler/schedule.$(OBJEXT) \
 	scheduler/task.$(OBJEXT) scheduler/fifoq.$(OBJEXT) \
 	scheduler/worker.$(OBJEXT) scheduler/task.$(OBJEXT) \
-	cmdhandler.$(OBJEXT) janitor.$(OBJEXT)
+	utilities.$(OBJEXT) cmdhandler.$(OBJEXT) janitor.$(OBJEXT) \
+	longgetopt.$(OBJEXT)
 libcompat_a_OBJECTS = $(am_libcompat_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -167,10 +168,11 @@ am__depfiles_remade = ./$(DEPDIR)/b64_ntop.Po ./$(DEPDIR)/b64_pton.Po \
 	./$(DEPDIR)/datastructure.Po ./$(DEPDIR)/duration.Po \
 	./$(DEPDIR)/file.Po ./$(DEPDIR)/janitor.Po \
 	./$(DEPDIR)/locks.Po ./$(DEPDIR)/log.Po \
-	./$(DEPDIR)/privdrop.Po ./$(DEPDIR)/pselect.Po \
-	./$(DEPDIR)/status.Po ./$(DEPDIR)/str.Po \
-	./$(DEPDIR)/strlcat.Po ./$(DEPDIR)/strlcpy.Po \
-	./$(DEPDIR)/util.Po scheduler/$(DEPDIR)/fifoq.Po \
+	./$(DEPDIR)/longgetopt.Po ./$(DEPDIR)/privdrop.Po \
+	./$(DEPDIR)/pselect.Po ./$(DEPDIR)/status.Po \
+	./$(DEPDIR)/str.Po ./$(DEPDIR)/strlcat.Po \
+	./$(DEPDIR)/strlcpy.Po ./$(DEPDIR)/util.Po \
+	./$(DEPDIR)/utilities.Po scheduler/$(DEPDIR)/fifoq.Po \
 	scheduler/$(DEPDIR)/schedule.Po scheduler/$(DEPDIR)/task.Po \
 	scheduler/$(DEPDIR)/worker.Po
 am__mv = mv -f
@@ -473,8 +475,10 @@ libcompat_a_SOURCES = \
 	scheduler/fifoq.c scheduler/fifoq.h \
 	scheduler/worker.c scheduler/worker.h \
 	scheduler/task.c scheduler/task.h \
+	utilities.c utilities.h \
 	cmdhandler.c cmdhandler.h \
-	janitor.c janitor.h
+	janitor.c janitor.h \
+	longgetopt.c longgetopt.h
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -565,6 +569,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/janitor.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locks.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/longgetopt.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/privdrop.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pselect.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/status.Po@am__quote@ # am--include-marker
@@ -572,6 +577,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlcat.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlcpy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@scheduler/$(DEPDIR)/fifoq.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@scheduler/$(DEPDIR)/schedule.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@scheduler/$(DEPDIR)/task.Po@am__quote@ # am--include-marker
@@ -751,6 +757,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/janitor.Po
 	-rm -f ./$(DEPDIR)/locks.Po
 	-rm -f ./$(DEPDIR)/log.Po
+	-rm -f ./$(DEPDIR)/longgetopt.Po
 	-rm -f ./$(DEPDIR)/privdrop.Po
 	-rm -f ./$(DEPDIR)/pselect.Po
 	-rm -f ./$(DEPDIR)/status.Po
@@ -758,6 +765,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/strlcat.Po
 	-rm -f ./$(DEPDIR)/strlcpy.Po
 	-rm -f ./$(DEPDIR)/util.Po
+	-rm -f ./$(DEPDIR)/utilities.Po
 	-rm -f scheduler/$(DEPDIR)/fifoq.Po
 	-rm -f scheduler/$(DEPDIR)/schedule.Po
 	-rm -f scheduler/$(DEPDIR)/task.Po
@@ -817,6 +825,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/janitor.Po
 	-rm -f ./$(DEPDIR)/locks.Po
 	-rm -f ./$(DEPDIR)/log.Po
+	-rm -f ./$(DEPDIR)/longgetopt.Po
 	-rm -f ./$(DEPDIR)/privdrop.Po
 	-rm -f ./$(DEPDIR)/pselect.Po
 	-rm -f ./$(DEPDIR)/status.Po
@@ -824,6 +833,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/strlcat.Po
 	-rm -f ./$(DEPDIR)/strlcpy.Po
 	-rm -f ./$(DEPDIR)/util.Po
+	-rm -f ./$(DEPDIR)/utilities.Po
 	-rm -f scheduler/$(DEPDIR)/fifoq.Po
 	-rm -f scheduler/$(DEPDIR)/schedule.Po
 	-rm -f scheduler/$(DEPDIR)/task.Po

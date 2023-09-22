@@ -1,17 +1,17 @@
 From: Mathieu Mirmont <mat@parad0x.org>
 Date: Thu, 8 Oct 2020 00:19:01 +0200
 Subject: Use SQLITE3_SONAME macro to dlopen libsqlite3.so.*
-Forwarded: not-needed
 
+Forwarded: not-needed
 ---
  enforcer/src/ods-migrate.c | 9 +++------
  1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/enforcer/src/ods-migrate.c b/enforcer/src/ods-migrate.c
-index 49ce2a4..1ec2417 100644
+index 43a66ad..1035c92 100644
 --- a/enforcer/src/ods-migrate.c
 +++ b/enforcer/src/ods-migrate.c
-@@ -98,13 +98,10 @@ dblayer_sqlite3_initialize(void)
+@@ -91,13 +91,10 @@ dblayer_sqlite3_initialize(void)
      char const *error;
  
      dlerror();
