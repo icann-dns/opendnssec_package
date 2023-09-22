@@ -10,7 +10,7 @@ Subject: Fix minor build warnings
  4 files changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/common/scheduler/task.c b/common/scheduler/task.c
-index cfdbd2d..9c09dc1 100644
+index 4dcf9e9..3325a25 100644
 --- a/common/scheduler/task.c
 +++ b/common/scheduler/task.c
 @@ -39,6 +39,7 @@
@@ -22,7 +22,7 @@ index cfdbd2d..9c09dc1 100644
  
  static const char* task_str = "task";
 diff --git a/enforcer/src/daemon/engine.c b/enforcer/src/daemon/engine.c
-index 538aa74..259bc13 100644
+index 379fd03..0571a5b 100644
 --- a/enforcer/src/daemon/engine.c
 +++ b/enforcer/src/daemon/engine.c
 @@ -398,7 +398,7 @@ desetup_database(engine_type* engine)
@@ -42,7 +42,7 @@ index 538aa74..259bc13 100644
  }
  
  /**
-@@ -454,7 +453,7 @@ engine_setup()
+@@ -453,7 +452,7 @@ engine_setup()
      }
  
      /* create command handler (before chowning socket file) */
@@ -52,10 +52,10 @@ index 538aa74..259bc13 100644
          ods_log_error("[%s] create command handler to %s failed",
              engine_str, engine->config->clisock_filename);
 diff --git a/libhsm/src/lib/libhsm.c b/libhsm/src/lib/libhsm.c
-index 88dc79e..95ca0b2 100644
+index fedf32a..0d000cd 100644
 --- a/libhsm/src/lib/libhsm.c
 +++ b/libhsm/src/lib/libhsm.c
-@@ -3533,6 +3533,11 @@ hsm_get_error(hsm_ctx_t *gctx)
+@@ -3431,6 +3431,11 @@ hsm_get_error(hsm_ctx_t *gctx)
              "%s: %s",
              ctx->error_action ? ctx->error_action : "unknown()",
              ctx->error_message[0] ? ctx->error_message : "unknown error");

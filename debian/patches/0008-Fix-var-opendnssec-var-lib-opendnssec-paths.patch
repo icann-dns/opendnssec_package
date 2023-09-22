@@ -1,8 +1,8 @@
 From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Mon, 2 Jan 2017 15:59:27 +0100
 Subject: Fix /var/opendnssec -> /var/lib/opendnssec paths
-Forwarded: not-needed
 
+Forwarded: not-needed
 ---
  contrib/ods-sequencer/ods-sequencer           |  2 +-
  contrib/ods-sequencer/ods-sequencer-submit.sh |  2 +-
@@ -104,10 +104,10 @@ index be0618a..ec0d14f 100644
  .P
  .SH "DIAGNOSTICS"
 diff --git a/enforcer/src/keystate/zone_add_cmd.c b/enforcer/src/keystate/zone_add_cmd.c
-index 03170cd..3731f50 100644
+index a7ec9d2..da62a26 100644
 --- a/enforcer/src/keystate/zone_add_cmd.c
 +++ b/enforcer/src/keystate/zone_add_cmd.c
-@@ -74,11 +74,11 @@ help(int sockfd)
+@@ -75,11 +75,11 @@ help(int sockfd)
  	"\nOptions:\n"
          "zone		name of the zone\n"
          "policy		name of the policy, if not set the default policy is used\n"

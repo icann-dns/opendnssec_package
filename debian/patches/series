@@ -8,4 +8,3 @@
 0015-remove-strptime-build-warning.patch
 0016-m4-acx_libxml2.m4-use-pkg-config-instead-of-xml2-con.patch
 0017-mysql8_my_bool.patch
-0011-Fix-minor-typos.patch

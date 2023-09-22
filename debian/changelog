@@ -1,3 +1,10 @@
+opendnssec (1:2.1.13-1) unstable; urgency=medium
+
+  * New upstream version 2.1.13
+  * patches: refresh
+
+ -- Mathieu Mirmont <mat@parad0x.org>  Fri, 22 Sep 2023 17:22:55 +0200
+
 opendnssec (1:2.1.12-2) unstable; urgency=medium
 
   * control: bump policy to 4.6.2, no code change
