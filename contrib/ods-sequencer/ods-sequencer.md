@@ -162,7 +162,7 @@ of the recording and play-back of signing scenarios.
 Install it on both bunker and operational environments in a suitable
 location such as "/usr/sbin".
 
-On both sides create directory "/var/opendnssec/sequences", this directory
+On both sides create directory "/var/lib/opendnssec/sequences", this directory
 will contain the future scenarios.  This directory should be writable
 by the user that will control OpenDNSSEC.
 You should not place any files of your own here, the filenames in this
@@ -285,10 +285,10 @@ not be started, you can use a call to "ods-signer start" in stead of
 
 At this time the bunker environment is ready to use.  The operational
 environment also needs to get information on the zones present.
-Transfer the file /var/opendnssec/enforcer/zones.xml from the bunker
+Transfer the file /var/lib/opendnssec/enforcer/zones.xml from the bunker
 environment to the operational environment.  The normal unsigned
 zone file (in case of file based zone files) would normally go into
-/var/opendnssec/unsigned/example.com, but this is part of the normal
+/var/lib/opendnssec/unsigned/example.com, but this is part of the normal
 set-up of OpenDNSSEC.
 This concludes the set-up of both environments.  
 
@@ -306,19 +306,19 @@ program to generate scripts upto the specified time.  For example:
 
 Will generate (a lot) of signing scenarios upto the beginning of
 year 2020.  These signing configurations (signconf's) are placed in
-/var/opendnssec/sequences.
+/var/lib/opendnssec/sequences.
 When running this command for the first time, it will use the current
 time as starting point.  When having created previous snapshots, it will
 take off from the last generated signing configuration.
 You will notice the signing configurations generated in
-    /var/opendnssec/sequences
+    /var/lib/opendnssec/sequences
 are prefixed with a unix timestamp.  If you delete a series of signing
 configurations at the end of this time-line, you can force the signer
 to re-create a set of signing instructions.  This can be useful in
 case of an emergency roll over, where you need to intervene and abort
 a current scenario.
 
-Transfer the /var/opendnssec/sequences directory from the bunker
+Transfer the /var/lib/opendnssec/sequences directory from the bunker
 environment to the operational environment and place it in the same
 location.  Also replicate the ZSK PKCS#11 key repository from the bunker
 environment to the operational environment.  It suffices to only replicate
