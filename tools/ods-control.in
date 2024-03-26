@@ -37,6 +37,7 @@ case "$1" in
 'hsm')
 	shift
 	"$bindir/ods-hsmutil" $@
+	exit $?
 	;;
 
 'signer')
@@ -66,9 +67,15 @@ case "$1" in
 		
 		exit $RETVAL
 		;;
+	stop)
+		echo "Stopping signer engine.."
+		"$sbindir/ods-signer" stop
+		exit $?
+		;;
 	*)
 		shift
 		"$sbindir/ods-signer" "$@"
+		exit $?
 		;;
 
 	esac
@@ -106,6 +113,7 @@ case "$1" in
 	*)
 		shift
 		"$sbindir/ods-enforcer" "$@"
+		exit $?
 		;;
 
 	esac
@@ -126,12 +134,19 @@ case "$1" in
 'stop')
 	echo "Stopping enforcer.."
 	"$0" enforcer stop
+	RETVAL_E=$?
 	echo "Stopping signer engine..."
 	"$0" signer stop
+	RETVAL_S=$?
+	if [ $RETVAL_E != 0 ]; then
+	    exit $RETVAL_E
+	fi
+	exit $RETVAL_S
 	;;
 
 *)
 	echo "usage: $progname hsm|signer|enforcer|start|stop ..."
+	exit 3
 	;;
 
 esac
