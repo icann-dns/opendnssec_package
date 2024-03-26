@@ -1,3 +1,11 @@
+opendnssec (1:2.1.13-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix FTBFS due to missing utilities.h include for the clamp declaration
+    (Closes: #1066479): 0018-fix-missing-include.patch
+
+ -- Cyril Brulebois <cyril@debamax.com>  Tue, 26 Mar 2024 14:27:44 +0100
+
 opendnssec (1:2.1.13-1) unstable; urgency=medium
 
   * New upstream version 2.1.13
