@@ -1,0 +1,3 @@
+  * Non-maintainer upload.
+  * Fix FTBFS due to missing utilities.h include for the clamp declaration
+    (Closes: #1066479): 0018-fix-missing-include.patch
