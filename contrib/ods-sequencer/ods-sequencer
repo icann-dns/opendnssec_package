@@ -6,7 +6,7 @@
 
 my $INSTALL_ROOT = "/";
 my $SYSTEM_LOG = "/var/log/messages";
-my $LOG_FILE = "/var/opendnssec/ods-sequencer.log";
+my $LOG_FILE = "/var/lib/opendnssec/ods-sequencer.log";
 my $ZONE_NAME = "example.com";
 my $verbose = 0;
 
