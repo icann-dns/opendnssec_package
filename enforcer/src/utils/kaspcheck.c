@@ -31,6 +31,10 @@
 
 #include "config.h"
 
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
 #include "kc_helper.h"
 
 #include <libxml/parser.h>
