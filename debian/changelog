@@ -1,3 +1,10 @@
+opendnssec (1:2.1.13-1.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix FTBFS due to implicit function declaration, Closes: #1078033
+
+ -- Reinhard Tartler <siretart@tauware.de>  Fri, 16 Aug 2024 06:46:33 -0400
+
 opendnssec (1:2.1.13-1.1) unstable; urgency=medium
 
   * Non-maintainer upload.
