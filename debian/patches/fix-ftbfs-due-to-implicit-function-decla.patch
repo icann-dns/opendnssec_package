@@ -1,0 +1,38 @@
+From: Niko Tyni <ntyni@debian.org>
+Date: Fri, 16 Aug 2024 06:48:48 -0400
+X-Dgit-Generated: 1:2.1.13-1.2 0e39cb1ab1181467c9a630d622b41702756e4eb8
+Subject: Fix FTBFS due to implicit function declaration, Closes: #1078033
+
+
+---
+
+diff --git a/enforcer/src/utils/kaspcheck.c b/enforcer/src/utils/kaspcheck.c
+index 9bac3b79..2fefd3c2 100644
+--- a/enforcer/src/utils/kaspcheck.c
++++ b/enforcer/src/utils/kaspcheck.c
+@@ -31,6 +31,10 @@
+ 
+ #include "config.h"
+ 
++#ifdef HAVE_STDLIB_H
++#include <stdlib.h>
++#endif
++
+ #include "kc_helper.h"
+ 
+ #include <libxml/parser.h>
+diff --git a/enforcer/src/utils/kc_helper.c b/enforcer/src/utils/kc_helper.c
+index 72d181fa..f4b9f469 100644
+--- a/enforcer/src/utils/kc_helper.c
++++ b/enforcer/src/utils/kc_helper.c
+@@ -44,6 +44,10 @@
+ #include <libxml/xpathInternals.h>
+ #include <libxml/relaxng.h>
+ 
++#ifdef HAVE_STDLIB_H
++#include <stdlib.h>
++#endif
++
+ #define StrFree(ptr) {if(ptr != NULL) {free(ptr); (ptr) = NULL;}}
+ 
+ int kc_helper_printto_stdout = 0;

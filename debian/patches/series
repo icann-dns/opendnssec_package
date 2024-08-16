@@ -9,3 +9,4 @@
 0016-m4-acx_libxml2.m4-use-pkg-config-instead-of-xml2-con.patch
 0017-mysql8_my_bool.patch
 0018-fix-missing-include.patch
+fix-ftbfs-due-to-implicit-function-decla.patch
