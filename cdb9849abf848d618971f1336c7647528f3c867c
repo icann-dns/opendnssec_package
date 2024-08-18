@@ -1,0 +1,2 @@
+  * Non-maintainer upload.
+  * Fix FTBFS due to implicit function declaration, Closes: #1078033
