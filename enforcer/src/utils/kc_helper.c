@@ -44,6 +44,10 @@
 #include <libxml/xpathInternals.h>
 #include <libxml/relaxng.h>
 
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
 #define StrFree(ptr) {if(ptr != NULL) {free(ptr); (ptr) = NULL;}}
 
 int kc_helper_printto_stdout = 0;
