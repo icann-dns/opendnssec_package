@@ -1,10 +1,10 @@
-From: Andreas Hasenack <andreas@canonical.com>
+From: Andreas Hasenack <andreas@canonical.com>, Gianfranco Costamagna <locutusofborg@debian.org>
 Date: Mon, 16 Aug 2021 02:46:08 +0200
 Subject: Reintroduce my_bool to fix build with MySQL 8
 
 Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/gambas3/+bug/1863026
 Forwarded: no
-Last-Update: 2020-02-12
+Last-Update: 2024-08-20
 ---
  enforcer/src/db/db_backend_mysql.c | 6 ++++++
  1 file changed, 6 insertions(+)
@@ -20,7 +20,7 @@ index a3d43f2..9f5f825 100644
 +
 +/* Support building against MySQL. */
 +#ifndef LIBMARIADB
-+typedef char my_bool;
++typedef _Bool my_bool;
 +#endif
 +
  #include <stdlib.h>

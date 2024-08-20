@@ -36,7 +36,7 @@
 
 /* Support building against MySQL. */
 #ifndef LIBMARIADB
-typedef char my_bool;
+typedef _Bool my_bool;
 #endif
 
 #include <stdlib.h>
