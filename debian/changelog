@@ -1,3 +1,9 @@
+opendnssec (1:2.1.13-1.2ubuntu1) oracular; urgency=medium
+
+  * Fixup my_bool patch for mysql compatibility
+
+ -- Gianfranco Costamagna <locutusofborg@debian.org>  Tue, 20 Aug 2024 08:51:59 +0200
+
 opendnssec (1:2.1.13-1.2) unstable; urgency=medium
 
   * Non-maintainer upload.
