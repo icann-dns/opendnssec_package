@@ -1,3 +1,9 @@
+opendnssec (1:2.1.13-1.2ubuntu2) plucky; urgency=medium
+
+  * No-change rebuild against mysql-8.4 and libmysqlclient24 (LP: #2089059)
+
+ -- Lena Voytek <lena.voytek@canonical.com>  Wed, 05 Feb 2025 15:49:02 -0500
+
 opendnssec (1:2.1.13-1.2ubuntu1) oracular; urgency=medium
 
   * Fixup my_bool patch for mysql compatibility
