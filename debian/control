@@ -1,7 +1,8 @@
 Source: opendnssec
 Section: admin
 Priority: optional
-Maintainer: Mathieu Mirmont <mat@parad0x.org>
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Mathieu Mirmont <mat@parad0x.org>
 Uploaders: Timo Aaltonen <tjaalton@debian.org>
 Build-Depends:
                debhelper-compat (= 13),
