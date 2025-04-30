@@ -5,7 +5,7 @@ Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 XSBC-Original-Maintainer: Mathieu Mirmont <mat@parad0x.org>
 Uploaders: Timo Aaltonen <tjaalton@debian.org>
 Build-Depends:
-               debhelper-compat (= 13),
+               debhelper (>= 12),
                default-libmysqlclient-dev,
                default-mysql-client,
                dh-runit,

@@ -26,6 +26,7 @@ override_dh_auto_clean:
 	dh_auto_clean -Denforcer -Bbuild-mysql/enforcer
 	debconf-updatepo
 	rm -rf build-mysql build-sqlite3
+	rm -f .github/workflows/release.yml
 
 COMMON = --disable-rpath --with-ldns=/usr \
 	 --with-cunit=/usr --libexecdir=/usr/lib/opendnssec/ \
